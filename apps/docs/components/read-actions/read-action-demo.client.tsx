@@ -4,6 +4,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import { Segment } from "@thenamespace/uikit/segment";
 
+import { track } from "../analytics/client";
+import { errorCategory, safeUrl } from "../analytics/events";
 import { ClientOnly } from "../client-only.client";
 import { ResultCodeBlock } from "../code/result-code-block";
 import { FormRenderer } from "../form/form-renderer";
@@ -79,6 +81,12 @@ function ReadActionDemoContent({ action }: ReadActionDemoProps) {
       : undefined;
 
   const selectNetwork = (nextNetwork: Network) => {
+    if (nextNetwork !== network)
+      track("docs_playground_network_changed", {
+        action,
+        network: nextNetwork,
+        previous_network: network,
+      });
     execution.current += 1;
     setNetwork(nextNetwork);
     globalThis.localStorage?.setItem("ensforge-demo-network", nextNetwork);
@@ -93,6 +101,15 @@ function ReadActionDemoContent({ action }: ReadActionDemoProps) {
     execution.current = currentExecution;
     setError(undefined);
     setIsRunning(true);
+    const startedAt = performance.now();
+    const runId = crypto.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    const analytics = {
+      action,
+      network,
+      run_id: runId,
+      $current_url: safeUrl(window.location.href),
+    };
+    track("docs_playground_started", analytics);
 
     try {
       const sdk = await getSdk(network);
@@ -100,7 +117,16 @@ function ReadActionDemoContent({ action }: ReadActionDemoProps) {
       if (execution.current === currentExecution) {
         setResult({ json: stringifyResult(nextResult), value: nextResult });
       }
+      track("docs_playground_completed", {
+        ...analytics,
+        duration_ms: Math.round(performance.now() - startedAt),
+      });
     } catch (cause) {
+      track("docs_playground_failed", {
+        ...analytics,
+        duration_ms: Math.round(performance.now() - startedAt),
+        error_category: errorCategory(cause),
+      });
       if (execution.current === currentExecution) {
         setResult(undefined);
         setError(errorMessage(cause));

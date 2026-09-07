@@ -4,6 +4,8 @@
     "build": {
       "dependsOn": ["^build"],
       "env": [
+        "VITE_POSTHOG_KEY",
+        "VITE_POSTHOG_HOST",
         "VITE_ENSFORGE_MAINNET_RPC_URL",
         "VITE_ENSFORGE_SEPOLIA_RPC_URL",
         "VITE_WALLETCONNECT_PROJECT_ID",

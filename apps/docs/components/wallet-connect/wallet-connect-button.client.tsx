@@ -4,6 +4,8 @@ import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { Avatar } from "@thenamespace/uikit/avatar";
 import { Button } from "@thenamespace/uikit/button";
 
+import { track } from "../analytics/client";
+
 const shortenAddress = (address: string): string => `${address.slice(0, 6)}…${address.slice(-4)}`;
 
 const walletButtonClassName = "h-8 min-w-max rounded-xl px-3 text-[0.8125rem] font-semibold";
@@ -47,7 +49,10 @@ export function WalletConnectButton() {
                 className={walletButtonClassName}
                 size="sm"
                 variant="primary"
-                onPress={openConnectModal}
+                onPress={() => {
+                  track("docs_wallet_connect_clicked");
+                  openConnectModal();
+                }}
               >
                 Connect
               </Button>

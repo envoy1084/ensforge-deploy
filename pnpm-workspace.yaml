@@ -30,6 +30,7 @@ catalog:
 
 allowBuilds:
   bufferutil: true
+  core-js: false
   es5-ext: true
   esbuild: true
   keccak: true
