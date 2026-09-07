@@ -80,18 +80,14 @@ const ToggleInputField = ({ draft, field, onChange }: RenderFieldProps) => {
   if (field.control !== "toggle" || typeof draft !== "boolean") return null;
 
   return (
-    <Switch isSelected={draft} onChange={onChange}>
-      <Switch.Control>
-        <Switch.Thumb />
-      </Switch.Control>
-      <Switch.Content>
+    <Switch className="w-full" isSelected={draft} size="sm" onChange={onChange}>
+      <Switch.Content className="w-full justify-between gap-3">
         <span className="font-medium">{field.label}</span>
-        {field.description ? (
-          <span className="block text-xs text-[var(--vocs-text-color-secondary)]">
-            {field.description}
-          </span>
-        ) : null}
+        <Switch.Control>
+          <Switch.Thumb />
+        </Switch.Control>
       </Switch.Content>
+      {field.description ? <Description>{field.description}</Description> : null}
     </Switch>
   );
 };
