@@ -70,9 +70,9 @@ Reports in project `598348`:
 - [Playground reliability](https://us.posthog.com/project/598348/dashboard/2073575): demand,
   completion/failure counts, error categories, latency, networks, and wallet connection intent.
 
-Run `pnpm --filter @ensforge/docs test` for analytics regression tests. After deploying with the key,
+After deploying with the key,
 verify `/i/v0/e/` requests (or the SDK's current event endpoint) use the configured proxy and that
-events appear in PostHog. Local tests mock delivery and never seed fake production events.
+events appear in PostHog.
 
 ## Authoring reference pages
 
