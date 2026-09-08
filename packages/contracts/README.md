@@ -47,6 +47,15 @@ ABIs such as `ensRegistryV1Abi` remain available for advanced use and event proc
 
 Package entrypoints include `deployments`, `resolver-profiles`, `shared`, `v1`, and `v2`.
 
+## Sepolia V2 snapshot
+
+Sepolia V2 addresses and the 32 complete deployed-contract ABIs were checked against the
+[`post-audit-2` deployment artifacts](https://github.com/ensdomains/contracts-v2/tree/d0c902eeb388c7fbde3f95d9eaf6076eeedff1d7/contracts/deployments/sepolia)
+at commit `d0c902eeb388c7fbde3f95d9eaf6076eeedff1d7`. The JSON artifacts define the deployed addresses
+and ABIs; compiling source from the same commit can produce newer contracts. The exported HCA
+funding validator, authorizer, and interfaces have no standalone deployment JSON in this snapshot
+and are not additional verified Sepolia deployments.
+
 ## License
 
 Apache-2.0
