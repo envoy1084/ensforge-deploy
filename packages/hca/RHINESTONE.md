@@ -101,7 +101,7 @@ The destination validator enables sessions through HCA owner calls. Rhinestone's
 `experimental_getSessionDetails` / `experimental_signEnableSession` flow targets Smart Session
 Emissary and is not needed for this already-enabled destination path. This integration therefore uses SDK
 permission IDs and execution signatures with core on-chain enablement. Atomic first-use owner
-proofs and source-account authorization remain future workflow/funding work.
+proofs remain future work. Independent EOA funding uses a separate source Permit2 authorization.
 
 The equivalent core methods are `enableHcaSession`, `enableHcaSessionWithRefund`, and
 `isHcaSessionEnabled` (also `.request` for batching). Enable actions return transaction submission
@@ -168,5 +168,10 @@ Local proofs use the pinned devnet contracts, actual patched SDK signatures and 
 submits to the local signature-checking executor. Anvil's chain is added to the SDK registry only in
 the temporary proof harness. No hosted Rhinestone credentials are used. Hosted Sepolia routing,
 relayer settlement and real gas reimbursement still require a credentialed smoke test before release.
-Pimlico owner UserOperations, registration orchestration, source funding and cross-chain execution
-remain planned integrations.
+Pimlico owner UserOperations and same-chain registration are implemented separately. Independent
+EOA funding has its own route manifest and proof requirements described below.
+
+## Independent funding
+
+The concrete adapter also exposes `execution.crossChain`. See [FUNDING.md](./FUNDING.md) for the
+explicit EOA/Permit2 funding flow and its route verification boundary. Registration remains same-chain.

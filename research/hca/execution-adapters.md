@@ -248,10 +248,10 @@ const execution = rhinestone(options);
 const preparedSession = await execution.extensions.sessions.prepare(sdk.config, sessionRequest);
 await execution.extensions.sessions.enable(sdk.config, preparedSession);
 
-// Proposed independent funding API; not shipped yet.
+// Independent EOA/Permit2 funding with an explicitly reviewed route manifest.
 const quote = await execution.crossChain.quoteFunding(sdk.config, fundingRequest);
-const funding = await execution.crossChain.fund(sdk.config, { quote });
-await execution.crossChain.waitForFunding(sdk.config, { funding });
+await execution.crossChain.fund(sdk.config, { quote, storage });
+await execution.crossChain.waitForFunding(sdk.config, { id: fundingRequest.id, storage });
 // Now run an ordinary same-chain HCA action, using any compatible execution adapter.
 ```
 
@@ -357,9 +357,11 @@ phase exit criteria live in the [main TODO plan](../hca-integration.md#8-phased-
 
 ## Independent funding boundary
 
-The concrete Rhinestone adapter will expose `execution.crossChain` directly when implemented.
+The concrete Rhinestone adapter exposes `execution.crossChain` directly for configured EOA/Permit2 routes.
 Pimlico and the shared `ExecutionAdapter` need no cross-chain methods. Source funding must settle
 before the application invokes ordinary destination registration. The funding adapter and subsequent
 execution adapter can differ. P5 storage contains no bridge route and makes no source transaction.
-Use a separate funding record for claims, settlement, and recovery. This is the accepted P6 design;
+Use a separate funding record for claims, settlement, and recovery in the same `HcaStorage` backend,
+under a distinct namespace. See [the shipped funding API](../../packages/hca/FUNDING.md).
+Public manifests and hosted settlement proofs remain release gates;
 older combined funding-and-registration sketches are superseded.

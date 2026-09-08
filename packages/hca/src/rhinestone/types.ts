@@ -9,6 +9,8 @@ import type {
 import type { RhinestoneSDK } from "@rhinestone/sdk";
 import type { Account, Chain, Hex } from "viem";
 
+import type { RhinestoneCrossChainOptions } from "./cross-chain/types.js";
+
 export interface RhinestoneOptions {
   readonly profile: HcaDeploymentProfile;
   readonly chain: Chain;
@@ -17,6 +19,7 @@ export interface RhinestoneOptions {
   readonly sessionSalt?: Hex;
   readonly sdk: ConstructorParameters<typeof RhinestoneSDK>[0];
   readonly policy?: HcaExecutionPolicy;
+  readonly crossChain?: RhinestoneCrossChainOptions;
   /** Destination execution is sponsored unless a bounded refund is explicitly requested. */
   readonly sponsored?: boolean;
 }

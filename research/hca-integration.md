@@ -501,12 +501,18 @@ Exit: end-to-end same-chain registration can resume without losing state or doub
 
 - [ ] Verify standalone funding of the destination HCA through each supported source/token route.
 - [ ] Verify source funding validators, account versions, tokens, and settlement infrastructure.
-- [ ] Expose typed `execution.crossChain.quoteFunding`, `fund`, `getFundingStatus`, and `waitForFunding`.
-- [ ] Implement source account setup and funding authorization with explicit spending/permit limits.
-- [ ] Persist independent funding identifiers; reconcile source claims and destination funding.
-- [ ] Provide recovery, cancellation, and allowance/session cleanup only where actually supported.
-- [ ] Demonstrate funding through Rhinestone followed by ordinary same-chain HCA registration.
-- [ ] Keep P5 and the common execution interface independent of funding providers.
+- [x] Expose typed `execution.crossChain.quoteFunding`, `fund`, `getFundingStatus`, and `waitForFunding`.
+- [x] Implement explicit EOA/Permit2 funding authorization and exact approval calls; reject unverified source account generations.
+- [x] Persist independent funding identifiers in the shared namespaced HCA store; inspect source debits and destination credits separately.
+- [x] Provide identifier recovery, local pre-submission cancellation, and explicit Permit2 nonce/allowance cleanup calls.
+- [x] Demonstrate the local EOA funding flow followed by ordinary registration with one shared store.
+- [x] Keep registration and the common execution interface independent of funding providers.
+
+Implemented the bounded EOA/ERC-20 Permit2 path. See [FUNDING.md](../packages/hca/FUNDING.md)
+and [STORAGE.md](../packages/hca/STORAGE.md). No public route manifest is enabled by default.
+Local signature/receipt proofs use a mock source RPC and orchestrator; hosted settlement and source
+contract proofs remain unchecked above. Status observes token movements and does not authenticate
+an intent ID against the signed mandate or prove cross-chain finality.
 
 Exit: verified funding routes can fund an HCA independently of the ENS action or execution adapter
 used afterwards. Registration never automatically bridges or launches source-chain operations.

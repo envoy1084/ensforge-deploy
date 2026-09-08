@@ -19,6 +19,8 @@ import { keccak256, stringToHex, zeroAddress } from "viem";
 import { createExecutionAdapter } from "../create-execution-adapter.js";
 import type { TypedExecutionAdapter } from "../types.js";
 import { createRhinestoneHca, sessionFor } from "./account.js";
+import { createRhinestoneCrossChain } from "./cross-chain/index.js";
+import type { RhinestoneCrossChain } from "./cross-chain/types.js";
 import { reviewRoute } from "./route.js";
 import { createRhinestoneSessions } from "./sessions.js";
 import type {
@@ -42,11 +44,23 @@ export type RhinestoneExecutionAdapter = TypedExecutionAdapter<
   RhinestoneExecutionPayload,
   RhinestoneSubmissionPayload,
   { readonly sessions: RhinestoneSessions }
->;
+> & { readonly crossChain: RhinestoneCrossChain };
 
 /** A destination-session adapter for the recorded standalone HCA generation. */
 export const rhinestone = (input: RhinestoneOptions): RhinestoneExecutionAdapter => {
-  const options = { ...input, profile: structuredClone(input.profile) };
+  const options = {
+    ...input,
+    profile: structuredClone(input.profile),
+    ...(input.crossChain === undefined
+      ? {}
+      : {
+          crossChain: {
+            ...input.crossChain,
+            routes: structuredClone(input.crossChain.routes),
+            sourceClients: { ...input.crossChain.sourceClients },
+          },
+        }),
+  };
 
   if (options.chain.id !== options.profile.deployment.chainId)
     throw new HcaError({
@@ -153,7 +167,7 @@ export const rhinestone = (input: RhinestoneOptions): RhinestoneExecutionAdapter
     });
   };
 
-  return createExecutionAdapter({
+  const adapter = createExecutionAdapter({
     id: "rhinestone",
     chainId: options.chain.id,
     profileId: options.profile.generation.id,
@@ -392,4 +406,6 @@ export const rhinestone = (input: RhinestoneOptions): RhinestoneExecutionAdapter
       }),
     ),
   });
+
+  return Object.freeze({ ...adapter, crossChain: createRhinestoneCrossChain(options, sdk) });
 };

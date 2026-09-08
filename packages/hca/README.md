@@ -9,7 +9,9 @@ This package supplies typed execution contracts, persistence and the
 and first-operation deployment. Root and Pimlico imports do not load Rhinestone.
 
 The [resumable registration guide](REGISTRATION.md) covers the existing `sdk.hca` workflow actions,
-caller-owned storage, spending limits, and recovery.
+caller-owned storage, spending limits, and recovery. Use one [shared HCA storage backend](STORAGE.md)
+for registration and [independent Rhinestone funding](FUNDING.md). Funding supports explicitly
+reviewed EOA/Permit2 routes; no public source route is enabled by default.
 
 ## Using an adapter
 

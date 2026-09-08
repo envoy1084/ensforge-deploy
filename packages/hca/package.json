@@ -25,7 +25,9 @@
     "patches",
     "RHINESTONE.md",
     "PIMLICO.md",
-    "REGISTRATION.md"
+    "REGISTRATION.md",
+    "STORAGE.md",
+    "FUNDING.md"
   ],
   "type": "module",
   "sideEffects": false,
