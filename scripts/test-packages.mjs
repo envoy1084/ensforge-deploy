@@ -64,7 +64,7 @@ const writeLocalPackageOverrides = (projectDirectory) => {
   );
 };
 
-const packageNames = ["contracts", "core", "sdk", "react"];
+const packageNames = ["contracts", "core", "sdk", "react", "hca"];
 const tarballs = Object.fromEntries(
   packageNames.map((packageName) => [packageName, join(tarballDirectory, `${packageName}.tgz`)]),
 );
@@ -96,6 +96,7 @@ try {
           "@ensforge/contracts": fileDependency(nodeProject, tarballs.contracts),
           "@ensforge/core": fileDependency(nodeProject, tarballs.core),
           "@ensforge/sdk": fileDependency(nodeProject, tarballs.sdk),
+          "@ensforge/hca": fileDependency(nodeProject, tarballs.hca),
           effect: catalogVersion("effect"),
           viem: catalogVersion("viem"),
         },
@@ -131,6 +132,10 @@ try {
     `import { mainnetV1Deployment } from "@ensforge/contracts/deployments";
 import { createConfig, getOwner } from "@ensforge/core";
 import { Ensforge } from "@ensforge/sdk";
+import { createMemoryWorkflowStorage } from "@ensforge/core/storage";
+import { createIndexedDbWorkflowStorage } from "@ensforge/core/storage/browser";
+import { createExecutionAdapter } from "@ensforge/hca";
+import { createHcaRemoteHandler } from "@ensforge/hca/remote";
 import type { GetOwnerParameters } from "@ensforge/sdk/name";
 import type { SetTextParameters } from "@ensforge/sdk/records";
 import { createPublicClient, http } from "viem";
@@ -146,6 +151,10 @@ const setTextParameters = {
   value: "https://ens.domains",
 } satisfies SetTextParameters;
 
+void createMemoryWorkflowStorage;
+void createIndexedDbWorkflowStorage;
+void createExecutionAdapter;
+void createHcaRemoteHandler;
 void mainnetV1Deployment.contracts.registry;
 void getOwner.request(ownerParameters);
 void config.network;
@@ -160,6 +169,10 @@ void sdk.records.setText.call;
 import { mainnetV1Deployment } from "@ensforge/contracts/deployments";
 import { createConfig, getOwner } from "@ensforge/core";
 import { Ensforge } from "@ensforge/sdk";
+import { createMemoryWorkflowStorage } from "@ensforge/core/storage";
+import { createIndexedDbWorkflowStorage } from "@ensforge/core/storage/browser";
+import { createExecutionAdapter } from "@ensforge/hca";
+import { createHcaRemoteHandler } from "@ensforge/hca/remote";
 import { createPublicClient, http } from "viem";
 import { mainnet } from "viem/chains";
 
@@ -168,6 +181,11 @@ const config = createConfig({ network: "mainnet", publicClient });
 const sdk = new Ensforge({ network: "mainnet", publicClient });
 
 assert.equal(config.network, "mainnet");
+assert.equal(typeof createExecutionAdapter, "function");
+assert.equal(typeof createHcaRemoteHandler, "function");
+assert.equal(createMemoryWorkflowStorage().kind, "workflow-storage");
+const browserStorage = createIndexedDbWorkflowStorage();
+await browserStorage.close();
 assert.equal(typeof getOwner, "function");
 assert.equal(typeof sdk.name.getOwner, "function");
 assert.match(mainnetV1Deployment.contracts.registry, /^0x[0-9a-fA-F]{40}$/);
@@ -241,7 +259,7 @@ assert.match(mainnetV1Deployment.contracts.registry, /^0x[0-9a-fA-F]{40}$/);
       join(reactProject, "src/main.tsx"),
       `import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { EnsforgeProvider, useOwner, useSetText } from "@ensforge/react";
+import { EnsforgeProvider, useOwner, useSetText, useStartHcaRegistration } from "@ensforge/react";
 import { createConfig, http } from "wagmi";
 import { mainnet } from "viem/chains";
 
@@ -253,6 +271,12 @@ const wagmiConfig = createConfig({
 const Profile = () => {
   const owner = useOwner({ name: "ens.eth" });
   const setText = useSetText();
+  const registration = useStartHcaRegistration();
+  const registrationStatus: string | undefined = registration.data?.progress.status;
+  void registrationStatus;
+  // @ts-expect-error HCA registration requires typed inputs, not arbitrary values.
+  const invalid: Parameters<typeof registration.mutate>[0] = "invalid";
+  void invalid;
 
   return (
     <button
@@ -276,9 +300,75 @@ createRoot(document.getElementById("root")!).render(
     );
   }
 
-  for (const project of [nodeProject, ...reactProjects.map(({ directory }) => directory)]) {
+  const providerProjects = [
+    { provider: "pimlico", dependency: "permissionless", version: "0.4.0" },
+    { provider: "rhinestone", dependency: "@rhinestone/sdk", version: "1.8.0" },
+  ].map(({ provider, dependency, version }) => {
+    const directory = join(temporaryRoot, `${provider}-consumer`);
+    const manifest = JSON.parse(readFileSync(join(nodeProject, "package.json"), "utf8"));
+    manifest.name = `ensforge-${provider}-consumer`;
+    for (const packageName of ["contracts", "core", "sdk", "hca"])
+      manifest.dependencies[`@ensforge/${packageName}`] = fileDependency(
+        directory,
+        tarballs[packageName],
+      );
+    manifest.dependencies[dependency] = version;
+    write(join(directory, "package.json"), JSON.stringify(manifest, null, 2));
+    write(
+      join(directory, "tsconfig.json"),
+      readFileSync(join(nodeProject, "tsconfig.json"), "utf8"),
+    );
+    write(
+      join(directory, "index.ts"),
+      `import { ${provider} } from "@ensforge/hca/${provider}";
+void ${provider};
+`,
+    );
+    write(
+      join(directory, "index.mjs"),
+      `import assert from "node:assert/strict";
+import { ${provider} } from "@ensforge/hca/${provider}";
+assert.equal(typeof ${provider}, "function");
+`,
+    );
+    return { directory, provider };
+  });
+
+  for (const project of [
+    nodeProject,
+    ...reactProjects.map(({ directory }) => directory),
+    ...providerProjects.map(({ directory }) => directory),
+  ]) {
     writeLocalPackageOverrides(project);
+    if (
+      providerProjects.some(
+        ({ directory, provider }) => directory === project && provider === "rhinestone",
+      )
+    ) {
+      const patch = readFileSync(
+        join(repositoryRoot, "packages/hca/patches/rhinestone-sdk-1.8.0.patch"),
+        "utf8",
+      );
+      write(join(project, "patches/rhinestone-sdk-1.8.0.patch"), patch);
+      const workspace = join(project, "pnpm-workspace.yaml");
+      write(
+        workspace,
+        `${readFileSync(workspace, "utf8")}\npatchedDependencies:\n  "@rhinestone/sdk@1.8.0": patches/rhinestone-sdk-1.8.0.patch\n`,
+      );
+    }
     run("pnpm", ["install", "--prefer-offline"], project);
+    if (
+      providerProjects.some(
+        ({ directory, provider }) => directory === project && provider === "rhinestone",
+      )
+    )
+      assert.equal(
+        readFileSync(
+          join(project, "node_modules/@ensforge/hca/patches/rhinestone-sdk-1.8.0.patch"),
+          "utf8",
+        ),
+        readFileSync(join(project, "patches/rhinestone-sdk-1.8.0.patch"), "utf8"),
+      );
     run("pnpm", ["check"], project);
   }
 } finally {
