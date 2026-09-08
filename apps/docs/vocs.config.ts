@@ -74,6 +74,7 @@ export default defineConfig({
   topNav: [
     { link: "/react/getting-started", text: "React" },
     { link: "/sdk/getting-started", text: "SDK" },
+    { link: "/hca/getting-started", text: "HCA" },
     { link: "/core/getting-started", text: "Core" },
     { link: "/contracts/getting-started", text: "Contracts" },
     {

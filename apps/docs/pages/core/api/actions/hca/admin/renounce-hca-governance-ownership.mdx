@@ -1,0 +1,101 @@
+---
+title: renounceHcaGovernanceOwnership
+description: Renounce ownership of a supported HCA governance contract.
+---
+
+import EffectGuide from "../../../../../../shared/core/effect.mdx";
+import ErrorGuide from "../../../../../../shared/core/error.mdx";
+
+# renounceHcaGovernanceOwnership
+
+Renounce ownership of a supported HCA governance contract.
+
+## Import
+
+```ts
+import { renounceHcaGovernanceOwnership } from "@ensforge/core/hca/admin";
+```
+
+## Usage
+
+:::code-group
+
+```ts [index.ts]
+import { renounceHcaGovernanceOwnership } from "@ensforge/core/hca/admin";
+import { config } from "./config";
+
+type Input = Parameters<typeof renounceHcaGovernanceOwnership>[1];
+declare const parameters: Input;
+
+const result = await renounceHcaGovernanceOwnership(config, parameters);
+```
+
+```ts [config.ts]
+// [!include ~/snippets/hca/config.ts]
+```
+
+:::
+
+This targets HCA governance contracts. It does not transfer or renounce the immutable account owner.
+
+## Parameters
+
+```ts
+type Input = Parameters<typeof renounceHcaGovernanceOwnership>[1];
+```
+
+### confirmation
+
+`{ readonly type: "submitted"; } | { readonly type: "confirmed"; readonly timeout?: number | undefined; readonly confirmations?: number | undefined; }`
+
+Receipt confirmation policy.
+
+### walletClient
+
+`Input["walletClient"]`
+
+Viem wallet override. Defaults to the configured wallet resolver.
+
+### account
+
+`` `0x${string}` | Account | undefined ``
+
+Wallet account override for the operation.
+
+### target
+
+`HcaGovernanceTarget`
+
+Governance contract to inspect or modify.
+
+## Return Type
+
+```ts
+type Result = Awaited<ReturnType<typeof renounceHcaGovernanceOwnership>>;
+```
+
+Returns `HcaManagementResult`.
+
+## Effect
+
+<EffectGuide />
+
+```ts
+import { Effect } from "effect";
+
+const program = renounceHcaGovernanceOwnership.effect(config, parameters);
+type Success = Effect.Success<typeof program>;
+type Failure = Effect.Error<typeof program>;
+const result = await Effect.runPromise(program);
+```
+
+## Error
+
+<ErrorGuide />
+
+Deployment, account and authorization mismatches remain explicit errors. Reconcile uncertain submissions before retrying a write.
+
+## Related
+
+- [`renounceHcaGovernanceOwnership`](/sdk/api/hca/admin/renounce-hca-governance-ownership)
+- [Guide](/core/guides/hca)

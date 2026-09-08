@@ -1,0 +1,117 @@
+---
+title: withdrawHcaDeposit
+description: Use the validated owner self-call withdrawal route.
+---
+
+import EffectGuide from "../../../../../shared/core/effect.mdx";
+import ErrorGuide from "../../../../../shared/core/error.mdx";
+
+# withdrawHcaDeposit
+
+Use the validated owner self-call withdrawal route.
+
+## Import
+
+```ts
+import { withdrawHcaDeposit } from "@ensforge/core/hca";
+```
+
+## Usage
+
+:::code-group
+
+```ts [index.ts]
+import { withdrawHcaDeposit } from "@ensforge/core/hca";
+import { config } from "./config";
+
+type Input = Parameters<typeof withdrawHcaDeposit>[1];
+declare const parameters: Input;
+
+const result = await withdrawHcaDeposit(config, parameters);
+```
+
+```ts [config.ts]
+// [!include ~/snippets/hca/config.ts]
+```
+
+:::
+
+## Parameters
+
+```ts
+type Input = Parameters<typeof withdrawHcaDeposit>[1];
+```
+
+### hca
+
+`` `0x${string}` ``
+
+HCA address to inspect or operate on.
+
+### salt
+
+`bigint | undefined`
+
+Account derivation salt. Defaults to the deployment profile canonical salt.
+
+### confirmation
+
+`{ readonly type: "submitted"; } | { readonly type: "confirmed"; readonly timeout?: number | undefined; readonly confirmations?: number | undefined; }`
+
+Receipt confirmation policy.
+
+### walletClient
+
+`Input["walletClient"]`
+
+Viem wallet override. Defaults to the configured wallet resolver.
+
+### account
+
+`` `0x${string}` | Account | undefined ``
+
+Wallet account override for the operation.
+
+### amount
+
+`bigint`
+
+Native token amount in wei.
+
+### to
+
+`` `0x${string}` ``
+
+Destination address.
+
+## Return Type
+
+```ts
+type Result = Awaited<ReturnType<typeof withdrawHcaDeposit>>;
+```
+
+Returns `HcaManagementResult`.
+
+## Effect
+
+<EffectGuide />
+
+```ts
+import { Effect } from "effect";
+
+const program = withdrawHcaDeposit.effect(config, parameters);
+type Success = Effect.Success<typeof program>;
+type Failure = Effect.Error<typeof program>;
+const result = await Effect.runPromise(program);
+```
+
+## Error
+
+<ErrorGuide />
+
+Deployment, account and authorization mismatches remain explicit errors. Reconcile uncertain submissions before retrying a write.
+
+## Related
+
+- [`withdrawHcaDeposit`](/sdk/api/hca/withdraw-hca-deposit)
+- [Guide](/core/guides/hca)

@@ -9,6 +9,7 @@ const groupLoaders = {
   capabilities: () => import("./groups/capabilities"),
   dns: () => import("./groups/dns"),
   events: () => import("./groups/events"),
+  hca: () => import("./groups/hca"),
   indexer: () => import("./groups/indexer"),
   migration: () => import("./groups/migration"),
   name: () => import("./groups/name"),

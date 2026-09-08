@@ -27,6 +27,8 @@ export default defineConfig({
     resolution: "src/actions/resolution/index.ts",
     reverse: "src/actions/reverse/index.ts",
     subnames: "src/actions/subnames/index.ts",
+    storage: "src/storage/index.ts",
+    "storage/browser": "src/storage/browser.ts",
     testing: "src/testing/index.ts",
     wagmi: "src/wagmi/index.ts",
     wrapping: "src/actions/wrapping/index.ts",

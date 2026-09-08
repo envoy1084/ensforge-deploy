@@ -1,0 +1,100 @@
+---
+title: useRevokeHcaSessions
+description: Revoke existing sessions using the account nonce
+---
+
+# useRevokeHcaSessions
+
+Revoke existing sessions using the account nonce Uses the SDK from `EnsforgeProvider`.
+
+## Import
+
+```tsx
+import { useRevokeHcaSessions } from "@ensforge/react";
+```
+
+## Usage
+
+:::code-group
+
+```tsx [component.tsx]
+import { useRevokeHcaSessions } from "@ensforge/react";
+
+function Component({
+  parameters,
+}: {
+  parameters: Parameters<ReturnType<typeof useRevokeHcaSessions>["mutate"]>[0];
+}) {
+  const mutation = useRevokeHcaSessions();
+  return (
+    <button disabled={mutation.isWaiting} onClick={() => mutation.mutate(parameters)}>
+      Run
+    </button>
+  );
+}
+```
+
+```tsx [provider.tsx]
+// [!include ~/snippets/hca/provider.tsx]
+```
+
+:::
+
+## Parameters
+
+Pass operation parameters to `mutate`, `mutateAsync` or `mutateEffect`. Hook options accept `onExit` and an explicit retry policy.
+
+```ts
+type Input = Parameters<ReturnType<typeof useRevokeHcaSessions>["mutate"]>[0];
+```
+
+### hca
+
+`` `0x${string}` ``
+
+HCA address to inspect or operate on.
+
+### salt
+
+`bigint | undefined`
+
+Account derivation salt. Defaults to the deployment profile canonical salt.
+
+### confirmation
+
+`{ readonly type: "submitted"; } | { readonly type: "confirmed"; readonly timeout?: number | undefined; readonly confirmations?: number | undefined; }`
+
+Receipt confirmation policy.
+
+### walletClient
+
+`Input["walletClient"]`
+
+Viem wallet override. Defaults to the configured wallet resolver.
+
+### account
+
+`` `0x${string}` | Account | undefined ``
+
+Wallet account override for the operation.
+
+## Return Type
+
+```ts
+type Result = ReturnType<typeof useRevokeHcaSessions>;
+```
+
+The mutation exposes `data`, `error`, `isWaiting`, `result`, execution methods, `reset` and `interrupt`. Interruption stops local work; it does not undo a broadcast or revoke a session. See [Mutation Hooks](/react/guides/mutations).
+
+## Effect Atom
+
+```ts
+import { createRevokeHcaSessionsMutationAtom } from "@ensforge/react/atoms";
+
+const atom = createRevokeHcaSessionsMutationAtom(sdk);
+```
+
+## Action
+
+- [`revokeHcaSessions`](/core/api/actions/hca/revoke-hca-sessions)
+- [`sdk.hca.revokeHcaSessions`](/sdk/api/hca/revoke-hca-sessions)

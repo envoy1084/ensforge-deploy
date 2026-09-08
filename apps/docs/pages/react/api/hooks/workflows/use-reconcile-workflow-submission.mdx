@@ -1,0 +1,100 @@
+---
+title: useReconcileWorkflowSubmission
+description: Attach a recovered transaction hash after verifying the saved submission intent.
+---
+
+# useReconcileWorkflowSubmission
+
+Attach a recovered transaction hash after verifying the saved submission intent. Uses the SDK from `EnsforgeProvider`.
+
+## Import
+
+```tsx
+import { useReconcileWorkflowSubmission } from "@ensforge/react";
+```
+
+## Usage
+
+:::code-group
+
+```tsx [component.tsx]
+import { useReconcileWorkflowSubmission } from "@ensforge/react";
+
+function Component({
+  parameters,
+}: {
+  parameters: Parameters<ReturnType<typeof useReconcileWorkflowSubmission>["mutate"]>[0];
+}) {
+  const mutation = useReconcileWorkflowSubmission();
+  return (
+    <button disabled={mutation.isWaiting} onClick={() => mutation.mutate(parameters)}>
+      Run
+    </button>
+  );
+}
+```
+
+```tsx [provider.tsx]
+// [!include ~/snippets/hca/provider.tsx]
+```
+
+:::
+
+## Parameters
+
+Pass operation parameters to `mutate`, `mutateAsync` or `mutateEffect`. Hook options accept `onExit` and an explicit retry policy.
+
+```ts
+type Input = Parameters<ReturnType<typeof useReconcileWorkflowSubmission>["mutate"]>[0];
+```
+
+### walletClient
+
+`Input["walletClient"]`
+
+Viem wallet override. Defaults to the configured wallet resolver.
+
+### account
+
+`` `0x${string}` | Account | undefined ``
+
+Wallet account override for the operation.
+
+### workflowId
+
+`string`
+
+Existing saved workflow instance ID.
+
+### submissionId
+
+`string`
+
+Submission key from getWorkflow().submissions.
+
+### transactionHash
+
+`` `0x${string}` ``
+
+Recovered on-chain transaction hash to verify.
+
+## Return Type
+
+```ts
+type Result = ReturnType<typeof useReconcileWorkflowSubmission>;
+```
+
+The mutation exposes `data`, `error`, `isWaiting`, `result`, execution methods, `reset` and `interrupt`. Interruption stops local work; it does not undo a broadcast or revoke a session. See [Mutation Hooks](/react/guides/mutations).
+
+## Effect Atom
+
+```ts
+import { createReconcileWorkflowSubmissionMutationAtom } from "@ensforge/react/atoms";
+
+const atom = createReconcileWorkflowSubmissionMutationAtom(sdk);
+```
+
+## Action
+
+- [`reconcileWorkflowSubmission`](/core/api/actions/workflows/reconcile-workflow-submission)
+- [`sdk.workflows.reconcileWorkflowSubmission`](/sdk/api/workflows/reconcile-workflow-submission)

@@ -1,0 +1,110 @@
+---
+title: waitForHcaExecution
+description: Wait for execution with bounded polling.
+---
+
+import EffectGuide from "../../../../shared/sdk/effect.mdx";
+import ErrorGuide from "../../../../shared/sdk/error.mdx";
+
+# waitForHcaExecution
+
+Wait for execution with bounded polling.
+
+## Import
+
+```ts
+import { Ensforge } from "@ensforge/sdk";
+```
+
+## Usage
+
+:::code-group
+
+```ts [index.ts]
+import { sdk } from "./client";
+
+type Input = Parameters<typeof sdk.hca.waitForHcaExecution>[0];
+declare const parameters: Input;
+
+const result = await sdk.hca.waitForHcaExecution(parameters);
+```
+
+```ts [client.ts]
+// [!include ~/snippets/hca/client.ts]
+```
+
+:::
+
+## Parameters
+
+```ts
+type Input = Parameters<typeof sdk.hca.waitForHcaExecution>[0];
+```
+
+### confirmations
+
+`number | undefined`
+
+Required receipt confirmations.
+
+### timeout
+
+`number | undefined`
+
+Maximum time to wait, in milliseconds.
+
+### pollingInterval
+
+`number | undefined`
+
+Initial status polling interval, in milliseconds.
+
+### maxPollingInterval
+
+`number | undefined`
+
+Upper bound for the status polling interval, in milliseconds.
+
+### submission
+
+`HcaExecutionSubmission<unknown>`
+
+Previously returned or explicitly recovered execution submission.
+
+### execution
+
+`ExecutionAdapter<unknown, unknown, unknown> | undefined`
+
+Compatible execution adapter. Omit for direct owner execution when supported.
+
+## Return Type
+
+```ts
+type Result = Awaited<ReturnType<typeof sdk.hca.waitForHcaExecution>>;
+```
+
+Returns `HcaExecutionStatus`.
+
+## Effect
+
+<EffectGuide />
+
+```ts
+import { Effect } from "effect";
+
+const program = sdk.hca.waitForHcaExecution.effect(parameters);
+type Success = Effect.Success<typeof program>;
+type Failure = Effect.Error<typeof program>;
+const result = await Effect.runPromise(program);
+```
+
+## Error
+
+<ErrorGuide />
+
+Deployment, account and authorization mismatches remain explicit errors. Reconcile uncertain submissions before retrying a write.
+
+## Related
+
+- [`waitForHcaExecution`](/core/api/actions/hca/wait-for-hca-execution)
+- [Guide](/core/guides/hca)

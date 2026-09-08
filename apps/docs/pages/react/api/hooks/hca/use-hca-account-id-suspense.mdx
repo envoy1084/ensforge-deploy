@@ -1,0 +1,86 @@
+---
+title: useHcaAccountIdSuspense
+description: Read the account implementation identifier
+---
+
+import ParametersGuide from "../../../../../shared/react/suspense-atom-parameters.mdx";
+import ResultGuide from "../../../../../shared/react/suspense-atom-result.mdx";
+import { ReadActionDemo } from "../../../../../components/read-actions/read-action-demo.client.tsx";
+
+# useHcaAccountIdSuspense
+
+Read the account implementation identifier Uses the SDK from `EnsforgeProvider`.
+
+## Import
+
+```tsx
+import { useHcaAccountIdSuspense } from "@ensforge/react";
+```
+
+## Usage
+
+:::code-group
+
+```tsx [component.tsx]
+import { useHcaAccountIdSuspense } from "@ensforge/react";
+
+function Component(parameters: Parameters<typeof useHcaAccountIdSuspense>[0]) {
+  const result = useHcaAccountIdSuspense(parameters);
+  return <p>{result.isWaiting ? "Loading" : "Result available"}</p>;
+}
+```
+
+```tsx [provider.tsx]
+// [!include ~/snippets/hca/provider.tsx]
+```
+
+:::
+
+<ReadActionDemo action="hca.getHcaAccountId" />
+
+## Parameters
+
+```ts
+type Input = Parameters<typeof useHcaAccountIdSuspense>[0];
+```
+
+### blockNumber
+
+`bigint | undefined`
+
+Block number to read. Cannot be combined with blockTag.
+
+### blockTag
+
+`BlockTag | undefined`
+
+Named block state to read. Cannot be combined with blockNumber.
+
+### hca
+
+`` `0x${string}` ``
+
+HCA address to inspect or operate on.
+
+<ParametersGuide />
+
+## Return Type
+
+```ts
+type Result = ReturnType<typeof useHcaAccountIdSuspense>;
+```
+
+<ResultGuide />
+
+## Effect Atom
+
+```ts
+import { getHcaAccountIdAtom } from "@ensforge/react/atoms";
+
+const atom = getHcaAccountIdAtom(sdk, parameters, options);
+```
+
+## Action
+
+- [`getHcaAccountId`](/core/api/actions/hca/get-hca-account-id)
+- [`sdk.hca.getHcaAccountId`](/sdk/api/hca/get-hca-account-id)

@@ -1,0 +1,90 @@
+---
+title: useHcaEntryPoint
+description: Read the EntryPoint address
+---
+
+import ParametersGuide from "../../../../../shared/react/atom-parameters.mdx";
+import ResultGuide from "../../../../../shared/react/atom-result.mdx";
+import { ReadActionDemo } from "../../../../../components/read-actions/read-action-demo.client.tsx";
+
+# useHcaEntryPoint
+
+Read the EntryPoint address Uses the SDK from `EnsforgeProvider`.
+
+## Import
+
+```tsx
+import { useHcaEntryPoint } from "@ensforge/react";
+```
+
+## Usage
+
+:::code-group
+
+```tsx [component.tsx]
+import { useHcaEntryPoint } from "@ensforge/react";
+
+function Component(parameters: Parameters<typeof useHcaEntryPoint>[0]) {
+  const result = useHcaEntryPoint(parameters);
+  return <p>{result.isWaiting ? "Loading" : "Result available"}</p>;
+}
+```
+
+```tsx [provider.tsx]
+// [!include ~/snippets/hca/provider.tsx]
+```
+
+:::
+
+<ReadActionDemo action="hca.getHcaEntryPoint" />
+
+## Parameters
+
+```ts
+type Input = Parameters<typeof useHcaEntryPoint>[0];
+```
+
+### blockNumber
+
+`bigint | undefined`
+
+Block number to read. Cannot be combined with blockTag.
+
+### blockTag
+
+`BlockTag | undefined`
+
+Named block state to read. Cannot be combined with blockNumber.
+
+### hca
+
+`` `0x${string}` ``
+
+HCA address to inspect or operate on.
+
+<ParametersGuide />
+
+## Return Type
+
+```ts
+type Result = ReturnType<typeof useHcaEntryPoint>;
+```
+
+<ResultGuide />
+
+## Suspense
+
+Use [`useHcaEntryPointSuspense`](/react/api/hooks/hca/use-hca-entry-point-suspense) beneath Suspense and an error boundary.
+
+## Effect Atom
+
+```ts
+import { getHcaEntryPointAtom } from "@ensforge/react/atoms";
+
+const atom = getHcaEntryPointAtom(sdk, parameters, options);
+```
+
+## Action
+
+- [`getHcaEntryPoint`](/core/api/actions/hca/get-hca-entry-point)
+- [`sdk.hca.getHcaEntryPoint`](/sdk/api/hca/get-hca-entry-point)

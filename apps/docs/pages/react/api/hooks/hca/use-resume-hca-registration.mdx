@@ -1,0 +1,112 @@
+---
+title: useResumeHcaRegistration
+description: Advance saved registration with explicit review/recovery inputs
+---
+
+# useResumeHcaRegistration
+
+Advance saved registration with explicit review/recovery inputs Uses the SDK from `EnsforgeProvider`.
+
+## Import
+
+```tsx
+import { useResumeHcaRegistration } from "@ensforge/react";
+```
+
+## Usage
+
+:::code-group
+
+```tsx [component.tsx]
+import { useResumeHcaRegistration } from "@ensforge/react";
+
+function Component({
+  parameters,
+}: {
+  parameters: Parameters<ReturnType<typeof useResumeHcaRegistration>["mutate"]>[0];
+}) {
+  const mutation = useResumeHcaRegistration();
+  return (
+    <button disabled={mutation.isWaiting} onClick={() => mutation.mutate(parameters)}>
+      Run
+    </button>
+  );
+}
+```
+
+```tsx [provider.tsx]
+// [!include ~/snippets/hca/provider.tsx]
+```
+
+:::
+
+## Parameters
+
+Pass operation parameters to `mutate`, `mutateAsync` or `mutateEffect`. Hook options accept `onExit` and an explicit retry policy.
+
+```ts
+type Input = Parameters<ReturnType<typeof useResumeHcaRegistration>["mutate"]>[0];
+```
+
+### limits
+
+`Input["limits"]`
+
+Accepted registration price and per-chain execution fee bounds.
+
+### authorization
+
+``{ readonly kind: "owner"; } | { readonly kind: "session"; readonly permissionId: `0x${string}`; readonly enableTransactionHash: `0x${string}`; } | undefined``
+
+Owner authorization or an enabled destination session.
+
+### signerReference
+
+`string | undefined`
+
+Protected application reference used to resolve a persistent session signer.
+
+### submission
+
+`HcaExecutionSubmission | undefined`
+
+Previously returned or explicitly recovered execution submission.
+
+### id
+
+`string`
+
+Saved operation identifier. Start registration can generate it from matching unfinished work.
+
+### storage
+
+`WorkflowStorage | HcaRegistrationStorage | undefined`
+
+Optional storage override. Defaults to config storage.
+
+### execution
+
+`HcaRegistrationExecution | undefined`
+
+Compatible execution adapter. Omit for direct owner execution when supported.
+
+## Return Type
+
+```ts
+type Result = ReturnType<typeof useResumeHcaRegistration>;
+```
+
+The mutation exposes `data`, `error`, `isWaiting`, `result`, execution methods, `reset` and `interrupt`. Interruption stops local work; it does not undo a broadcast or revoke a session. See [Mutation Hooks](/react/guides/mutations).
+
+## Effect Atom
+
+```ts
+import { createResumeHcaRegistrationMutationAtom } from "@ensforge/react/atoms";
+
+const atom = createResumeHcaRegistrationMutationAtom(sdk);
+```
+
+## Action
+
+- [`resumeHcaRegistration`](/core/api/actions/hca/resume-hca-registration)
+- [`sdk.hca.resumeHcaRegistration`](/sdk/api/hca/resume-hca-registration)

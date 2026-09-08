@@ -1,0 +1,186 @@
+---
+title: startHcaRegistration
+description: Persist and start or auto-resume registration.
+---
+
+import EffectGuide from "../../../../../shared/core/effect.mdx";
+import ErrorGuide from "../../../../../shared/core/error.mdx";
+
+# startHcaRegistration
+
+Persist and start or auto-resume registration.
+
+## Import
+
+```ts
+import { startHcaRegistration } from "@ensforge/core/hca";
+```
+
+## Usage
+
+:::code-group
+
+```ts [index.ts]
+import { startHcaRegistration } from "@ensforge/core/hca";
+import { config } from "./config";
+
+type Input = Parameters<typeof startHcaRegistration>[1];
+declare const parameters: Input;
+
+const result = await startHcaRegistration(config, parameters);
+```
+
+```ts [config.ts]
+// [!include ~/snippets/hca/config.ts]
+```
+
+:::
+
+## Parameters
+
+```ts
+type Input = Parameters<typeof startHcaRegistration>[1];
+```
+
+### id
+
+`string | undefined`
+
+Saved operation identifier. Start registration can generate it from matching unfinished work.
+
+### hca
+
+`` `0x${string}` ``
+
+HCA address to inspect or operate on.
+
+### salt
+
+`bigint | undefined`
+
+Account derivation salt. Defaults to the deployment profile canonical salt.
+
+### name
+
+`string`
+
+ENS name. The action normalizes it before interaction.
+
+### duration
+
+`bigint`
+
+Registration duration in seconds.
+
+### resolver
+
+`` `0x${string}` ``
+
+Resolver address used by the registration or session policy.
+
+### paymentToken
+
+`` `0x${string}` ``
+
+Registration payment token. Amounts use its base units.
+
+### subregistry
+
+`` `0x${string}` | undefined ``
+
+Subregistry assigned by the registration.
+
+### referrer
+
+`` `0x${string}` | undefined ``
+
+Protocol referral identifier.
+
+### primaryName
+
+`boolean | undefined`
+
+Whether to include the supported primary-name operation.
+
+### authorization
+
+``{ readonly kind: "owner"; } | { readonly kind: "session"; readonly permissionId: `0x${string}`; readonly enableTransactionHash: `0x${string}`; }``
+
+Owner authorization or an enabled destination session.
+
+### signerReference
+
+`string | undefined`
+
+Protected application reference used to resolve a persistent session signer.
+
+### limits
+
+`Input["limits"]`
+
+Accepted registration price and per-chain execution fee bounds.
+
+### storage
+
+`WorkflowStorage | HcaRegistrationStorage | undefined`
+
+Optional storage override. Defaults to config storage.
+
+### execution
+
+`HcaRegistrationExecution | undefined`
+
+Compatible execution adapter. Omit for direct owner execution when supported.
+
+## Return Type
+
+```ts
+type Result = Awaited<ReturnType<typeof startHcaRegistration>>;
+```
+
+Common result properties are shown below. Narrow discriminated unions before accessing status-specific fields.
+
+- `authorization`: ``{ readonly kind: "owner"; } | { readonly kind: "session"; readonly permissionId: `0x${string}`; readonly enableTransactionHash: `0x${string}`; }``.
+- `id`: `string`.
+- `chainId`: `number`.
+- `owner`: `` `0x${string}` ``.
+- `profileId`: `string`.
+- `salt`: `bigint`.
+- `hca`: `` `0x${string}` ``.
+- `registration`: `Result["registration"]`.
+- `schemaVersion`: `1`.
+- `route`: `{ readonly kind: "owner"; } | { readonly kind: "adapter"; readonly id: string; readonly instanceId: string; }`.
+- `revision`: `number`.
+- `limits`: `Result["limits"]`.
+- `progress`: `Result["progress"]`.
+- `createdAt`: `bigint`.
+- `updatedAt`: `bigint`.
+- `signerReference`: `string | undefined`.
+- `commitmentSubmission`: `Result["commitmentSubmission"]`.
+- `registrationSubmission`: `Result["registrationSubmission"]`.
+
+Registration results contain a commitment secret. Do not log or render the whole operation. Use [remote progress](/hca/remote) for a public response.
+
+## Effect
+
+<EffectGuide />
+
+```ts
+import { Effect } from "effect";
+
+const program = startHcaRegistration.effect(config, parameters);
+type Success = Effect.Success<typeof program>;
+type Failure = Effect.Error<typeof program>;
+const result = await Effect.runPromise(program);
+```
+
+## Error
+
+<ErrorGuide />
+
+Deployment, account and authorization mismatches remain explicit errors. Reconcile uncertain submissions before retrying a write.
+
+## Related
+
+- [`startHcaRegistration`](/sdk/api/hca/start-hca-registration)
+- [Guide](/core/guides/hca-registration)

@@ -1,0 +1,90 @@
+---
+title: useHcaDeposit
+description: Read the EntryPoint deposit balance
+---
+
+import ParametersGuide from "../../../../../shared/react/atom-parameters.mdx";
+import ResultGuide from "../../../../../shared/react/atom-result.mdx";
+import { ReadActionDemo } from "../../../../../components/read-actions/read-action-demo.client.tsx";
+
+# useHcaDeposit
+
+Read the EntryPoint deposit balance Uses the SDK from `EnsforgeProvider`.
+
+## Import
+
+```tsx
+import { useHcaDeposit } from "@ensforge/react";
+```
+
+## Usage
+
+:::code-group
+
+```tsx [component.tsx]
+import { useHcaDeposit } from "@ensforge/react";
+
+function Component(parameters: Parameters<typeof useHcaDeposit>[0]) {
+  const result = useHcaDeposit(parameters);
+  return <p>{result.isWaiting ? "Loading" : "Result available"}</p>;
+}
+```
+
+```tsx [provider.tsx]
+// [!include ~/snippets/hca/provider.tsx]
+```
+
+:::
+
+<ReadActionDemo action="hca.getHcaDeposit" />
+
+## Parameters
+
+```ts
+type Input = Parameters<typeof useHcaDeposit>[0];
+```
+
+### blockNumber
+
+`bigint | undefined`
+
+Block number to read. Cannot be combined with blockTag.
+
+### blockTag
+
+`BlockTag | undefined`
+
+Named block state to read. Cannot be combined with blockNumber.
+
+### hca
+
+`` `0x${string}` ``
+
+HCA address to inspect or operate on.
+
+<ParametersGuide />
+
+## Return Type
+
+```ts
+type Result = ReturnType<typeof useHcaDeposit>;
+```
+
+<ResultGuide />
+
+## Suspense
+
+Use [`useHcaDepositSuspense`](/react/api/hooks/hca/use-hca-deposit-suspense) beneath Suspense and an error boundary.
+
+## Effect Atom
+
+```ts
+import { getHcaDepositAtom } from "@ensforge/react/atoms";
+
+const atom = getHcaDepositAtom(sdk, parameters, options);
+```
+
+## Action
+
+- [`getHcaDeposit`](/core/api/actions/hca/get-hca-deposit)
+- [`sdk.hca.getHcaDeposit`](/sdk/api/hca/get-hca-deposit)

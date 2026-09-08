@@ -68,6 +68,7 @@
   },
   "dependencies": {
     "@effect/atom-react": "catalog:",
+    "@ensforge/core": "workspace:*",
     "@ensforge/sdk": "workspace:*"
   },
   "devDependencies": {

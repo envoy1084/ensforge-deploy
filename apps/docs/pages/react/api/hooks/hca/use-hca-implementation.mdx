@@ -1,0 +1,90 @@
+---
+title: useHcaImplementation
+description: Read the implementation
+---
+
+import ParametersGuide from "../../../../../shared/react/atom-parameters.mdx";
+import ResultGuide from "../../../../../shared/react/atom-result.mdx";
+import { ReadActionDemo } from "../../../../../components/read-actions/read-action-demo.client.tsx";
+
+# useHcaImplementation
+
+Read the implementation Uses the SDK from `EnsforgeProvider`.
+
+## Import
+
+```tsx
+import { useHcaImplementation } from "@ensforge/react";
+```
+
+## Usage
+
+:::code-group
+
+```tsx [component.tsx]
+import { useHcaImplementation } from "@ensforge/react";
+
+function Component(parameters: Parameters<typeof useHcaImplementation>[0]) {
+  const result = useHcaImplementation(parameters);
+  return <p>{result.isWaiting ? "Loading" : "Result available"}</p>;
+}
+```
+
+```tsx [provider.tsx]
+// [!include ~/snippets/hca/provider.tsx]
+```
+
+:::
+
+<ReadActionDemo action="hca.getHcaImplementation" />
+
+## Parameters
+
+```ts
+type Input = Parameters<typeof useHcaImplementation>[0];
+```
+
+### blockNumber
+
+`bigint | undefined`
+
+Block number to read. Cannot be combined with blockTag.
+
+### blockTag
+
+`BlockTag | undefined`
+
+Named block state to read. Cannot be combined with blockNumber.
+
+### hca
+
+`` `0x${string}` ``
+
+HCA address to inspect or operate on.
+
+<ParametersGuide />
+
+## Return Type
+
+```ts
+type Result = ReturnType<typeof useHcaImplementation>;
+```
+
+<ResultGuide />
+
+## Suspense
+
+Use [`useHcaImplementationSuspense`](/react/api/hooks/hca/use-hca-implementation-suspense) beneath Suspense and an error boundary.
+
+## Effect Atom
+
+```ts
+import { getHcaImplementationAtom } from "@ensforge/react/atoms";
+
+const atom = getHcaImplementationAtom(sdk, parameters, options);
+```
+
+## Action
+
+- [`getHcaImplementation`](/core/api/actions/hca/get-hca-implementation)
+- [`sdk.hca.getHcaImplementation`](/sdk/api/hca/get-hca-implementation)

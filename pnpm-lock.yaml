@@ -206,6 +206,21 @@ importers:
         specifier: 2.19.5
         version: 2.19.5(@tanstack/query-core@5.102.8)(@tanstack/react-query@5.102.8(react@19.2.8))(@types/react@19.2.18)(@x402/core@2.24.0)(@x402/evm@2.24.0(bufferutil@4.1.0)(typescript@6.0.3)(utf-8-validate@5.0.10))(@x402/extensions@2.24.0(bufferutil@4.1.0)(typescript@6.0.3)(utf-8-validate@5.0.10))(@x402/svm@2.24.0(@solana/kit@5.5.1(bufferutil@4.1.0)(typescript@6.0.3)(utf-8-validate@5.0.10))(@solana/sysvars@5.5.1(typescript@6.0.3)))(bufferutil@4.1.0)(immer@11.1.18)(react@19.2.8)(typescript@6.0.3)(utf-8-validate@5.0.10)(viem@2.56.0(bufferutil@4.1.0)(typescript@6.0.3)(utf-8-validate@5.0.10)(zod@3.25.76))(zod@3.25.76)
     devDependencies:
+      '@ensforge/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
+      '@ensforge/hca':
+        specifier: workspace:*
+        version: link:../../packages/hca
+      '@ensforge/react':
+        specifier: workspace:*
+        version: link:../../packages/react
+      '@ensforge/test-env':
+        specifier: workspace:*
+        version: link:../../packages/test-env
+      '@rhinestone/sdk':
+        specifier: 1.8.0
+        version: 1.8.0(patch_hash=358b2302ad360224b413b87d3492e2029434cc50ecfc03ed6414ef17fcba2f11)(express@5.2.1)(jose@6.2.10)(typescript@6.0.3)(viem@2.56.0(bufferutil@4.1.0)(typescript@6.0.3)(utf-8-validate@5.0.10)(zod@3.25.76))
       '@tailwindcss/vite':
         specifier: 4.3.3
         version: 4.3.3(vite@8.0.16(@types/node@24.13.3)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.22.4)(yaml@2.9.0))
@@ -218,6 +233,9 @@ importers:
       '@types/react-dom':
         specifier: 'catalog:'
         version: 19.2.3(@types/react@19.2.18)
+      permissionless:
+        specifier: 0.4.0
+        version: 0.4.0(viem@2.56.0(bufferutil@4.1.0)(typescript@6.0.3)(utf-8-validate@5.0.10)(zod@3.25.76))
       react-server-dom-webpack:
         specifier: ~19.2.8
         version: 19.2.8(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(webpack@5.110.3(esbuild@0.28.2))
@@ -310,6 +328,9 @@ importers:
       '@effect/atom-react':
         specifier: 'catalog:'
         version: 4.0.0-rc.112(effect@4.0.0-rc.112)(react@19.2.8)(scheduler@0.27.0)
+      '@ensforge/core':
+        specifier: workspace:*
+        version: link:../core
       '@ensforge/sdk':
         specifier: workspace:*
         version: link:../sdk
@@ -382,16 +403,6 @@ importers:
         version: 2.56.0(bufferutil@4.1.0)(typescript@6.0.3)(utf-8-validate@5.0.10)(zod@4.5.4)
 
 packages:
-  permissionless@0.4.0:
-    resolution: {integrity: sha512-IWWn9pxdLT1gnpFHvdTx5nVCh3Zn7qVryIY0fNI0kzOfmCXsykLUwTbFP6blPW2EmOvYEgG78v+L7Adps4cHYA==}
-    peerDependencies:
-      ox: ^0.11.3
-      viem: ^2.44.4
-    peerDependenciesMeta:
-      ox:
-        optional: true
-
-
 
   '@adobe/react-spectrum-ui@1.2.1':
     resolution: {integrity: sha512-wcrbEE2O/9WnEn6avBnaVRRx88S5PLFsPLr4wffzlbMfXeQsy+RMQwaJd3cbzrn18/j04Isit7f7Emfn0dhrJA==}
@@ -7471,6 +7482,15 @@ packages:
     resolution: {integrity: sha512-mnvGdvOrIvJOBGUEdGkrVXjN8E/VkIJCkf2eS1DH2yv82ORUlLttmDt0rWY38yYZmVwciZwBUvHM20qxBZf40w==}
     hasBin: true
 
+  permissionless@0.4.0:
+    resolution: {integrity: sha512-IWWn9pxdLT1gnpFHvdTx5nVCh3Zn7qVryIY0fNI0kzOfmCXsykLUwTbFP6blPW2EmOvYEgG78v+L7Adps4cHYA==}
+    peerDependencies:
+      ox: ^0.11.3
+      viem: ^2.44.4
+    peerDependenciesMeta:
+      ox:
+        optional: true
+
   picocolors@1.1.1:
     resolution: {integrity: sha512-xceH2snhtb5M9liqDsmEw56le376mTZkEX/jEb/RxNFyegNul7eNslCXP9FDj/Lcu0X8KEyMceP2ntpaHrDEVA==}
 
@@ -9368,11 +9388,6 @@ packages:
     resolution: {integrity: sha512-bXE4cR/kVZhKZX/RjPEflHaKVhUVl85noU3v6b8apfQEc1x4A+zBxjZ4lN8LqGd6WZ3dl98pY4o717VFmoPp+A==}
 
 snapshots:
-  permissionless@0.4.0(viem@2.56.0(bufferutil@4.1.0)(typescript@6.0.3)(utf-8-validate@5.0.10)(zod@4.5.4)):
-    dependencies:
-      viem: 2.56.0(bufferutil@4.1.0)(typescript@6.0.3)(utf-8-validate@5.0.10)(zod@4.5.4)
-
-
 
   '@adobe/react-spectrum-ui@1.2.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
     dependencies:
@@ -12400,6 +12415,17 @@ snapshots:
       '@codemirror/state': 6.7.2
       '@codemirror/view': 6.43.10
 
+  '@rhinestone/sdk@1.8.0(patch_hash=358b2302ad360224b413b87d3492e2029434cc50ecfc03ed6414ef17fcba2f11)(express@5.2.1)(jose@6.2.10)(typescript@6.0.3)(viem@2.56.0(bufferutil@4.1.0)(typescript@6.0.3)(utf-8-validate@5.0.10)(zod@3.25.76))':
+    dependencies:
+      '@rhinestone/shared-configs': 1.6.10(typescript@6.0.3)(viem@2.56.0(bufferutil@4.1.0)(typescript@6.0.3)(utf-8-validate@5.0.10)(zod@3.25.76))
+      solady: 0.1.26
+      viem: 2.56.0(bufferutil@4.1.0)(typescript@6.0.3)(utf-8-validate@5.0.10)(zod@3.25.76)
+    optionalDependencies:
+      express: 5.2.1
+      jose: 6.2.10
+    transitivePeerDependencies:
+      - typescript
+
   '@rhinestone/sdk@1.8.0(patch_hash=358b2302ad360224b413b87d3492e2029434cc50ecfc03ed6414ef17fcba2f11)(express@5.2.1)(jose@6.2.10)(typescript@6.0.3)(viem@2.56.0(bufferutil@4.1.0)(typescript@6.0.3)(utf-8-validate@5.0.10)(zod@4.5.4))':
     dependencies:
       '@rhinestone/shared-configs': 1.6.10(typescript@6.0.3)(viem@2.56.0(bufferutil@4.1.0)(typescript@6.0.3)(utf-8-validate@5.0.10)(zod@4.5.4))
@@ -12410,6 +12436,11 @@ snapshots:
       jose: 6.2.10
     transitivePeerDependencies:
       - typescript
+
+  '@rhinestone/shared-configs@1.6.10(typescript@6.0.3)(viem@2.56.0(bufferutil@4.1.0)(typescript@6.0.3)(utf-8-validate@5.0.10)(zod@3.25.76))':
+    dependencies:
+      typescript: 6.0.3
+      viem: 2.56.0(bufferutil@4.1.0)(typescript@6.0.3)(utf-8-validate@5.0.10)(zod@3.25.76)
 
   '@rhinestone/shared-configs@1.6.10(typescript@6.0.3)(viem@2.56.0(bufferutil@4.1.0)(typescript@6.0.3)(utf-8-validate@5.0.10)(zod@4.5.4))':
     dependencies:
@@ -18712,6 +18743,14 @@ snapshots:
   pbf@5.1.2:
     dependencies:
       resolve-protobuf-schema: 2.1.0
+
+  permissionless@0.4.0(viem@2.56.0(bufferutil@4.1.0)(typescript@6.0.3)(utf-8-validate@5.0.10)(zod@3.25.76)):
+    dependencies:
+      viem: 2.56.0(bufferutil@4.1.0)(typescript@6.0.3)(utf-8-validate@5.0.10)(zod@3.25.76)
+
+  permissionless@0.4.0(viem@2.56.0(bufferutil@4.1.0)(typescript@6.0.3)(utf-8-validate@5.0.10)(zod@4.5.4)):
+    dependencies:
+      viem: 2.56.0(bufferutil@4.1.0)(typescript@6.0.3)(utf-8-validate@5.0.10)(zod@4.5.4)
 
   picocolors@1.1.1: {}
 

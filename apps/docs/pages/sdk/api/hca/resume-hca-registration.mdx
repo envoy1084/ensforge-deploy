@@ -1,0 +1,137 @@
+---
+title: resumeHcaRegistration
+description: Advance saved registration with explicit review/recovery inputs.
+---
+
+import EffectGuide from "../../../../shared/sdk/effect.mdx";
+import ErrorGuide from "../../../../shared/sdk/error.mdx";
+
+# resumeHcaRegistration
+
+Advance saved registration with explicit review/recovery inputs.
+
+## Import
+
+```ts
+import { Ensforge } from "@ensforge/sdk";
+```
+
+## Usage
+
+:::code-group
+
+```ts [index.ts]
+import { sdk } from "./client";
+
+type Input = Parameters<typeof sdk.hca.resumeHcaRegistration>[0];
+declare const parameters: Input;
+
+const result = await sdk.hca.resumeHcaRegistration(parameters);
+```
+
+```ts [client.ts]
+// [!include ~/snippets/hca/client.ts]
+```
+
+:::
+
+## Parameters
+
+```ts
+type Input = Parameters<typeof sdk.hca.resumeHcaRegistration>[0];
+```
+
+### limits
+
+`Input["limits"]`
+
+Accepted registration price and per-chain execution fee bounds.
+
+### authorization
+
+``{ readonly kind: "owner"; } | { readonly kind: "session"; readonly permissionId: `0x${string}`; readonly enableTransactionHash: `0x${string}`; } | undefined``
+
+Owner authorization or an enabled destination session.
+
+### signerReference
+
+`string | undefined`
+
+Protected application reference used to resolve a persistent session signer.
+
+### submission
+
+`HcaExecutionSubmission | undefined`
+
+Previously returned or explicitly recovered execution submission.
+
+### id
+
+`string`
+
+Saved operation identifier. Start registration can generate it from matching unfinished work.
+
+### storage
+
+`WorkflowStorage | HcaRegistrationStorage | undefined`
+
+Optional storage override. Defaults to config storage.
+
+### execution
+
+`HcaRegistrationExecution | undefined`
+
+Compatible execution adapter. Omit for direct owner execution when supported.
+
+## Return Type
+
+```ts
+type Result = Awaited<ReturnType<typeof sdk.hca.resumeHcaRegistration>>;
+```
+
+Common result properties are shown below. Narrow discriminated unions before accessing status-specific fields.
+
+- `authorization`: ``{ readonly kind: "owner"; } | { readonly kind: "session"; readonly permissionId: `0x${string}`; readonly enableTransactionHash: `0x${string}`; }``.
+- `id`: `string`.
+- `chainId`: `number`.
+- `owner`: `` `0x${string}` ``.
+- `profileId`: `string`.
+- `salt`: `bigint`.
+- `hca`: `` `0x${string}` ``.
+- `registration`: `Result["registration"]`.
+- `schemaVersion`: `1`.
+- `route`: `{ readonly kind: "owner"; } | { readonly kind: "adapter"; readonly id: string; readonly instanceId: string; }`.
+- `revision`: `number`.
+- `limits`: `Result["limits"]`.
+- `progress`: `Result["progress"]`.
+- `createdAt`: `bigint`.
+- `updatedAt`: `bigint`.
+- `signerReference`: `string | undefined`.
+- `commitmentSubmission`: `Result["commitmentSubmission"]`.
+- `registrationSubmission`: `Result["registrationSubmission"]`.
+
+Registration results contain a commitment secret. Do not log or render the whole operation. Use [remote progress](/hca/remote) for a public response.
+
+## Effect
+
+<EffectGuide />
+
+```ts
+import { Effect } from "effect";
+
+const program = sdk.hca.resumeHcaRegistration.effect(parameters);
+type Success = Effect.Success<typeof program>;
+type Failure = Effect.Error<typeof program>;
+const result = await Effect.runPromise(program);
+```
+
+## Error
+
+<ErrorGuide />
+
+Deployment, account and authorization mismatches remain explicit errors. Reconcile uncertain submissions before retrying a write.
+
+## Related
+
+- [`resumeHcaRegistration`](/core/api/actions/hca/resume-hca-registration)
+- [Guide](/core/guides/hca-registration)

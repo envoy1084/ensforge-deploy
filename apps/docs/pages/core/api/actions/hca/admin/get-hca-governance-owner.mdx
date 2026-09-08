@@ -1,0 +1,103 @@
+---
+title: getHcaGovernanceOwner
+description: Read the owner of a supported HCA governance contract.
+---
+
+import EffectGuide from "../../../../../../shared/core/effect.mdx";
+import ErrorGuide from "../../../../../../shared/core/error.mdx";
+
+# getHcaGovernanceOwner
+
+Read the owner of a supported HCA governance contract.
+
+## Import
+
+```ts
+import { getHcaGovernanceOwner } from "@ensforge/core/hca/admin";
+```
+
+## Usage
+
+:::code-group
+
+```ts [index.ts]
+import { getHcaGovernanceOwner } from "@ensforge/core/hca/admin";
+import { config } from "./config";
+
+type Input = Parameters<typeof getHcaGovernanceOwner>[1];
+declare const parameters: Input;
+
+const result = await getHcaGovernanceOwner(config, parameters);
+```
+
+```ts [config.ts]
+// [!include ~/snippets/hca/config.ts]
+```
+
+:::
+
+This targets HCA governance contracts. It does not transfer or renounce the immutable account owner.
+
+## Parameters
+
+```ts
+type Input = Parameters<typeof getHcaGovernanceOwner>[1];
+```
+
+### blockNumber
+
+`bigint | undefined`
+
+Block number to read. Cannot be combined with blockTag.
+
+### blockTag
+
+`BlockTag | undefined`
+
+Named block state to read. Cannot be combined with blockNumber.
+
+### target
+
+`HcaGovernanceTarget`
+
+Governance contract to inspect or modify.
+
+## Return Type
+
+```ts
+type Result = Awaited<ReturnType<typeof getHcaGovernanceOwner>>;
+```
+
+Returns `` `0x${string}` ``.
+
+## Effect
+
+<EffectGuide />
+
+```ts
+import { Effect } from "effect";
+
+const program = getHcaGovernanceOwner.effect(config, parameters);
+type Success = Effect.Success<typeof program>;
+type Failure = Effect.Error<typeof program>;
+const result = await Effect.runPromise(program);
+```
+
+## Request
+
+```ts
+const request = getHcaGovernanceOwner.request(parameters);
+```
+
+Requests compose with ENS read batching.
+
+## Error
+
+<ErrorGuide />
+
+Deployment, account and authorization mismatches remain explicit errors. Reconcile uncertain submissions before retrying a write.
+
+## Related
+
+- [`getHcaGovernanceOwner`](/sdk/api/hca/admin/get-hca-governance-owner)
+- [Guide](/core/guides/hca)

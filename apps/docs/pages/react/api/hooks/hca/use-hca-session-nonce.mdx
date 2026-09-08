@@ -1,0 +1,90 @@
+---
+title: useHcaSessionNonce
+description: Read the session revocation nonce
+---
+
+import ParametersGuide from "../../../../../shared/react/atom-parameters.mdx";
+import ResultGuide from "../../../../../shared/react/atom-result.mdx";
+import { ReadActionDemo } from "../../../../../components/read-actions/read-action-demo.client.tsx";
+
+# useHcaSessionNonce
+
+Read the session revocation nonce Uses the SDK from `EnsforgeProvider`.
+
+## Import
+
+```tsx
+import { useHcaSessionNonce } from "@ensforge/react";
+```
+
+## Usage
+
+:::code-group
+
+```tsx [component.tsx]
+import { useHcaSessionNonce } from "@ensforge/react";
+
+function Component(parameters: Parameters<typeof useHcaSessionNonce>[0]) {
+  const result = useHcaSessionNonce(parameters);
+  return <p>{result.isWaiting ? "Loading" : "Result available"}</p>;
+}
+```
+
+```tsx [provider.tsx]
+// [!include ~/snippets/hca/provider.tsx]
+```
+
+:::
+
+<ReadActionDemo action="hca.getHcaSessionNonce" />
+
+## Parameters
+
+```ts
+type Input = Parameters<typeof useHcaSessionNonce>[0];
+```
+
+### blockNumber
+
+`bigint | undefined`
+
+Block number to read. Cannot be combined with blockTag.
+
+### blockTag
+
+`BlockTag | undefined`
+
+Named block state to read. Cannot be combined with blockNumber.
+
+### hca
+
+`` `0x${string}` ``
+
+HCA address to inspect or operate on.
+
+<ParametersGuide />
+
+## Return Type
+
+```ts
+type Result = ReturnType<typeof useHcaSessionNonce>;
+```
+
+<ResultGuide />
+
+## Suspense
+
+Use [`useHcaSessionNonceSuspense`](/react/api/hooks/hca/use-hca-session-nonce-suspense) beneath Suspense and an error boundary.
+
+## Effect Atom
+
+```ts
+import { getHcaSessionNonceAtom } from "@ensforge/react/atoms";
+
+const atom = getHcaSessionNonceAtom(sdk, parameters, options);
+```
+
+## Action
+
+- [`getHcaSessionNonce`](/core/api/actions/hca/get-hca-session-nonce)
+- [`sdk.hca.getHcaSessionNonce`](/sdk/api/hca/get-hca-session-nonce)

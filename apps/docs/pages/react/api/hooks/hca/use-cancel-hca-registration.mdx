@@ -1,0 +1,88 @@
+---
+title: useCancelHcaRegistration
+description: Cancel eligible local progression
+---
+
+# useCancelHcaRegistration
+
+Cancel eligible local progression Uses the SDK from `EnsforgeProvider`.
+
+## Import
+
+```tsx
+import { useCancelHcaRegistration } from "@ensforge/react";
+```
+
+## Usage
+
+:::code-group
+
+```tsx [component.tsx]
+import { useCancelHcaRegistration } from "@ensforge/react";
+
+function Component({
+  parameters,
+}: {
+  parameters: Parameters<ReturnType<typeof useCancelHcaRegistration>["mutate"]>[0];
+}) {
+  const mutation = useCancelHcaRegistration();
+  return (
+    <button disabled={mutation.isWaiting} onClick={() => mutation.mutate(parameters)}>
+      Run
+    </button>
+  );
+}
+```
+
+```tsx [provider.tsx]
+// [!include ~/snippets/hca/provider.tsx]
+```
+
+:::
+
+## Parameters
+
+Pass operation parameters to `mutate`, `mutateAsync` or `mutateEffect`. Hook options accept `onExit` and an explicit retry policy.
+
+```ts
+type Input = Parameters<ReturnType<typeof useCancelHcaRegistration>["mutate"]>[0];
+```
+
+### id
+
+`string`
+
+Saved operation identifier. Start registration can generate it from matching unfinished work.
+
+### storage
+
+`WorkflowStorage | HcaRegistrationStorage | undefined`
+
+Optional storage override. Defaults to config storage.
+
+### execution
+
+`HcaRegistrationExecution | undefined`
+
+Compatible execution adapter. Omit for direct owner execution when supported.
+
+## Return Type
+
+```ts
+type Result = ReturnType<typeof useCancelHcaRegistration>;
+```
+
+The mutation exposes `data`, `error`, `isWaiting`, `result`, execution methods, `reset` and `interrupt`. Interruption stops local work; it does not undo a broadcast or revoke a session. See [Mutation Hooks](/react/guides/mutations).
+
+## Effect Atom
+
+```ts
+import { createCancelHcaRegistrationMutationAtom } from "@ensforge/react/atoms";
+
+const atom = createCancelHcaRegistrationMutationAtom(sdk);
+```
+
+## Action
+
+- [`cancelHcaRegistration`](/core/api/actions/hca/cancel-hca-registration)
+- [`sdk.hca.cancelHcaRegistration`](/sdk/api/hca/cancel-hca-registration)

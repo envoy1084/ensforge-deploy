@@ -1,0 +1,86 @@
+---
+title: useHcaHookSuspense
+description: Inspect the configured hook
+---
+
+import ParametersGuide from "../../../../../shared/react/suspense-atom-parameters.mdx";
+import ResultGuide from "../../../../../shared/react/suspense-atom-result.mdx";
+import { ReadActionDemo } from "../../../../../components/read-actions/read-action-demo.client.tsx";
+
+# useHcaHookSuspense
+
+Inspect the configured hook Uses the SDK from `EnsforgeProvider`.
+
+## Import
+
+```tsx
+import { useHcaHookSuspense } from "@ensforge/react";
+```
+
+## Usage
+
+:::code-group
+
+```tsx [component.tsx]
+import { useHcaHookSuspense } from "@ensforge/react";
+
+function Component(parameters: Parameters<typeof useHcaHookSuspense>[0]) {
+  const result = useHcaHookSuspense(parameters);
+  return <p>{result.isWaiting ? "Loading" : "Result available"}</p>;
+}
+```
+
+```tsx [provider.tsx]
+// [!include ~/snippets/hca/provider.tsx]
+```
+
+:::
+
+<ReadActionDemo action="hca.getHcaHook" />
+
+## Parameters
+
+```ts
+type Input = Parameters<typeof useHcaHookSuspense>[0];
+```
+
+### blockNumber
+
+`bigint | undefined`
+
+Block number to read. Cannot be combined with blockTag.
+
+### blockTag
+
+`BlockTag | undefined`
+
+Named block state to read. Cannot be combined with blockNumber.
+
+### hca
+
+`` `0x${string}` ``
+
+HCA address to inspect or operate on.
+
+<ParametersGuide />
+
+## Return Type
+
+```ts
+type Result = ReturnType<typeof useHcaHookSuspense>;
+```
+
+<ResultGuide />
+
+## Effect Atom
+
+```ts
+import { getHcaHookAtom } from "@ensforge/react/atoms";
+
+const atom = getHcaHookAtom(sdk, parameters, options);
+```
+
+## Action
+
+- [`getHcaHook`](/core/api/actions/hca/get-hca-hook)
+- [`sdk.hca.getHcaHook`](/sdk/api/hca/get-hca-hook)

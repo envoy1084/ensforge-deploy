@@ -1,0 +1,109 @@
+---
+title: getHcaFallbackHandler
+description: Inspect the handler for a selector.
+---
+
+import EffectGuide from "../../../../shared/sdk/effect.mdx";
+import ErrorGuide from "../../../../shared/sdk/error.mdx";
+
+# getHcaFallbackHandler
+
+Inspect the handler for a selector.
+
+## Import
+
+```ts
+import { Ensforge } from "@ensforge/sdk";
+```
+
+## Usage
+
+:::code-group
+
+```ts [index.ts]
+import { sdk } from "./client";
+
+type Input = Parameters<typeof sdk.hca.getHcaFallbackHandler>[0];
+const parameters: Input = {
+  hca: "0x0000000000000000000000000000000000000001",
+  selector: "0x00000000",
+};
+
+const result = await sdk.hca.getHcaFallbackHandler(parameters);
+```
+
+```ts [client.ts]
+// [!include ~/snippets/hca/client.ts]
+```
+
+:::
+
+## Parameters
+
+```ts
+type Input = Parameters<typeof sdk.hca.getHcaFallbackHandler>[0];
+```
+
+### blockNumber
+
+`bigint | undefined`
+
+Block number to read. Cannot be combined with blockTag.
+
+### blockTag
+
+`BlockTag | undefined`
+
+Named block state to read. Cannot be combined with blockNumber.
+
+### hca
+
+`` `0x${string}` ``
+
+HCA address to inspect or operate on.
+
+### selector
+
+`` `0x${string}` ``
+
+Function selector whose fallback handler is inspected.
+
+## Return Type
+
+```ts
+type Result = Awaited<ReturnType<typeof sdk.hca.getHcaFallbackHandler>>;
+```
+
+Returns ``{ readonly callType: `0x${string}`; readonly handler: `0x${string}`; }``.
+
+## Effect
+
+<EffectGuide />
+
+```ts
+import { Effect } from "effect";
+
+const program = sdk.hca.getHcaFallbackHandler.effect(parameters);
+type Success = Effect.Success<typeof program>;
+type Failure = Effect.Error<typeof program>;
+const result = await Effect.runPromise(program);
+```
+
+## Request
+
+```ts
+const request = sdk.hca.getHcaFallbackHandler.request(parameters);
+```
+
+Requests compose with ENS read batching.
+
+## Error
+
+<ErrorGuide />
+
+Deployment, account and authorization mismatches remain explicit errors. Reconcile uncertain submissions before retrying a write.
+
+## Related
+
+- [`getHcaFallbackHandler`](/core/api/actions/hca/get-hca-fallback-handler)
+- [Guide](/core/guides/hca)

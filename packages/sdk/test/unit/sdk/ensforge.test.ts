@@ -1,5 +1,7 @@
 import { Effect, Stream } from "effect";
 
+import { createConfig } from "@ensforge/core";
+import { createMemoryWorkflowStorage } from "@ensforge/core/storage";
 import { mainnet } from "viem/chains";
 import { describe, expect, it } from "vitest";
 import { createConfig as createWagmiConfig } from "wagmi";
@@ -298,6 +300,25 @@ describe("Ensforge", () => {
     }
 
     expect(Object.values(actionNames).flat()).toHaveLength(218);
+  });
+
+  it("defaults to isolated memory stores and preserves explicit storage", async () => {
+    const parameters = { network: "mainnet" as const, publicClient: makeMainnetPublicClient() };
+    const first = new Ensforge(parameters);
+    const second = new Ensforge(parameters);
+    const record = { id: "example", revision: 0, value: "saved" };
+    expect(await first.config.storage?.create({ namespace: "test", record })).toBe(true);
+    expect(await second.config.storage?.get({ namespace: "test", id: record.id })).toBeNull();
+
+    const storage = createMemoryWorkflowStorage();
+    expect(new Ensforge({ ...parameters, storage }).config.storage).toBe(storage);
+    const core = createConfig(parameters);
+    const sdk = new Ensforge(core);
+    expect(core.storage).toBeUndefined();
+    expect(sdk.config.storage).toBeDefined();
+    for (const symbol of Object.getOwnPropertySymbols(core)) {
+      expect(Reflect.get(sdk.config, symbol)).toBe(Reflect.get(core, symbol));
+    }
   });
 
   it("accepts a Wagmi config", () => {

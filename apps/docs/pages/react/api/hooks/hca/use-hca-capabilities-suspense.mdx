@@ -1,0 +1,107 @@
+---
+title: useHcaCapabilitiesSuspense
+description: Inspect supported account and execution capabilities
+---
+
+import ParametersGuide from "../../../../../shared/react/suspense-atom-parameters.mdx";
+import ResultGuide from "../../../../../shared/react/suspense-atom-result.mdx";
+
+# useHcaCapabilitiesSuspense
+
+Inspect supported account and execution capabilities Uses the SDK from `EnsforgeProvider`.
+
+## Import
+
+```tsx
+import { useHcaCapabilitiesSuspense } from "@ensforge/react";
+```
+
+## Usage
+
+:::code-group
+
+```tsx [component.tsx]
+import { useHcaCapabilitiesSuspense } from "@ensforge/react";
+
+function Component(parameters: Parameters<typeof useHcaCapabilitiesSuspense>[0]) {
+  const result = useHcaCapabilitiesSuspense(parameters);
+  return <p>{result.isWaiting ? "Loading" : "Result available"}</p>;
+}
+```
+
+```tsx [provider.tsx]
+// [!include ~/snippets/hca/provider.tsx]
+```
+
+:::
+
+## Parameters
+
+```ts
+type Input = Parameters<typeof useHcaCapabilitiesSuspense>[0];
+```
+
+### blockNumber
+
+`bigint | undefined`
+
+Block number to read. Cannot be combined with blockTag.
+
+### blockTag
+
+`BlockTag | undefined`
+
+Named block state to read. Cannot be combined with blockNumber.
+
+### hca
+
+`` `0x${string}` ``
+
+HCA address to inspect or operate on.
+
+### expectedOwner
+
+`` `0x${string}` | undefined ``
+
+Expected account owner. A mismatch fails verification.
+
+### salt
+
+`bigint | undefined`
+
+Account derivation salt. Defaults to the deployment profile canonical salt.
+
+### initialImplementation
+
+`` `0x${string}` | undefined ``
+
+Implementation used when deriving the account address, including an account that was later upgraded.
+
+### allowUndeployed
+
+`boolean | undefined`
+
+Allow a counterfactual account after verifying its derivation.
+
+<ParametersGuide />
+
+## Return Type
+
+```ts
+type Result = ReturnType<typeof useHcaCapabilitiesSuspense>;
+```
+
+<ResultGuide />
+
+## Effect Atom
+
+```ts
+import { getHcaCapabilitiesAtom } from "@ensforge/react/atoms";
+
+const atom = getHcaCapabilitiesAtom(sdk, parameters, options);
+```
+
+## Action
+
+- [`getHcaCapabilities`](/core/api/actions/hca/get-hca-capabilities)
+- [`sdk.hca.getHcaCapabilities`](/sdk/api/hca/get-hca-capabilities)

@@ -1,0 +1,93 @@
+---
+title: useSupportsHcaExecutionMode
+description: Check an execution mode
+---
+
+import ParametersGuide from "../../../../../shared/react/atom-parameters.mdx";
+import ResultGuide from "../../../../../shared/react/atom-result.mdx";
+
+# useSupportsHcaExecutionMode
+
+Check an execution mode Uses the SDK from `EnsforgeProvider`.
+
+## Import
+
+```tsx
+import { useSupportsHcaExecutionMode } from "@ensforge/react";
+```
+
+## Usage
+
+:::code-group
+
+```tsx [component.tsx]
+import { useSupportsHcaExecutionMode } from "@ensforge/react";
+
+function Component(parameters: Parameters<typeof useSupportsHcaExecutionMode>[0]) {
+  const result = useSupportsHcaExecutionMode(parameters);
+  return <p>{result.isWaiting ? "Loading" : "Result available"}</p>;
+}
+```
+
+```tsx [provider.tsx]
+// [!include ~/snippets/hca/provider.tsx]
+```
+
+:::
+
+## Parameters
+
+```ts
+type Input = Parameters<typeof useSupportsHcaExecutionMode>[0];
+```
+
+### blockNumber
+
+`bigint | undefined`
+
+Block number to read. Cannot be combined with blockTag.
+
+### blockTag
+
+`BlockTag | undefined`
+
+Named block state to read. Cannot be combined with blockNumber.
+
+### hca
+
+`` `0x${string}` ``
+
+HCA address to inspect or operate on.
+
+### mode
+
+`` `0x${string}` ``
+
+Encoded execution mode to check.
+
+<ParametersGuide />
+
+## Return Type
+
+```ts
+type Result = ReturnType<typeof useSupportsHcaExecutionMode>;
+```
+
+<ResultGuide />
+
+## Suspense
+
+Use [`useSupportsHcaExecutionModeSuspense`](/react/api/hooks/hca/use-supports-hca-execution-mode-suspense) beneath Suspense and an error boundary.
+
+## Effect Atom
+
+```ts
+import { supportsHcaExecutionModeAtom } from "@ensforge/react/atoms";
+
+const atom = supportsHcaExecutionModeAtom(sdk, parameters, options);
+```
+
+## Action
+
+- [`supportsHcaExecutionMode`](/core/api/actions/hca/supports-hca-execution-mode)
+- [`sdk.hca.supportsHcaExecutionMode`](/sdk/api/hca/supports-hca-execution-mode)

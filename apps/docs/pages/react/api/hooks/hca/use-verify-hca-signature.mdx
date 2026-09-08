@@ -1,0 +1,105 @@
+---
+title: useVerifyHcaSignature
+description: Validate a signature; RPC failures remain errors
+---
+
+import ParametersGuide from "../../../../../shared/react/atom-parameters.mdx";
+import ResultGuide from "../../../../../shared/react/atom-result.mdx";
+
+# useVerifyHcaSignature
+
+Validate a signature; RPC failures remain errors Uses the SDK from `EnsforgeProvider`.
+
+## Import
+
+```tsx
+import { useVerifyHcaSignature } from "@ensforge/react";
+```
+
+## Usage
+
+:::code-group
+
+```tsx [component.tsx]
+import { useVerifyHcaSignature } from "@ensforge/react";
+
+function Component(parameters: Parameters<typeof useVerifyHcaSignature>[0]) {
+  const result = useVerifyHcaSignature(parameters);
+  return <p>{result.isWaiting ? "Loading" : "Result available"}</p>;
+}
+```
+
+```tsx [provider.tsx]
+// [!include ~/snippets/hca/provider.tsx]
+```
+
+:::
+
+## Parameters
+
+```ts
+type Input = Parameters<typeof useVerifyHcaSignature>[0];
+```
+
+### blockNumber
+
+`bigint | undefined`
+
+Block number to read. Cannot be combined with blockTag.
+
+### blockTag
+
+`BlockTag | undefined`
+
+Named block state to read. Cannot be combined with blockNumber.
+
+### hca
+
+`` `0x${string}` ``
+
+HCA address to inspect or operate on.
+
+### hash
+
+`` `0x${string}` ``
+
+Digest to inspect or verify.
+
+### signature
+
+`` `0x${string}` ``
+
+Encoded signature to validate.
+
+### sender
+
+`` `0x${string}` | undefined ``
+
+Caller address used during signature verification.
+
+<ParametersGuide />
+
+## Return Type
+
+```ts
+type Result = ReturnType<typeof useVerifyHcaSignature>;
+```
+
+<ResultGuide />
+
+## Suspense
+
+Use [`useVerifyHcaSignatureSuspense`](/react/api/hooks/hca/use-verify-hca-signature-suspense) beneath Suspense and an error boundary.
+
+## Effect Atom
+
+```ts
+import { verifyHcaSignatureAtom } from "@ensforge/react/atoms";
+
+const atom = verifyHcaSignatureAtom(sdk, parameters, options);
+```
+
+## Action
+
+- [`verifyHcaSignature`](/core/api/actions/hca/verify-hca-signature)
+- [`sdk.hca.verifyHcaSignature`](/sdk/api/hca/verify-hca-signature)

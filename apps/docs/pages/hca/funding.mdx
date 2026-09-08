@@ -1,0 +1,44 @@
+---
+title: Independent cross-chain funding
+description: Fund the destination HCA before ordinary ENS registration.
+---
+
+# Independent cross-chain funding
+
+Funding is a Rhinestone extension: `execution.crossChain`. ENS registration never automatically
+bridges or spends source-chain funds. First complete the funding operation, confirm the destination
+balance, then run ordinary HCA registration with your chosen execution adapter.
+
+The implemented route supports a plain EOA source account and ERC-20 Permit2 authorization. It does
+not imply support for every smart account, native token, source chain or settlement layer. No public
+route manifest is enabled by default. Supply independently verified `RhinestoneFundingRoute` entries
+and `sourceClients` in the adapter's `crossChain` options.
+
+## Funding sequence
+
+1. `quoteFunding(config, { id, routeId, source, destinationHca, amount, maximumSourceSpend })`.
+2. Inspect the quote's source spend, lifetime and exact `approvals`.
+3. Send and confirm approval calls on the source chain, in their returned order.
+4. `fund(config, { quote })` persists intent and submits funding authorization.
+5. `waitForFunding(config, { id })` or `getFundingStatus(config, { id })` tracks it.
+6. Check destination funds before calling `startHcaRegistration` or resuming a paused registration.
+
+Amounts use token base units. `maximumSourceSpend` bounds the total source debit, including applicable
+provider fees. Source funding sponsorship and destination execution sponsorship are independent.
+A funding quote's identifier is not the registration workflow ID. Config storage is used by default.
+
+The [funding example](/hca/examples) implements ordered approvals and status waiting. Route manifests
+include source/destination chain and token identities, settlement layer, arbiter, settlement address,
+qualifier bytes and expected contract code hashes. Never construct trusted routes from quote output.
+
+## Recovery and cancellation
+
+`cancelFunding` cancels eligible local work before the durable submission claim. It does not undo
+source approvals or stop a submitted intent. `recoverFunding({ id, intentId })` attaches a recovered
+provider tracking identifier without submitting again. `getFundingCleanup({ id })` returns explicit
+Permit2 nonce invalidation and allowance-reset calls for the caller to review and send.
+
+Status distinguishes source claims and destination receipt state. `destinationBalance` reports funds
+currently available. Observed token movements do not authenticate the provider's intent ID against
+the signed mandate or prove cross-chain finality. Unknown or partial settlement needs manual
+reconciliation. Hosted settlement remains an uncompleted verification gate.

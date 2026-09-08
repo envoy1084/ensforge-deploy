@@ -1,0 +1,119 @@
+---
+title: verifyHcaSignature
+description: Validate a signature; RPC failures remain errors.
+---
+
+import EffectGuide from "../../../../../shared/core/effect.mdx";
+import ErrorGuide from "../../../../../shared/core/error.mdx";
+
+# verifyHcaSignature
+
+Validate a signature; RPC failures remain errors.
+
+## Import
+
+```ts
+import { verifyHcaSignature } from "@ensforge/core/hca";
+```
+
+## Usage
+
+:::code-group
+
+```ts [index.ts]
+import { verifyHcaSignature } from "@ensforge/core/hca";
+import { config } from "./config";
+
+type Input = Parameters<typeof verifyHcaSignature>[1];
+declare const parameters: Input;
+
+const result = await verifyHcaSignature(config, parameters);
+```
+
+```ts [config.ts]
+// [!include ~/snippets/hca/config.ts]
+```
+
+:::
+
+## Parameters
+
+```ts
+type Input = Parameters<typeof verifyHcaSignature>[1];
+```
+
+### blockNumber
+
+`bigint | undefined`
+
+Block number to read. Cannot be combined with blockTag.
+
+### blockTag
+
+`BlockTag | undefined`
+
+Named block state to read. Cannot be combined with blockNumber.
+
+### hca
+
+`` `0x${string}` ``
+
+HCA address to inspect or operate on.
+
+### hash
+
+`` `0x${string}` ``
+
+Digest to inspect or verify.
+
+### signature
+
+`` `0x${string}` ``
+
+Encoded signature to validate.
+
+### sender
+
+`` `0x${string}` | undefined ``
+
+Caller address used during signature verification.
+
+## Return Type
+
+```ts
+type Result = Awaited<ReturnType<typeof verifyHcaSignature>>;
+```
+
+Returns `boolean`.
+
+## Effect
+
+<EffectGuide />
+
+```ts
+import { Effect } from "effect";
+
+const program = verifyHcaSignature.effect(config, parameters);
+type Success = Effect.Success<typeof program>;
+type Failure = Effect.Error<typeof program>;
+const result = await Effect.runPromise(program);
+```
+
+## Request
+
+```ts
+const request = verifyHcaSignature.request(parameters);
+```
+
+Requests compose with ENS read batching.
+
+## Error
+
+<ErrorGuide />
+
+Deployment, account and authorization mismatches remain explicit errors. Reconcile uncertain submissions before retrying a write.
+
+## Related
+
+- [`verifyHcaSignature`](/sdk/api/hca/verify-hca-signature)
+- [Guide](/core/guides/hca)

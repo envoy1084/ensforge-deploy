@@ -117,6 +117,14 @@
       "workspace-source": "./src/actions/reverse/index.ts",
       "default": "./dist/reverse.js"
     },
+    "./storage": {
+      "workspace-source": "./src/storage/index.ts",
+      "default": "./dist/storage.js"
+    },
+    "./storage/browser": {
+      "workspace-source": "./src/storage/browser.ts",
+      "default": "./dist/storage/browser.js"
+    },
     "./subnames": {
       "workspace-source": "./src/actions/subnames/index.ts",
       "default": "./dist/subnames.js"
@@ -162,6 +170,8 @@
       "./registration": "./dist/registration.js",
       "./resolution": "./dist/resolution.js",
       "./reverse": "./dist/reverse.js",
+      "./storage": "./dist/storage.js",
+      "./storage/browser": "./dist/storage/browser.js",
       "./subnames": "./dist/subnames.js",
       "./wagmi": "./dist/wagmi.js",
       "./wrapping": "./dist/wrapping.js",

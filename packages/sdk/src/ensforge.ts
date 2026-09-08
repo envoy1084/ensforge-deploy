@@ -4,6 +4,7 @@ import {
   type CreateConfigParameters,
   type EnsforgeConfig,
 } from "@ensforge/core";
+import { createMemoryWorkflowStorage } from "@ensforge/core/storage";
 
 import {
   makeBatchActions,
@@ -63,7 +64,22 @@ export class Ensforge {
   readonly wrapping: WrappingActions;
 
   constructor(parameters: CreateConfigParameters | EnsforgeConfig) {
-    const config = EnsforgeConfigTypeId in parameters ? parameters : createConfig(parameters);
+    const storage = parameters.storage ?? createMemoryWorkflowStorage();
+    let config: EnsforgeConfig;
+
+    if (!(EnsforgeConfigTypeId in parameters)) {
+      config = createConfig({ ...parameters, storage });
+    } else if (parameters.storage) {
+      config = parameters;
+    } else {
+      // Preserve the non-enumerable Effect service context, including Wagmi wallet resolution.
+      config = Object.freeze(
+        Object.create(Object.getPrototypeOf(parameters), {
+          ...Object.getOwnPropertyDescriptors(parameters),
+          storage: { value: storage, enumerable: true },
+        }),
+      ) as EnsforgeConfig;
+    }
 
     this.config = config;
     this.hca = makeHcaActions(config);

@@ -1,0 +1,90 @@
+---
+title: useHcaSigningDomain
+description: Read the account signing domain
+---
+
+import ParametersGuide from "../../../../../shared/react/atom-parameters.mdx";
+import ResultGuide from "../../../../../shared/react/atom-result.mdx";
+import { ReadActionDemo } from "../../../../../components/read-actions/read-action-demo.client.tsx";
+
+# useHcaSigningDomain
+
+Read the account signing domain Uses the SDK from `EnsforgeProvider`.
+
+## Import
+
+```tsx
+import { useHcaSigningDomain } from "@ensforge/react";
+```
+
+## Usage
+
+:::code-group
+
+```tsx [component.tsx]
+import { useHcaSigningDomain } from "@ensforge/react";
+
+function Component(parameters: Parameters<typeof useHcaSigningDomain>[0]) {
+  const result = useHcaSigningDomain(parameters);
+  return <p>{result.isWaiting ? "Loading" : "Result available"}</p>;
+}
+```
+
+```tsx [provider.tsx]
+// [!include ~/snippets/hca/provider.tsx]
+```
+
+:::
+
+<ReadActionDemo action="hca.getHcaSigningDomain" />
+
+## Parameters
+
+```ts
+type Input = Parameters<typeof useHcaSigningDomain>[0];
+```
+
+### blockNumber
+
+`bigint | undefined`
+
+Block number to read. Cannot be combined with blockTag.
+
+### blockTag
+
+`BlockTag | undefined`
+
+Named block state to read. Cannot be combined with blockNumber.
+
+### hca
+
+`` `0x${string}` ``
+
+HCA address to inspect or operate on.
+
+<ParametersGuide />
+
+## Return Type
+
+```ts
+type Result = ReturnType<typeof useHcaSigningDomain>;
+```
+
+<ResultGuide />
+
+## Suspense
+
+Use [`useHcaSigningDomainSuspense`](/react/api/hooks/hca/use-hca-signing-domain-suspense) beneath Suspense and an error boundary.
+
+## Effect Atom
+
+```ts
+import { getHcaSigningDomainAtom } from "@ensforge/react/atoms";
+
+const atom = getHcaSigningDomainAtom(sdk, parameters, options);
+```
+
+## Action
+
+- [`getHcaSigningDomain`](/core/api/actions/hca/get-hca-signing-domain)
+- [`sdk.hca.getHcaSigningDomain`](/sdk/api/hca/get-hca-signing-domain)

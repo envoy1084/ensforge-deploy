@@ -1,0 +1,112 @@
+---
+title: useUpgradeHca
+description: Perform an owner-authorized gated upgrade
+---
+
+# useUpgradeHca
+
+Perform an owner-authorized gated upgrade Uses the SDK from `EnsforgeProvider`.
+
+## Import
+
+```tsx
+import { useUpgradeHca } from "@ensforge/react";
+```
+
+## Usage
+
+:::code-group
+
+```tsx [component.tsx]
+import { useUpgradeHca } from "@ensforge/react";
+
+function Component({
+  parameters,
+}: {
+  parameters: Parameters<ReturnType<typeof useUpgradeHca>["mutate"]>[0];
+}) {
+  const mutation = useUpgradeHca();
+  return (
+    <button disabled={mutation.isWaiting} onClick={() => mutation.mutate(parameters)}>
+      Run
+    </button>
+  );
+}
+```
+
+```tsx [provider.tsx]
+// [!include ~/snippets/hca/provider.tsx]
+```
+
+:::
+
+## Parameters
+
+Pass operation parameters to `mutate`, `mutateAsync` or `mutateEffect`. Hook options accept `onExit` and an explicit retry policy.
+
+```ts
+type Input = Parameters<ReturnType<typeof useUpgradeHca>["mutate"]>[0];
+```
+
+### hca
+
+`` `0x${string}` ``
+
+HCA address to inspect or operate on.
+
+### salt
+
+`bigint | undefined`
+
+Account derivation salt. Defaults to the deployment profile canonical salt.
+
+### confirmation
+
+`{ readonly type: "submitted"; } | { readonly type: "confirmed"; readonly timeout?: number | undefined; readonly confirmations?: number | undefined; }`
+
+Receipt confirmation policy.
+
+### walletClient
+
+`Input["walletClient"]`
+
+Viem wallet override. Defaults to the configured wallet resolver.
+
+### account
+
+`` `0x${string}` | Account | undefined ``
+
+Wallet account override for the operation.
+
+### implementation
+
+`` `0x${string}` ``
+
+Implementation address to inspect, approve or use for derivation.
+
+### data
+
+`` `0x${string}` | undefined ``
+
+Encoded initialization or operation data.
+
+## Return Type
+
+```ts
+type Result = ReturnType<typeof useUpgradeHca>;
+```
+
+The mutation exposes `data`, `error`, `isWaiting`, `result`, execution methods, `reset` and `interrupt`. Interruption stops local work; it does not undo a broadcast or revoke a session. See [Mutation Hooks](/react/guides/mutations).
+
+## Effect Atom
+
+```ts
+import { createUpgradeHcaMutationAtom } from "@ensforge/react/atoms";
+
+const atom = createUpgradeHcaMutationAtom(sdk);
+```
+
+## Action
+
+- [`upgradeHca`](/core/api/actions/hca/upgrade-hca)
+- [`sdk.hca.upgradeHca`](/sdk/api/hca/upgrade-hca)

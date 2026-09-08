@@ -1,0 +1,117 @@
+---
+title: upgradeHca
+description: Perform an owner-authorized gated upgrade.
+---
+
+import EffectGuide from "../../../../../shared/core/effect.mdx";
+import ErrorGuide from "../../../../../shared/core/error.mdx";
+
+# upgradeHca
+
+Perform an owner-authorized gated upgrade.
+
+## Import
+
+```ts
+import { upgradeHca } from "@ensforge/core/hca";
+```
+
+## Usage
+
+:::code-group
+
+```ts [index.ts]
+import { upgradeHca } from "@ensforge/core/hca";
+import { config } from "./config";
+
+type Input = Parameters<typeof upgradeHca>[1];
+declare const parameters: Input;
+
+const result = await upgradeHca(config, parameters);
+```
+
+```ts [config.ts]
+// [!include ~/snippets/hca/config.ts]
+```
+
+:::
+
+## Parameters
+
+```ts
+type Input = Parameters<typeof upgradeHca>[1];
+```
+
+### hca
+
+`` `0x${string}` ``
+
+HCA address to inspect or operate on.
+
+### salt
+
+`bigint | undefined`
+
+Account derivation salt. Defaults to the deployment profile canonical salt.
+
+### confirmation
+
+`{ readonly type: "submitted"; } | { readonly type: "confirmed"; readonly timeout?: number | undefined; readonly confirmations?: number | undefined; }`
+
+Receipt confirmation policy.
+
+### walletClient
+
+`Input["walletClient"]`
+
+Viem wallet override. Defaults to the configured wallet resolver.
+
+### account
+
+`` `0x${string}` | Account | undefined ``
+
+Wallet account override for the operation.
+
+### implementation
+
+`` `0x${string}` ``
+
+Implementation address to inspect, approve or use for derivation.
+
+### data
+
+`` `0x${string}` | undefined ``
+
+Encoded initialization or operation data.
+
+## Return Type
+
+```ts
+type Result = Awaited<ReturnType<typeof upgradeHca>>;
+```
+
+Returns `HcaManagementResult`.
+
+## Effect
+
+<EffectGuide />
+
+```ts
+import { Effect } from "effect";
+
+const program = upgradeHca.effect(config, parameters);
+type Success = Effect.Success<typeof program>;
+type Failure = Effect.Error<typeof program>;
+const result = await Effect.runPromise(program);
+```
+
+## Error
+
+<ErrorGuide />
+
+Deployment, account and authorization mismatches remain explicit errors. Reconcile uncertain submissions before retrying a write.
+
+## Related
+
+- [`upgradeHca`](/sdk/api/hca/upgrade-hca)
+- [Guide](/core/guides/hca)

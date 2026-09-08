@@ -1,0 +1,106 @@
+---
+title: watchHcaExecution
+description: Stream execution state changes.
+---
+
+import ErrorGuide from "../../../../shared/sdk/error.mdx";
+
+# watchHcaExecution
+
+Stream execution state changes.
+
+## Import
+
+```ts
+import { Ensforge } from "@ensforge/sdk";
+```
+
+## Usage
+
+:::code-group
+
+```ts [index.ts]
+import { sdk } from "./client";
+
+type Input = Parameters<typeof sdk.hca.watchHcaExecution>[0];
+declare const parameters: Input;
+
+const stop = await sdk.hca.watchHcaExecution(parameters, onStatus, onError);
+// Stop local observation when the view is disposed.
+stop();
+```
+
+```ts [client.ts]
+// [!include ~/snippets/hca/client.ts]
+```
+
+:::
+
+## Parameters
+
+```ts
+type Input = Parameters<typeof sdk.hca.watchHcaExecution>[0];
+```
+
+### confirmations
+
+`number | undefined`
+
+Required receipt confirmations.
+
+### timeout
+
+`number | undefined`
+
+Maximum time to wait, in milliseconds.
+
+### pollingInterval
+
+`number | undefined`
+
+Initial status polling interval, in milliseconds.
+
+### maxPollingInterval
+
+`number | undefined`
+
+Upper bound for the status polling interval, in milliseconds.
+
+### submission
+
+`HcaExecutionSubmission<unknown>`
+
+Previously returned or explicitly recovered execution submission.
+
+### execution
+
+`ExecutionAdapter<unknown, unknown, unknown> | undefined`
+
+Compatible execution adapter. Omit for direct owner execution when supported.
+
+## Return Type
+
+```ts
+type Result = Awaited<ReturnType<typeof sdk.hca.watchHcaExecution>>;
+```
+
+Returns `() => void`.
+
+## Stream
+
+```ts
+const stream = sdk.hca.watchHcaExecution.stream(parameters);
+```
+
+Observation does not resubmit an operation.
+
+## Error
+
+<ErrorGuide />
+
+Deployment, account and authorization mismatches remain explicit errors. Reconcile uncertain submissions before retrying a write.
+
+## Related
+
+- [`watchHcaExecution`](/core/api/actions/hca/watch-hca-execution)
+- [Guide](/core/guides/hca)

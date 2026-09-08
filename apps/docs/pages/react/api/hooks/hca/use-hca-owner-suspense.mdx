@@ -1,0 +1,86 @@
+---
+title: useHcaOwnerSuspense
+description: Read immutable account ownership
+---
+
+import ParametersGuide from "../../../../../shared/react/suspense-atom-parameters.mdx";
+import ResultGuide from "../../../../../shared/react/suspense-atom-result.mdx";
+import { ReadActionDemo } from "../../../../../components/read-actions/read-action-demo.client.tsx";
+
+# useHcaOwnerSuspense
+
+Read immutable account ownership Uses the SDK from `EnsforgeProvider`.
+
+## Import
+
+```tsx
+import { useHcaOwnerSuspense } from "@ensforge/react";
+```
+
+## Usage
+
+:::code-group
+
+```tsx [component.tsx]
+import { useHcaOwnerSuspense } from "@ensforge/react";
+
+function Component(parameters: Parameters<typeof useHcaOwnerSuspense>[0]) {
+  const result = useHcaOwnerSuspense(parameters);
+  return <p>{result.isWaiting ? "Loading" : "Result available"}</p>;
+}
+```
+
+```tsx [provider.tsx]
+// [!include ~/snippets/hca/provider.tsx]
+```
+
+:::
+
+<ReadActionDemo action="hca.getHcaOwner" />
+
+## Parameters
+
+```ts
+type Input = Parameters<typeof useHcaOwnerSuspense>[0];
+```
+
+### blockNumber
+
+`bigint | undefined`
+
+Block number to read. Cannot be combined with blockTag.
+
+### blockTag
+
+`BlockTag | undefined`
+
+Named block state to read. Cannot be combined with blockNumber.
+
+### hca
+
+`` `0x${string}` ``
+
+HCA address to inspect or operate on.
+
+<ParametersGuide />
+
+## Return Type
+
+```ts
+type Result = ReturnType<typeof useHcaOwnerSuspense>;
+```
+
+<ResultGuide />
+
+## Effect Atom
+
+```ts
+import { getHcaOwnerAtom } from "@ensforge/react/atoms";
+
+const atom = getHcaOwnerAtom(sdk, parameters, options);
+```
+
+## Action
+
+- [`getHcaOwner`](/core/api/actions/hca/get-hca-owner)
+- [`sdk.hca.getHcaOwner`](/sdk/api/hca/get-hca-owner)

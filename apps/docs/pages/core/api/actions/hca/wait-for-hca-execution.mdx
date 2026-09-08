@@ -1,0 +1,111 @@
+---
+title: waitForHcaExecution
+description: Wait for execution with bounded polling.
+---
+
+import EffectGuide from "../../../../../shared/core/effect.mdx";
+import ErrorGuide from "../../../../../shared/core/error.mdx";
+
+# waitForHcaExecution
+
+Wait for execution with bounded polling.
+
+## Import
+
+```ts
+import { waitForHcaExecution } from "@ensforge/core/hca";
+```
+
+## Usage
+
+:::code-group
+
+```ts [index.ts]
+import { waitForHcaExecution } from "@ensforge/core/hca";
+import { config } from "./config";
+
+type Input = Parameters<typeof waitForHcaExecution>[1];
+declare const parameters: Input;
+
+const result = await waitForHcaExecution(config, parameters);
+```
+
+```ts [config.ts]
+// [!include ~/snippets/hca/config.ts]
+```
+
+:::
+
+## Parameters
+
+```ts
+type Input = Parameters<typeof waitForHcaExecution>[1];
+```
+
+### confirmations
+
+`number | undefined`
+
+Required receipt confirmations.
+
+### timeout
+
+`number | undefined`
+
+Maximum time to wait, in milliseconds.
+
+### pollingInterval
+
+`number | undefined`
+
+Initial status polling interval, in milliseconds.
+
+### maxPollingInterval
+
+`number | undefined`
+
+Upper bound for the status polling interval, in milliseconds.
+
+### submission
+
+`HcaExecutionSubmission<unknown>`
+
+Previously returned or explicitly recovered execution submission.
+
+### execution
+
+`ExecutionAdapter<unknown, unknown, unknown> | undefined`
+
+Compatible execution adapter. Omit for direct owner execution when supported.
+
+## Return Type
+
+```ts
+type Result = Awaited<ReturnType<typeof waitForHcaExecution>>;
+```
+
+Returns `HcaExecutionStatus`.
+
+## Effect
+
+<EffectGuide />
+
+```ts
+import { Effect } from "effect";
+
+const program = waitForHcaExecution.effect(config, parameters);
+type Success = Effect.Success<typeof program>;
+type Failure = Effect.Error<typeof program>;
+const result = await Effect.runPromise(program);
+```
+
+## Error
+
+<ErrorGuide />
+
+Deployment, account and authorization mismatches remain explicit errors. Reconcile uncertain submissions before retrying a write.
+
+## Related
+
+- [`waitForHcaExecution`](/sdk/api/hca/wait-for-hca-execution)
+- [Guide](/core/guides/hca)

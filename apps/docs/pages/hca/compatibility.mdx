@@ -1,0 +1,50 @@
+---
+title: Compatibility and limitations
+description: Pinned deployment generation, package versions and supported capabilities.
+---
+
+# Compatibility and limitations
+
+The integration uses deployment artifacts recorded for Sepolia at contracts source commit
+`09bf3ac64a6fb1b215573c019b17e8c501bb3ca0`. Artifact addresses and ABIs are authoritative for that
+snapshot; a later `post-audit-2` source commit may describe contracts that were not deployed there.
+
+Import `sepoliaHcaDeployment` from `@ensforge/contracts/deployments`. Use its metadata and the
+published ABI fragments instead of copying addresses into application code. A custom `hca` profile
+must describe compatible contracts, module wiring, generation rules and deployment provenance.
+
+| Dependency         | Implementation baseline                                       |
+| ------------------ | ------------------------------------------------------------- |
+| `@rhinestone/sdk`  | `1.8.0` with the shipped ENSforge patch (exact optional peer) |
+| `permissionless`   | `0.4.0` (peer range `^0.4.0`)                                 |
+| `viem`             | `2.56.0` (peer range `^2.56.0`)                               |
+| `effect`           | `4.0.0-rc.112` (peer range `^4.0.0-rc.112`)                   |
+| Pimlico EntryPoint | `0.7`                                                         |
+
+Apply the [Rhinestone compatibility patch](/hca/installation#rhinestone-compatibility-patch) when using that provider.
+Use the lockfile for the exact resolved installation. ENS HCA integration is still pre-release work;
+inspect the release changesets before choosing a published package version.
+
+## Supported boundary
+
+- Direct owner transactions on verified deployed standalone HCAs.
+- Pimlico owner UserOperations, including counterfactual deployment and optional ETH sponsorship.
+- Rhinestone destination sessions with constrained ENS calls.
+- Independent Rhinestone EOA/ERC-20 funding only for explicitly configured, verified routes.
+- Account inspection, deposits, dedicated withdrawal, gated upgrade and explicit governance actions.
+
+Generic module installation, HCA owner transfer, unrestricted HCA self-calls, Pimlico sessions,
+unverified source smart accounts and default public cross-chain routes are unavailable. The pinned
+Nexus registry setter is a no-op, so there is no registry write action. This generation has no installed
+hook requiring an emergency removal action. Factory/gate ownership is distinct from HCA ownership.
+
+A successful upgrade does not certify the replacement implementation for existing provider adapters.
+Check both directional upgrade gates and implementation approval, then independently assess adapter
+compatibility. Module interfaces alone do not make Kernel or Safe implementations ENS HCAs.
+
+## Evidence and outstanding checks
+
+Local contract, persistence, browser and package checks exercise implementation behavior. They do not
+prove hosted bundler acceptance, real paymaster sponsorship, cross-chain settlement or Mainnet readiness.
+Those checks remain manual and unchecked in the [release checklist](/hca/release). No Mainnet HCA
+profile or new funding capability is enabled by this documentation phase.

@@ -1,0 +1,95 @@
+---
+title: getHcaExecutionStatus
+description: Reconcile a tracking reference.
+---
+
+import EffectGuide from "../../../../../shared/core/effect.mdx";
+import ErrorGuide from "../../../../../shared/core/error.mdx";
+
+# getHcaExecutionStatus
+
+Reconcile a tracking reference.
+
+## Import
+
+```ts
+import { getHcaExecutionStatus } from "@ensforge/core/hca";
+```
+
+## Usage
+
+:::code-group
+
+```ts [index.ts]
+import { getHcaExecutionStatus } from "@ensforge/core/hca";
+import { config } from "./config";
+
+type Input = Parameters<typeof getHcaExecutionStatus>[1];
+declare const parameters: Input;
+
+const result = await getHcaExecutionStatus(config, parameters);
+```
+
+```ts [config.ts]
+// [!include ~/snippets/hca/config.ts]
+```
+
+:::
+
+## Parameters
+
+```ts
+type Input = Parameters<typeof getHcaExecutionStatus>[1];
+```
+
+### submission
+
+`HcaExecutionSubmission<unknown>`
+
+Previously returned or explicitly recovered execution submission.
+
+### execution
+
+`ExecutionAdapter<unknown, unknown, unknown> | undefined`
+
+Compatible execution adapter. Omit for direct owner execution when supported.
+
+## Return Type
+
+```ts
+type Result = Awaited<ReturnType<typeof getHcaExecutionStatus>>;
+```
+
+Returns `HcaExecutionStatus`.
+
+## Effect
+
+<EffectGuide />
+
+```ts
+import { Effect } from "effect";
+
+const program = getHcaExecutionStatus.effect(config, parameters);
+type Success = Effect.Success<typeof program>;
+type Failure = Effect.Error<typeof program>;
+const result = await Effect.runPromise(program);
+```
+
+## Request
+
+```ts
+const request = getHcaExecutionStatus.request(parameters);
+```
+
+Requests compose with ENS read batching.
+
+## Error
+
+<ErrorGuide />
+
+Deployment, account and authorization mismatches remain explicit errors. Reconcile uncertain submissions before retrying a write.
+
+## Related
+
+- [`getHcaExecutionStatus`](/sdk/api/hca/get-hca-execution-status)
+- [Guide](/core/guides/hca)

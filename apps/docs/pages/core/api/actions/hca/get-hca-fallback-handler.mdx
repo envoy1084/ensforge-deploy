@@ -1,0 +1,110 @@
+---
+title: getHcaFallbackHandler
+description: Inspect the handler for a selector.
+---
+
+import EffectGuide from "../../../../../shared/core/effect.mdx";
+import ErrorGuide from "../../../../../shared/core/error.mdx";
+
+# getHcaFallbackHandler
+
+Inspect the handler for a selector.
+
+## Import
+
+```ts
+import { getHcaFallbackHandler } from "@ensforge/core/hca";
+```
+
+## Usage
+
+:::code-group
+
+```ts [index.ts]
+import { getHcaFallbackHandler } from "@ensforge/core/hca";
+import { config } from "./config";
+
+type Input = Parameters<typeof getHcaFallbackHandler>[1];
+const parameters: Input = {
+  hca: "0x0000000000000000000000000000000000000001",
+  selector: "0x00000000",
+};
+
+const result = await getHcaFallbackHandler(config, parameters);
+```
+
+```ts [config.ts]
+// [!include ~/snippets/hca/config.ts]
+```
+
+:::
+
+## Parameters
+
+```ts
+type Input = Parameters<typeof getHcaFallbackHandler>[1];
+```
+
+### blockNumber
+
+`bigint | undefined`
+
+Block number to read. Cannot be combined with blockTag.
+
+### blockTag
+
+`BlockTag | undefined`
+
+Named block state to read. Cannot be combined with blockNumber.
+
+### hca
+
+`` `0x${string}` ``
+
+HCA address to inspect or operate on.
+
+### selector
+
+`` `0x${string}` ``
+
+Function selector whose fallback handler is inspected.
+
+## Return Type
+
+```ts
+type Result = Awaited<ReturnType<typeof getHcaFallbackHandler>>;
+```
+
+Returns ``{ readonly callType: `0x${string}`; readonly handler: `0x${string}`; }``.
+
+## Effect
+
+<EffectGuide />
+
+```ts
+import { Effect } from "effect";
+
+const program = getHcaFallbackHandler.effect(config, parameters);
+type Success = Effect.Success<typeof program>;
+type Failure = Effect.Error<typeof program>;
+const result = await Effect.runPromise(program);
+```
+
+## Request
+
+```ts
+const request = getHcaFallbackHandler.request(parameters);
+```
+
+Requests compose with ENS read batching.
+
+## Error
+
+<ErrorGuide />
+
+Deployment, account and authorization mismatches remain explicit errors. Reconcile uncertain submissions before retrying a write.
+
+## Related
+
+- [`getHcaFallbackHandler`](/sdk/api/hca/get-hca-fallback-handler)
+- [Guide](/core/guides/hca)

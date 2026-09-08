@@ -1,10 +1,18 @@
 import type { ReactNode } from "react";
 
+import { createMemoryWorkflowStorage } from "@ensforge/core/storage";
+import { createIndexedDbWorkflowStorage } from "@ensforge/core/storage/browser";
 import { renderHook } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi, beforeEach } from "vitest";
 
 import { EnsforgeProvider, useEnsforge } from "../../../src/index.js";
 import { makePublicClient, makeSdk } from "../fixtures/sdk.js";
+
+vi.mock("@ensforge/core/storage/browser", () => ({
+  createIndexedDbWorkflowStorage: vi.fn(() => createMemoryWorkflowStorage()),
+}));
+
+beforeEach(() => vi.clearAllMocks());
 
 describe("EnsforgeProvider", () => {
   it("provides an existing SDK", () => {
@@ -17,6 +25,7 @@ describe("EnsforgeProvider", () => {
     const { result } = renderHook(useEnsforge, { wrapper });
 
     expect(result.current).toBe(sdk);
+    expect(createIndexedDbWorkflowStorage).not.toHaveBeenCalled();
   });
 
   it("creates one stable SDK from config", () => {
@@ -33,6 +42,21 @@ describe("EnsforgeProvider", () => {
 
     expect(result.current).toBe(sdk);
     expect(result.current.config.publicClient).toBe(publicClient);
+    expect(createIndexedDbWorkflowStorage).toHaveBeenCalledTimes(1);
+    expect(result.current.config.storage).toBeDefined();
+  });
+
+  it("preserves an explicit store instead of opening IndexedDB", () => {
+    const storage = createMemoryWorkflowStorage();
+    const publicClient = makePublicClient();
+    const wrapper = ({ children }: { readonly children: ReactNode }) => (
+      <EnsforgeProvider config={{ network: "mainnet", publicClient, storage }}>
+        {children}
+      </EnsforgeProvider>
+    );
+    const { result } = renderHook(useEnsforge, { wrapper });
+    expect(result.current.config.storage).toBe(storage);
+    expect(createIndexedDbWorkflowStorage).not.toHaveBeenCalled();
   });
 
   it("rejects hooks outside the provider", () => {

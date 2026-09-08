@@ -1,0 +1,106 @@
+---
+title: useWaitForHcaExecution
+description: Wait for execution with bounded polling
+---
+
+# useWaitForHcaExecution
+
+Wait for execution with bounded polling Uses the SDK from `EnsforgeProvider`.
+
+## Import
+
+```tsx
+import { useWaitForHcaExecution } from "@ensforge/react";
+```
+
+## Usage
+
+:::code-group
+
+```tsx [component.tsx]
+import { useWaitForHcaExecution } from "@ensforge/react";
+
+function Component({
+  parameters,
+}: {
+  parameters: Parameters<ReturnType<typeof useWaitForHcaExecution>["mutate"]>[0];
+}) {
+  const mutation = useWaitForHcaExecution();
+  return (
+    <button disabled={mutation.isWaiting} onClick={() => mutation.mutate(parameters)}>
+      Run
+    </button>
+  );
+}
+```
+
+```tsx [provider.tsx]
+// [!include ~/snippets/hca/provider.tsx]
+```
+
+:::
+
+## Parameters
+
+Pass operation parameters to `mutate`, `mutateAsync` or `mutateEffect`. Hook options accept `onExit` and an explicit retry policy.
+
+```ts
+type Input = Parameters<ReturnType<typeof useWaitForHcaExecution>["mutate"]>[0];
+```
+
+### confirmations
+
+`number | undefined`
+
+Required receipt confirmations.
+
+### timeout
+
+`number | undefined`
+
+Maximum time to wait, in milliseconds.
+
+### pollingInterval
+
+`number | undefined`
+
+Initial status polling interval, in milliseconds.
+
+### maxPollingInterval
+
+`number | undefined`
+
+Upper bound for the status polling interval, in milliseconds.
+
+### submission
+
+`HcaExecutionSubmission<unknown>`
+
+Previously returned or explicitly recovered execution submission.
+
+### execution
+
+`ExecutionAdapter<unknown, unknown, unknown> | undefined`
+
+Compatible execution adapter. Omit for direct owner execution when supported.
+
+## Return Type
+
+```ts
+type Result = ReturnType<typeof useWaitForHcaExecution>;
+```
+
+The mutation exposes `data`, `error`, `isWaiting`, `result`, execution methods, `reset` and `interrupt`. Interruption stops local work; it does not undo a broadcast or revoke a session. See [Mutation Hooks](/react/guides/mutations).
+
+## Effect Atom
+
+```ts
+import { createWaitForHcaExecutionMutationAtom } from "@ensforge/react/atoms";
+
+const atom = createWaitForHcaExecutionMutationAtom(sdk);
+```
+
+## Action
+
+- [`waitForHcaExecution`](/core/api/actions/hca/wait-for-hca-execution)
+- [`sdk.hca.waitForHcaExecution`](/sdk/api/hca/wait-for-hca-execution)

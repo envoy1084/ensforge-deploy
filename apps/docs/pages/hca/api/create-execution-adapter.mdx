@@ -1,0 +1,42 @@
+---
+title: createExecutionAdapter
+description: Create a validated typed execution adapter.
+---
+
+# createExecutionAdapter
+
+Create a validated typed execution adapter.
+
+## Import
+
+```ts
+import { createExecutionAdapter } from "@ensforge/hca";
+```
+
+## Usage
+
+```ts
+const execution = createExecutionAdapter(definition);
+```
+
+## Parameters
+
+```ts
+definition: ExecutionAdapterDefinition<P, A, S, Extensions>;
+```
+
+The definition supplies identity, capabilities, payload schemas, a versioned submission codec, policy and provider operations. Prepared and authorized payloads remain provider-owned. See [Execution Adapters](/hca/execution) for each required member.
+
+## Return Type
+
+`TypedExecutionAdapter<P, A, S, Extensions>`
+
+## Error
+
+Invalid identity, configuration and unsupported authorization remain explicit errors. Provider transport
+and simulation failures must be reconciled before repeating a submission.
+
+## Related
+
+- [Examples](/hca/examples)
+- [Compatibility](/hca/compatibility)

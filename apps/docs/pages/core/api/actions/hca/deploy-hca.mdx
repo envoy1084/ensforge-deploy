@@ -1,0 +1,119 @@
+---
+title: deployHca
+description: Deploy or verify the existing deterministic account.
+---
+
+import EffectGuide from "../../../../../shared/core/effect.mdx";
+import ErrorGuide from "../../../../../shared/core/error.mdx";
+
+# deployHca
+
+Deploy or verify the existing deterministic account.
+
+## Import
+
+```ts
+import { deployHca } from "@ensforge/core/hca";
+```
+
+## Usage
+
+:::code-group
+
+```ts [index.ts]
+import { deployHca } from "@ensforge/core/hca";
+import { config } from "./config";
+
+type Input = Parameters<typeof deployHca>[1];
+declare const parameters: Input;
+
+const result = await deployHca(config, parameters);
+```
+
+```ts [config.ts]
+// [!include ~/snippets/hca/config.ts]
+```
+
+:::
+
+## Parameters
+
+```ts
+type Input = Parameters<typeof deployHca>[1];
+```
+
+### owner
+
+`` `0x${string}` ``
+
+Owner address used for account derivation or authorization.
+
+### salt
+
+`bigint | undefined`
+
+Account derivation salt. Defaults to the deployment profile canonical salt.
+
+### implementation
+
+`` `0x${string}` | undefined ``
+
+Implementation address to inspect, approve or use for derivation.
+
+### confirmation
+
+`{ readonly type: "submitted"; } | { readonly type: "confirmed"; readonly timeout?: number | undefined; readonly confirmations?: number | undefined; }`
+
+Receipt confirmation policy.
+
+### walletClient
+
+`Input["walletClient"]`
+
+Viem wallet override. Defaults to the configured wallet resolver.
+
+### account
+
+`` `0x${string}` | Account | undefined ``
+
+Wallet account override for the operation.
+
+## Return Type
+
+```ts
+type Result = Awaited<ReturnType<typeof deployHca>>;
+```
+
+Returns `DeployHcaResult`.
+
+## Effect
+
+<EffectGuide />
+
+```ts
+import { Effect } from "effect";
+
+const program = deployHca.effect(config, parameters);
+type Success = Effect.Success<typeof program>;
+type Failure = Effect.Error<typeof program>;
+const result = await Effect.runPromise(program);
+```
+
+## Call
+
+```ts
+const intent = deployHca.call(parameters);
+```
+
+Preparing an intent does not submit a transaction.
+
+## Error
+
+<ErrorGuide />
+
+Deployment, account and authorization mismatches remain explicit errors. Reconcile uncertain submissions before retrying a write.
+
+## Related
+
+- [`deployHca`](/sdk/api/hca/deploy-hca)
+- [Guide](/core/guides/hca)

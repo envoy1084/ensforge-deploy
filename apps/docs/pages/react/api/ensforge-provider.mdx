@@ -86,3 +86,8 @@ React subtree that can access ensforge hooks and context.
 
 `useEnsforge` returns the SDK and `useEnsforgeRegistry` returns the active registry. Both throw a
 clear provider error when called outside `EnsforgeProvider`.
+
+## Workflow storage
+
+When created from `config`, the provider defaults to lazy IndexedDB storage. An existing `sdk` keeps its own store. Explicit storage is preserved.
+See [Workflow Storage](/core/guides/workflow-storage) for import paths, defaults and recovery.

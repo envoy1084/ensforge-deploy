@@ -1,0 +1,160 @@
+---
+title: useStartHcaRegistration
+description: Persist and start or auto-resume registration
+---
+
+# useStartHcaRegistration
+
+Persist and start or auto-resume registration Uses the SDK from `EnsforgeProvider`.
+
+## Import
+
+```tsx
+import { useStartHcaRegistration } from "@ensforge/react";
+```
+
+## Usage
+
+:::code-group
+
+```tsx [component.tsx]
+import { useStartHcaRegistration } from "@ensforge/react";
+
+function Component({
+  parameters,
+}: {
+  parameters: Parameters<ReturnType<typeof useStartHcaRegistration>["mutate"]>[0];
+}) {
+  const mutation = useStartHcaRegistration();
+  return (
+    <button disabled={mutation.isWaiting} onClick={() => mutation.mutate(parameters)}>
+      Run
+    </button>
+  );
+}
+```
+
+```tsx [provider.tsx]
+// [!include ~/snippets/hca/provider.tsx]
+```
+
+:::
+
+## Parameters
+
+Pass operation parameters to `mutate`, `mutateAsync` or `mutateEffect`. Hook options accept `onExit` and an explicit retry policy.
+
+```ts
+type Input = Parameters<ReturnType<typeof useStartHcaRegistration>["mutate"]>[0];
+```
+
+### id
+
+`string | undefined`
+
+Saved operation identifier. Start registration can generate it from matching unfinished work.
+
+### hca
+
+`` `0x${string}` ``
+
+HCA address to inspect or operate on.
+
+### salt
+
+`bigint | undefined`
+
+Account derivation salt. Defaults to the deployment profile canonical salt.
+
+### name
+
+`string`
+
+ENS name. The action normalizes it before interaction.
+
+### duration
+
+`bigint`
+
+Registration duration in seconds.
+
+### resolver
+
+`` `0x${string}` ``
+
+Resolver address used by the registration or session policy.
+
+### paymentToken
+
+`` `0x${string}` ``
+
+Registration payment token. Amounts use its base units.
+
+### subregistry
+
+`` `0x${string}` | undefined ``
+
+Subregistry assigned by the registration.
+
+### referrer
+
+`` `0x${string}` | undefined ``
+
+Protocol referral identifier.
+
+### primaryName
+
+`boolean | undefined`
+
+Whether to include the supported primary-name operation.
+
+### authorization
+
+``{ readonly kind: "owner"; } | { readonly kind: "session"; readonly permissionId: `0x${string}`; readonly enableTransactionHash: `0x${string}`; }``
+
+Owner authorization or an enabled destination session.
+
+### signerReference
+
+`string | undefined`
+
+Protected application reference used to resolve a persistent session signer.
+
+### limits
+
+`Input["limits"]`
+
+Accepted registration price and per-chain execution fee bounds.
+
+### storage
+
+`WorkflowStorage | HcaRegistrationStorage | undefined`
+
+Optional storage override. Defaults to config storage.
+
+### execution
+
+`HcaRegistrationExecution | undefined`
+
+Compatible execution adapter. Omit for direct owner execution when supported.
+
+## Return Type
+
+```ts
+type Result = ReturnType<typeof useStartHcaRegistration>;
+```
+
+The mutation exposes `data`, `error`, `isWaiting`, `result`, execution methods, `reset` and `interrupt`. Interruption stops local work; it does not undo a broadcast or revoke a session. See [Mutation Hooks](/react/guides/mutations).
+
+## Effect Atom
+
+```ts
+import { createStartHcaRegistrationMutationAtom } from "@ensforge/react/atoms";
+
+const atom = createStartHcaRegistrationMutationAtom(sdk);
+```
+
+## Action
+
+- [`startHcaRegistration`](/core/api/actions/hca/start-hca-registration)
+- [`sdk.hca.startHcaRegistration`](/sdk/api/hca/start-hca-registration)

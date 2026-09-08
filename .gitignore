@@ -2,7 +2,7 @@
 .env
 .env.*
 !.env.example
-.ensforge/
+**/.ensforge/
 .repos/
 apps/docs/pages.gen.ts
 .turbo/
