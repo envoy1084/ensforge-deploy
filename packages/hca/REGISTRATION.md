@@ -5,13 +5,16 @@ The existing `sdk.hca` group provides `startHcaRegistration`, `getHcaRegistratio
 `@ensforge/hca` re-exports the contract and provides serialization and development storage.
 No additional SDK client or database dependency is required.
 
+Use the same [HCA storage backend](./STORAGE.md) for registration and independent funding.
+Legacy registration-only storage implementations remain compatible.
+
 ## Start and resume
 
 ```ts
-import { createMemoryHcaRegistrationStorage } from "@ensforge/hca";
+import { createMemoryHcaStorage } from "@ensforge/hca";
 
 // Use transactional persistent storage in production.
-const storage = createMemoryHcaRegistrationStorage();
+const storage = createMemoryHcaStorage();
 
 let operation = await sdk.hca.startHcaRegistration({
   id: registrationId, // Application-generated idempotency key.

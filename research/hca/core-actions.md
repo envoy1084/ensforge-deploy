@@ -306,7 +306,9 @@ See the [adapter package](../../packages/hca/README.md) for the shipped lifecycl
 
 Implemented actions on `sdk.hca`: `startHcaRegistration`, `getHcaRegistration`,
 `resumeHcaRegistration`, and `cancelHcaRegistration`. Each action has its own core folder.
-The storage contract lives in core and is re-exported by `@ensforge/hca`; provider serialization
+The common `HcaStorage` contract lives in core and is re-exported by `@ensforge/hca`. Registration
+and funding use distinct namespaces in one backend; existing `HcaRegistrationStorage` implementations
+remain compatible. See [shared storage](../../packages/hca/STORAGE.md). Provider serialization
 remains provider-owned. See [the shipped workflow and storage API](../../packages/hca/REGISTRATION.md).
 Registration is destination-only. Independent Rhinestone `execution.crossChain` funding is P6 and
 must finish before the application starts/resumes ordinary registration.

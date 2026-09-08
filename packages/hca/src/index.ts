@@ -18,3 +18,5 @@ export {
   HcaRegistrationProgress,
 } from "@ensforge/core/hca";
 export type { HcaRegistrationStorage, HcaRegistrationExecution } from "@ensforge/core/hca";
+
+export { createMemoryHcaStorage, type HcaStorage, type HcaStoredRecord } from "./storage.js";

@@ -5,15 +5,26 @@ import {
   type HcaRegistrationContext,
   type HcaRegistrationProgress,
 } from "../../../actions/hca/registration-types.js";
+import { scopeHcaStorage } from "../../../actions/hca/storage.js";
 import type { EnsforgeConfig } from "../../../config/config.js";
 import { HcaError } from "../../../errors/hca-error.js";
+
+const registrationJson = Schema.fromJsonString(Schema.toCodecJson(HcaRegistrationOperation));
+
+export const registrationStorage = (context: HcaRegistrationContext) =>
+  "kind" in context.storage
+    ? scopeHcaStorage(context.storage, "ens/registration", {
+        encode: Schema.encodeSync(registrationJson),
+        decode: Schema.decodeUnknownSync(registrationJson, { onExcessProperty: "error" }),
+      })
+    : context.storage;
 
 export const loadOperation = async (
   config: EnsforgeConfig,
   context: HcaRegistrationContext,
   id: string,
 ) => {
-  const saved = await context.storage.get(id);
+  const saved = await registrationStorage(context).get(id);
 
   if (!saved)
     throw new HcaError({
@@ -71,7 +82,7 @@ export const saveOperation = async (
   });
 
   if (
-    !(await context.storage.compareAndSwap({
+    !(await registrationStorage(context).compareAndSwap({
       id: operation.id,
       expectedRevision: operation.revision,
       operation: updated,

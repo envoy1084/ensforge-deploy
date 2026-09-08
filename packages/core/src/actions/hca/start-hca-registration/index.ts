@@ -8,6 +8,7 @@ import { bytesToHex, zeroAddress, zeroHash } from "viem";
 
 import { defineAction } from "../../../action/action.js";
 import { HcaError } from "../../../errors/hca-error.js";
+import { registrationStorage } from "../../../internal/hca/registration/storage.js";
 import { getRegistrationParameters } from "../../registration/get-registration-parameters/index.js";
 import { makeRegistrationCommitment } from "../../registration/make-registration-commitment/index.js";
 import {
@@ -120,7 +121,7 @@ export const startHcaRegistration = defineAction<
         updatedAt: now,
       });
 
-      if (!(await parameters.storage.create(operation)))
+      if (!(await registrationStorage(parameters).create(operation)))
         throw new HcaError({
           code: "INVALID_PARAMETERS",
           message: "Registration ID already exists; resume that operation instead",

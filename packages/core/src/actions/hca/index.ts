@@ -26,3 +26,5 @@ export * from "./start-hca-registration/index.js";
 export * from "./get-hca-registration/index.js";
 export * from "./resume-hca-registration/index.js";
 export * from "./cancel-hca-registration/index.js";
+
+export * from "./storage.js";

@@ -8,6 +8,7 @@ import {
   HcaExecutionHash,
   type HcaExecutionReview,
 } from "./execution-contract.js";
+import type { HcaStorage } from "./storage.js";
 import {
   HcaSalt,
   type ExecutionAdapter,
@@ -136,7 +137,7 @@ export interface HcaRegistrationExecution extends ExecutionAdapter {
 }
 
 export interface HcaRegistrationContext {
-  readonly storage: HcaRegistrationStorage;
+  readonly storage: HcaStorage | HcaRegistrationStorage;
   readonly execution?: HcaRegistrationExecution;
 }
 export interface GetHcaRegistrationParameters extends HcaRegistrationContext {
