@@ -68,7 +68,6 @@ const EnsV2MigrationContractAddresses = Schema.Struct({
 const EnsV2InfrastructureContractAddresses = Schema.Struct({
   managedUniversalResolverProxy: Schema.optionalKey(EthereumAddress),
   batchRegistrar: EthereumAddress,
-  dnsV1MirrorRootBatchRegistrar: EthereumAddress,
 });
 
 const EnsV2ExperimentalHcaContractAddresses = Schema.Struct({

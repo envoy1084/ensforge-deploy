@@ -40,7 +40,6 @@ export const sepoliaV2Deployment = {
   infrastructure: {
     managedUniversalResolverProxy: "0x6d80F2172CFdEc5730fE683860C33d26fC42e6F1",
     batchRegistrar: "0x8B16d15F3e51074D0E06F3cf4A0053f7Cb92A7FB",
-    dnsV1MirrorRootBatchRegistrar: "0xDc5C31F7eA5e31EFc6d5C68dd568f4c4A169804B",
   },
   experimental: {
     hca: {
