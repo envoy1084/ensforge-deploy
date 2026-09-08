@@ -109,6 +109,7 @@ const wrapV1 = Effect.fn("wrapV1")(function* (
     `Unable to approve wrapping ${label}.eth`,
     "owner",
   );
+
   yield* seedTransaction(
     environment,
     {
@@ -199,6 +200,7 @@ export const seedMigrationFixtures = Effect.fn("seedMigrationFixtures")(function
     "Unable to approve the unlocked ENS migration controller",
     "owner",
   );
+
   yield* reserveV2(environment, "v2-reserved-approved", reservedApprovedExpiry);
 
   const reservedWrappedLockedExpiry = yield* registerV1MigrationName(
@@ -212,6 +214,7 @@ export const seedMigrationFixtures = Effect.fn("seedMigrationFixtures")(function
     publicResolver,
     nameWrapperFuses.cannotUnwrap,
   );
+
   yield* reserveV2(environment, "v2-reserved-wrapped-locked", reservedWrappedLockedExpiry);
 
   const renewalReservedExpiry = yield* registerV1MigrationName(environment, "v2-renewal-reserved");
@@ -325,6 +328,7 @@ export const seedMigrationFixtures = Effect.fn("seedMigrationFixtures")(function
     "Unable to seed the V1-mirrored child",
     "owner",
   );
+
   yield* reserveV2(environment, "v2-migrated-locked", lockedExpiry);
   yield* seedTransaction(
     environment,

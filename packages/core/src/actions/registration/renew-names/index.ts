@@ -280,6 +280,7 @@ const renewNamesEffect = Effect.fn("ensforge.renewNames")(function* (
       atomicity: contractBatch || group.length === 1 ? "none" : "preferred",
       confirmation: parameters.confirmation ?? confirmed,
     });
+
     groupIndex += 1;
   }
 

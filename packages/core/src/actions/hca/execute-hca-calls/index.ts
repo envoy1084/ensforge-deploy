@@ -167,6 +167,7 @@ export const executeHcaCalls: ExecuteHcaCallsAction = defineAction<
       config,
       resolveWalletContext(parameters),
     );
+
     const owner = typeof account === "string" ? account : account.address;
 
     if (!isAddressEqual(owner, plan.account.owner))

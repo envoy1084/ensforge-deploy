@@ -23,12 +23,25 @@ lint-staged, tsup, or Rollup unless a demonstrated requirement cannot be met by 
 
 ## Readability
 
+Apply these conventions across all package source, including core, HCA, SDK, React, contracts, and
+new packages. Oxfmt does not insert logical blank lines; review grouping explicitly when writing code.
+
 Separate validation, execution, state updates, and result construction with blank lines. Keep short,
 related declarations and assertions together; do not add a blank line after every statement. Separate
 independent functions and type declarations, while keeping overloads and schema/type pairs together.
 
 Use brief comments for non-obvious constraints, ordering, or lifecycle decisions. Avoid comments that
-repeat the code, section banners, and manual reformatting of generated artifacts.
+repeat the code, section banners, roadmap phase labels in source comments, and manual reformatting
+of generated artifacts.
+
+Inline trivial wrappers such as a function that only constructs an error or forwards a call. Prefer
+an explicit expression at its use site when a small helper adds navigation without clarifying intent.
+Keep shared functions for substantial reused logic or important domain concepts; do not extract
+one-off helpers merely to shorten a function. Preserve existing public APIs when cleaning up.
+
+Keep each public action in its own action folder, following neighboring actions. Separate validation,
+RPC/provider work, mutation, and result construction; group related declarations without inserting
+a blank line after every line.
 
 # Learning more about Effect
 

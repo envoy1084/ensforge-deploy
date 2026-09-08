@@ -30,6 +30,7 @@ export const seedFixtures = Effect.fn("seedFixtures")(function* (environment: De
     () => verifyFixtureManifest(environment, manifest),
     "The completed ENS fixture manifest failed verification",
   );
+
   yield* environment.state.checkpoint;
 
   return manifest;

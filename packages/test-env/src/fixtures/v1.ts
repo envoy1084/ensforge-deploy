@@ -105,6 +105,7 @@ const activeV1Fixture = Effect.fn("activeV1Fixture")(function* (
       `Unable to set the resolver for ${label}.eth`,
       ownerRole,
     );
+
     yield* seedTransaction(
       environment,
       {
@@ -145,6 +146,7 @@ export const seedV1Fixtures = Effect.fn("seedV1Fixtures")(function* (
     "Unable to authorize the ENS devnet fixture registrar",
     "owner",
   );
+
   yield* seedTransaction(
     environment,
     {
@@ -156,6 +158,7 @@ export const seedV1Fixtures = Effect.fn("seedV1Fixtures")(function* (
     "Unable to authorize ETHRenewerV1 as an ENS v1 registrar controller",
     "owner",
   );
+
   yield* seedTransaction(
     environment,
     {
@@ -219,6 +222,7 @@ export const seedV1Fixtures = Effect.fn("seedV1Fixtures")(function* (
     "Unable to create the unwrapped ENS v1 subname",
     "owner",
   );
+
   yield* seedTransaction(
     environment,
     {
@@ -242,6 +246,7 @@ export const seedV1Fixtures = Effect.fn("seedV1Fixtures")(function* (
     "Unable to approve the ENS v1 Name Wrapper",
     "owner",
   );
+
   yield* seedTransaction(
     environment,
     {
@@ -258,6 +263,7 @@ export const seedV1Fixtures = Effect.fn("seedV1Fixtures")(function* (
     "Unable to wrap v1-wrapped.eth",
     "owner",
   );
+
   yield* seedTransaction(
     environment,
     {
@@ -269,6 +275,7 @@ export const seedV1Fixtures = Effect.fn("seedV1Fixtures")(function* (
     "Unable to create the wrapped ENS v1 subname",
     "owner",
   );
+
   yield* seedTransaction(
     environment,
     {

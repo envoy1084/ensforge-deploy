@@ -21,6 +21,7 @@ export const seedReverseFixtures = Effect.fn("seedReverseFixtures")(function* (
     "Unable to seed the verified default EVM reverse record",
     "owner",
   );
+
   yield* seedTransaction(
     environment,
     {
@@ -32,6 +33,7 @@ export const seedReverseFixtures = Effect.fn("seedReverseFixtures")(function* (
     "Unable to seed the verified ENS v2 reverse record",
     "owner2",
   );
+
   yield* seedTransaction(
     environment,
     {

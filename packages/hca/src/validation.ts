@@ -120,6 +120,7 @@ export const checkAccount = Effect.fn("hca.checkAccount")(function* (
             }),
         ),
       );
+
     if (fresh.fingerprint !== plan.fingerprint)
       return yield* new HcaError({
         code: "ADAPTER_MISMATCH",

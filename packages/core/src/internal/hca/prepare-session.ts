@@ -51,6 +51,7 @@ export const prepareHcaSession: EnsWriteIntentPreparer<
     parameters.validUntil,
     parameters.resolver,
   ] as const;
+
   let data: Hex;
 
   if ("refund" in parameters) {

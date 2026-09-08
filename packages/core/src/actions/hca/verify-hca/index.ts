@@ -43,10 +43,12 @@ export const verifyHca = defineReadAction<VerifyHcaParameters, VerifiedHcaAccoun
             profile.deployment.contracts.verifiableFactory,
             wiring.proxyLogic,
           );
+
           const approved = yield* getHcaImplementationApproval.effect(config, {
             implementation: initialImplementation,
             blockNumber,
           });
+
           if (
             !approved ||
             !isAddressEqual(initialImplementation, profile.contracts.standaloneImplementation) ||

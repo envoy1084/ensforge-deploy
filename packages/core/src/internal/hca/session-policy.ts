@@ -30,16 +30,18 @@ import { HcaError } from "../../errors/hca-error.js";
 import { hcaRpc, resolveHcaProfile } from "./context.js";
 
 const same = (a: string, b: string) => a.toLowerCase() === b.toLowerCase();
-const deny = (message: string): never => {
-  throw new HcaError({ code: "INVALID_EXECUTION", message });
-};
 
 const decode = <A extends Abi>(abi: A, data: Hex) => {
   const decoded = decodeFunctionData({ abi, data });
+
   if (
     !same(encodeFunctionData({ abi, ...decoded } as Parameters<typeof encodeFunctionData>[0]), data)
   )
-    deny("Session calls must use canonical ABI encoding");
+    throw new HcaError({
+      code: "INVALID_EXECUTION",
+      message: "Session calls must use canonical ABI encoding",
+    });
+
   return decoded;
 };
 
@@ -56,11 +58,17 @@ const recordSetters = new Set([
 ]);
 
 const resolverCall = (data: Hex, owner: Hex, depth = 0): boolean => {
-  if (depth > 32) return deny("Resolver multicall nesting exceeds the preparation limit");
+  if (depth > 32)
+    throw new HcaError({
+      code: "INVALID_EXECUTION",
+      message: "Resolver multicall nesting exceeds the preparation limit",
+    });
+
   const call = decode(permissionedResolverV2Abi, data);
 
   if (call.functionName === "multicall" || call.functionName === "multicallWithNodeCheck") {
     const calls = call.functionName === "multicall" ? call.args[0] : call.args[1];
+
     return calls.map((nested) => resolverCall(nested, owner, depth + 1)).some(Boolean);
   }
 
@@ -70,13 +78,22 @@ const resolverCall = (data: Hex, owner: Hex, depth = 0): boolean => {
       functionName: "authorizeNameRoles",
       args: ["0x00", enhancedAccessControlRoles.allRoles, owner, true],
     });
+
     if (!same(expected, data))
-      return deny("Sessions may only grant ALL root resolver roles to the immutable owner");
+      throw new HcaError({
+        code: "INVALID_EXECUTION",
+        message: "Sessions may only grant ALL root resolver roles to the immutable owner",
+      });
+
     return true;
   }
 
   if (!recordSetters.has(call.functionName))
-    return deny("Resolver management is outside the fixed ENS session policy");
+    throw new HcaError({
+      code: "INVALID_EXECUTION",
+      message: "Resolver management is outside the fixed ENS session policy",
+    });
+
   return false;
 };
 
@@ -92,6 +109,7 @@ export const validateHcaSessionCalls = Effect.fn("validateHcaSessionCalls")(func
   const resolverCode = yield* hcaRpc(() =>
     config.publicClient.getCode({ address: session.resolver }),
   );
+
   const resolverExists = resolverCode !== undefined && resolverCode !== "0x";
   const proxyLogic = yield* hcaRpc(() =>
     config.publicClient.readContract({
@@ -109,25 +127,50 @@ export const validateHcaSessionCalls = Effect.fn("validateHcaSessionCalls")(func
       let grantsOwner = false;
 
       for (const call of calls) {
-        if (call.value !== 0n) deny("Session calls cannot transfer native value");
+        if (call.value !== 0n)
+          throw new HcaError({
+            code: "INVALID_EXECUTION",
+            message: "Session calls cannot transfer native value",
+          });
 
         if (same(call.to, contracts.ethRegistrar)) {
           const decoded = decode(ethRegistrarV2Abi, call.data);
+
           if (decoded.functionName === "commit") continue;
+
           if (decoded.functionName !== "register")
-            deny("Sessions only permit registrar commit/register");
+            throw new HcaError({
+              code: "INVALID_EXECUTION",
+              message: "Sessions only permit registrar commit/register",
+            });
+
           if (decoded.functionName === "register") {
             if (!same(decoded.args[1], account.owner) || !same(decoded.args[4], session.resolver))
-              deny("Registration must name the immutable owner and bound resolver");
-            if (!resolverExists && !deploys) deny("Deploy the resolver before registration");
+              throw new HcaError({
+                code: "INVALID_EXECUTION",
+                message: "Registration must name the immutable owner and bound resolver",
+              });
+
+            if (!resolverExists && !deploys)
+              throw new HcaError({
+                code: "INVALID_EXECUTION",
+                message: "Deploy the resolver before registration",
+              });
+
             registers = true;
             usesResolver = true;
           }
+
           continue;
         }
 
         if (same(call.to, session.resolver)) {
-          if (!resolverExists && !deploys) deny("Deploy the resolver before writing records");
+          if (!resolverExists && !deploys)
+            throw new HcaError({
+              code: "INVALID_EXECUTION",
+              message: "Deploy the resolver before writing records",
+            });
+
           grantsOwner = resolverCall(call.data, account.owner) || grantsOwner;
           usesResolver = true;
           continue;
@@ -135,12 +178,17 @@ export const validateHcaSessionCalls = Effect.fn("validateHcaSessionCalls")(func
 
         if (same(call.to, contracts.defaultReverseRegistrarAdapter)) {
           const decoded = decode(defaultReverseRegistrarAdapterV2Abi, call.data);
+
           if (
             decoded.functionName !== "setNameWithHCA" ||
             !same(decoded.args[0], account.owner) ||
             same(session.resolver, zeroAddress)
           )
-            deny("Reverse records must target the immutable owner");
+            throw new HcaError({
+              code: "INVALID_EXECUTION",
+              message: "Reverse records must target the immutable owner",
+            });
+
           continue;
         }
 
@@ -150,8 +198,13 @@ export const validateHcaSessionCalls = Effect.fn("validateHcaSessionCalls")(func
           )
         ) {
           const decoded = decode(erc20Abi, call.data);
+
           if (decoded.functionName !== "approve")
-            deny("Sessions only permit payment token approvals");
+            throw new HcaError({
+              code: "INVALID_EXECUTION",
+              message: "Sessions only permit payment token approvals",
+            });
+
           if (
             decoded.functionName === "approve" &&
             !same(decoded.args[0], contracts.ethRegistrar) &&
@@ -162,14 +215,23 @@ export const validateHcaSessionCalls = Effect.fn("validateHcaSessionCalls")(func
               decoded.args[1] <= session.refund.maxAmount
             )
           )
-            deny("Approval spender or amount is outside the session limits");
+            throw new HcaError({
+              code: "INVALID_EXECUTION",
+              message: "Approval spender or amount is outside the session limits",
+            });
+
           continue;
         }
 
         if (same(call.to, contracts.verifiableFactory)) {
           const decoded = decode(verifiableFactoryV2Abi, call.data);
+
           if (decoded.functionName !== "deployProxy" || deploys || resolverExists)
-            deny("Session permits one new bound resolver deployment");
+            throw new HcaError({
+              code: "INVALID_EXECUTION",
+              message: "Session permits one new bound resolver deployment",
+            });
+
           if (decoded.functionName === "deployProxy") {
             const [implementation, userSalt, initialization] = decoded.args;
             const expected = encodeFunctionData({
@@ -177,40 +239,61 @@ export const validateHcaSessionCalls = Effect.fn("validateHcaSessionCalls")(func
               functionName: "initialize",
               args: [account.address, enhancedAccessControlRoles.allRoles, []],
             });
+
             if (
               !same(implementation, profile.deployment.implementations.permissionedResolver) ||
               !same(initialization, expected)
             )
-              deny("Resolver must use the recorded implementation and HCA ALL-role initializer");
+              throw new HcaError({
+                code: "INVALID_EXECUTION",
+                message:
+                  "Resolver must use the recorded implementation and HCA ALL-role initializer",
+              });
+
             const salt = keccak256(
               encodeAbiParameters(
                 [{ type: "address" }, { type: "uint256" }],
                 [account.address, userSalt],
               ),
             );
+
             const bytecode = concatHex([
               "0x3d604d80600a3d3981f3363d3d373d3d3d363d73",
               proxyLogic,
               "0x5af43d82803e903d91602b57fd5bf3",
               salt,
             ]);
+
             if (
               !same(
                 getCreate2Address({ from: contracts.verifiableFactory, salt, bytecode }),
                 session.resolver,
               )
             )
-              deny("Deployment does not produce the bound resolver");
+              throw new HcaError({
+                code: "INVALID_EXECUTION",
+                message: "Deployment does not produce the bound resolver",
+              });
+
             deploys = true;
             usesResolver = true;
           }
+
           continue;
         }
-        deny("Call target is outside the fixed ENS session policy");
+
+        throw new HcaError({
+          code: "INVALID_EXECUTION",
+          message: "Call target is outside the fixed ENS session policy",
+        });
       }
 
       if (registers && !grantsOwner)
-        deny("Registration requires an ALL root-role grant to the immutable owner");
+        throw new HcaError({
+          code: "INVALID_EXECUTION",
+          message: "Registration requires an ALL root-role grant to the immutable owner",
+        });
+
       return { usesResolver };
     },
     catch: (cause) =>
@@ -228,6 +311,7 @@ export const validateHcaSessionCalls = Effect.fn("validateHcaSessionCalls")(func
         args: [session.resolver],
       }),
     );
+
     if (!same(implementation, profile.deployment.implementations.permissionedResolver))
       return yield* new HcaError({
         code: "DEPLOYMENT_MISMATCH",

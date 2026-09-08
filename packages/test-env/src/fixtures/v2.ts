@@ -101,6 +101,7 @@ export const seedV2Fixtures = Effect.fn("seedV2Fixtures")(function* (
     publicResolver,
     environment.accounts.owner2,
   );
+
   yield* registerV2(environment, "v2-expiring-soon", activeBlock.timestamp + 3_600n, zeroAddress);
   yield* registerV2(environment, "v2-resolver-lifecycle", activeExpiry, zeroAddress);
   yield* registerV2(environment, "v2-renewal", activeExpiry, zeroAddress);
@@ -140,6 +141,7 @@ export const seedV2Fixtures = Effect.fn("seedV2Fixtures")(function* (
           .then(({ result }) => result),
       "Unable to predict the native ENS v2 User Registry",
     );
+
     yield* seedTransaction(
       environment,
       {
@@ -151,6 +153,7 @@ export const seedV2Fixtures = Effect.fn("seedV2Fixtures")(function* (
       "Unable to deploy the native ENS v2 User Registry",
       "owner",
     );
+
     yield* seedTransaction(
       environment,
       {
@@ -162,6 +165,7 @@ export const seedV2Fixtures = Effect.fn("seedV2Fixtures")(function* (
       "Unable to attach the native ENS v2 User Registry",
       "owner",
     );
+
     yield* seedTransaction(
       environment,
       {
@@ -193,6 +197,7 @@ export const seedV2Fixtures = Effect.fn("seedV2Fixtures")(function* (
     "Unable to register native.ens.eth",
     "owner",
   );
+
   yield* seedTransaction(
     environment,
     {
@@ -211,6 +216,7 @@ export const seedV2Fixtures = Effect.fn("seedV2Fixtures")(function* (
     "Unable to register owned.ens.eth",
     "owner",
   );
+
   yield* seedTransaction(
     environment,
     {

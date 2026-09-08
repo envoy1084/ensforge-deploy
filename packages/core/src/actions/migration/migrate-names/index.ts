@@ -216,6 +216,7 @@ const migrateNamesEffect = Effect.fn("ensforge.migrateNames")(function* (
           operator: helper,
           required: !approved,
         });
+
         listedApprovals.add(key);
       }
 

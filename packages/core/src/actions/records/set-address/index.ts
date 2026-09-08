@@ -22,11 +22,6 @@ const encodeAddressCall = (node: `0x${string}`, record: AddressRecordInput) =>
     ],
   });
 
-const encodeError = (cause: unknown, message: string) =>
-  cause instanceof CodecError
-    ? cause
-    : new ContractError({ code: "ENCODE_FAILED", message, cause });
-
 export const setAddress = makeResolverWriteAction<SetAddressParameters>({
   operation: "setAddress",
   records: (parameters) => [{ type: "address", coinType: parameters.coinType ?? ethereumCoinType }],
@@ -38,7 +33,13 @@ export const setAddress = makeResolverWriteAction<SetAddressParameters>({
           address: parameters.address,
         }),
       catch: (cause) =>
-        encodeError(cause, `Unable to encode the setAddress call for ${context.name}`),
+        cause instanceof CodecError
+          ? cause
+          : new ContractError({
+              code: "ENCODE_FAILED",
+              message: `Unable to encode the setAddress call for ${context.name}`,
+              cause,
+            }),
     }),
 });
 
@@ -61,7 +62,13 @@ export const setAddresses = makeResolverWriteAction<SetAddressesParameters>({
         });
       },
       catch: (cause) =>
-        encodeError(cause, `Unable to encode the setAddresses call for ${context.name}`),
+        cause instanceof CodecError
+          ? cause
+          : new ContractError({
+              code: "ENCODE_FAILED",
+              message: `Unable to encode the setAddresses call for ${context.name}`,
+              cause,
+            }),
     }),
 });
 

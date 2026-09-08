@@ -119,6 +119,7 @@ const seedResolverRecords = Effect.fn("seedResolverRecordsForName")(function* (
     [node, "description", "ensforge integration fixture"],
     "description",
   );
+
   yield* transaction("setContenthash", [node, contenthash], "contenthash");
   yield* transaction("setABI", [node, 1n, stringToHex(abiJson)], "JSON ABI");
   yield* transaction("setABI", [node, 2n, abiZlibJson], "zlib JSON ABI");

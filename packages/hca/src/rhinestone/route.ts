@@ -22,12 +22,15 @@ export const reviewRoute = async (
   const route = prepared.intentRoute;
   const op = route.intentOp;
   const element = op.elements[0];
+
   if (op.elements.length !== 1 || !element || !plan.session)
     return reject("Expected one destination session operation");
+
   // The SDK signs both origin and target envelopes. A no-funding route must not authorize
   // two independent nonce values for the same destination batch (and two refund claims).
   if (BigInt(op.nonce) !== BigInt(op.targetExecutionNonce))
     return reject("No-funding route must use one execution nonce");
+
   const mandate = element.mandate;
   const context = mandate.qualifier.settlementContext;
   const profile = options.profile;
@@ -57,7 +60,9 @@ export const reviewRoute = async (
     mandate.destinationOps.ops.length !== plan.calls.length ||
     mandate.destinationOps.ops.some((call, index) => {
       const expected = plan.calls[index];
+
       if (!expected) return true;
+
       return (
         !same(call.to, expected.to) ||
         !same(call.data, expected.data) ||
@@ -72,6 +77,7 @@ export const reviewRoute = async (
     BigInt(mandate.fillDeadline),
     BigInt(plan.session.validUntil),
   ].reduce((a, b) => (a < b ? a : b));
+
   const quotedRefund = context.gasRefund;
   const refund =
     quotedRefund &&
@@ -82,6 +88,7 @@ export const reviewRoute = async (
     )
       ? quotedRefund
       : undefined;
+
   const maximum = refund ? BigInt(refund.overhead) >> 128n : 0n;
   const gasOverhead = refund ? BigInt(refund.overhead) & ((1n << 128n) - 1n) : 0n;
   const rate = refund ? BigInt(refund.exchangeRate) : 0n;
@@ -99,8 +106,10 @@ export const reviewRoute = async (
       BigInt(refund.overhead) >= 1n << 256n)
   )
     return reject("Provider refund exceeds the enabled session limits");
+
   if ((options.sponsored ?? true) && refund)
     return reject("A sponsored operation cannot charge the HCA a refund");
+
   if (!(options.sponsored ?? true) && !refund)
     return reject("Unsponsored execution requires an explicit bounded refund quote");
 
@@ -111,7 +120,9 @@ export const reviewRoute = async (
       )
     )
       continue;
+
     const decoded = decodeFunctionData({ abi: erc20Abi, data: call.data });
+
     if (
       decoded.functionName === "approve" &&
       same(decoded.args[0], profile.infrastructure.gasRefundPaymaster) &&
@@ -135,11 +146,16 @@ export const reviewRoute = async (
   const registrar = profile.deployment.contracts.ethRegistrar;
   const registrationCalls = plan.calls.flatMap((call) => {
     if (!same(call.to, registrar)) return [];
+
     const decoded = decodeFunctionData({ abi: ethRegistrarV2Abi, data: call.data });
+
     if (decoded.functionName !== "register") return [];
+
     const [label, , , , , duration, token] = decoded.args;
+
     return [{ label, duration, token }];
   });
+
   const prices = await Promise.all(
     registrationCalls.map(async ({ label, duration, token }) => {
       const [base, premium] = await config.publicClient.readContract({
@@ -148,9 +164,11 @@ export const reviewRoute = async (
         functionName: "getRegisterPrice",
         args: [label, duration, token],
       });
+
       return { token, amount: base + premium };
     }),
   );
+
   const tokens = [...new Set(prices.map(({ token }) => token.toLowerCase() as `0x${string}`))];
   const registrationFees = await Promise.all(
     tokens.map(async (token) => {
@@ -160,11 +178,14 @@ export const reviewRoute = async (
         functionName: "allowance",
         args: [plan.account.address, registrar],
       });
+
       for (const approval of plan.calls.filter((entry) => same(entry.to, token))) {
         const decoded = decodeFunctionData({ abi: erc20Abi, data: approval.data });
+
         if (decoded.functionName === "approve" && same(decoded.args[0], registrar))
           allowance += decoded.args[1];
       }
+
       return {
         kind: "registration" as const,
         chainId: config.chainId,
@@ -177,6 +198,7 @@ export const reviewRoute = async (
       };
     }),
   );
+
   fees.push(...registrationFees);
 
   if (refund) {
@@ -186,9 +208,11 @@ export const reviewRoute = async (
       functionName: "balanceOf",
       args: [plan.account.address],
     });
+
     const registrationCost = registrationFees
       .filter((fee) => same(fee.token, refund.token))
       .reduce((sum, fee) => sum + fee.expected, 0n);
+
     if (balance < maximum + registrationCost)
       return reject("Prefund the HCA for registration and its full refund cap");
   }
@@ -199,7 +223,9 @@ export const reviewRoute = async (
     element,
     BigInt(op.targetExecutionNonce),
   );
+
   message.message.gasRefund ??= { token: zeroAddress, exchangeRate: 0n, overhead: 0n };
   const scopeHash = hashTypedData(message);
+
   return { fees, expiresAt, scopeHash };
 };

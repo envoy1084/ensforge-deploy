@@ -25,25 +25,25 @@ import type {
 
 const confirmed = { type: "confirmed" } as const;
 
-const renewalError = (code: RenewalError["code"], message: string) =>
-  new RenewalError({ code, message });
-
 const requireQuote = (
   quote: RenewalPriceResult,
 ): Effect.Effect<Extract<RenewalPriceResult, { status: "renewable" }>, RenewalError> => {
   switch (quote.status) {
     case "not-renewable":
-      return renewalError("NAME_NOT_RENEWABLE", `${quote.name} is not renewable`);
+      return new RenewalError({
+        code: "NAME_NOT_RENEWABLE",
+        message: `${quote.name} is not renewable`,
+      });
     case "payment-token-required":
-      return renewalError(
-        "PAYMENT_TOKEN_REQUIRED",
-        `A payment token is required to renew ${quote.name}`,
-      );
+      return new RenewalError({
+        code: "PAYMENT_TOKEN_REQUIRED",
+        message: `A payment token is required to renew ${quote.name}`,
+      });
     case "unsupported-payment-token":
-      return renewalError(
-        "PAYMENT_TOKEN_UNSUPPORTED",
-        `The selected payment token is not supported for ${quote.name}`,
-      );
+      return new RenewalError({
+        code: "PAYMENT_TOKEN_UNSUPPORTED",
+        message: `The selected payment token is not supported for ${quote.name}`,
+      });
     default:
       return Effect.succeed(quote);
   }
@@ -74,10 +74,10 @@ const renewNameEffect = Effect.fn("ensforge.renewName")(function* (
     parameters.resume.write.completedStages.some((stage) => stage.id === "renew")
   ) {
     if (parameters.resume.write.planId !== id) {
-      return yield* renewalError(
-        "ROUTE_CHANGED",
-        "Renewal resume data does not match the supplied renewal",
-      );
+      return yield* new RenewalError({
+        code: "ROUTE_CHANGED",
+        message: "Renewal resume data does not match the supplied renewal",
+      });
     }
 
     const [expiry, finalState] = yield* Effect.all(
@@ -103,17 +103,17 @@ const renewNameEffect = Effect.fn("ensforge.renewName")(function* (
   const quote = yield* requireQuote(priceResult);
 
   if (parameters.resume !== undefined && parameters.resume.route !== quote.route) {
-    return yield* renewalError(
-      "ROUTE_CHANGED",
-      `The renewal route for ${name} changed while resuming`,
-    );
+    return yield* new RenewalError({
+      code: "ROUTE_CHANGED",
+      message: `The renewal route for ${name} changed while resuming`,
+    });
   }
 
   if (parameters.maxPrice !== undefined && quote.price > parameters.maxPrice) {
-    return yield* renewalError(
-      "PRICE_EXCEEDS_MAXIMUM",
-      `The current renewal price for ${name} exceeds maxPrice`,
-    );
+    return yield* new RenewalError({
+      code: "PRICE_EXCEEDS_MAXIMUM",
+      message: `The current renewal price for ${name} exceeds maxPrice`,
+    });
   }
 
   let approval = parameters.resume?.approval ?? {
@@ -189,7 +189,7 @@ const renewNameEffect = Effect.fn("ensforge.renewName")(function* (
       Effect.mapError((error) =>
         error instanceof RenewalError
           ? error
-          : renewalError("RENEWAL_FAILED", `Unable to renew ${name}`),
+          : new RenewalError({ code: "RENEWAL_FAILED", message: `Unable to renew ${name}` }),
       ),
     );
 

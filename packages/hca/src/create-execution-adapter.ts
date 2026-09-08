@@ -214,6 +214,7 @@ export const createExecutionAdapter = <
         review: result.review,
         simulation: "succeeded" as const,
       });
+
       preparedEnvelopes.set(prepared, immutablePlan);
 
       return prepared;

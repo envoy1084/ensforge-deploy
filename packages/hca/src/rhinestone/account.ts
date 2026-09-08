@@ -24,6 +24,7 @@ export const createRhinestoneHca = async (
   const account = await verifyHca(config, { hca, salt, expectedOwner: options.owner.address });
   const profile = options.profile;
   const configured = config.hca ?? getHcaDeployment(config.chainId);
+
   for (const section of ["contracts", "infrastructure"] as const) {
     if (
       Object.entries(profile[section]).some(
@@ -57,6 +58,7 @@ export const createRhinestoneHca = async (
     abi: verifiableFactoryV2ProxyLogicAbi,
     functionName: "proxyLogic",
   });
+
   const result = await sdk.createAccount({
     account: {
       type: "hca",

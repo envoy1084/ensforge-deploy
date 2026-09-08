@@ -53,15 +53,18 @@ export const runProcess = (
     child.stdout?.on("data", (chunk: Uint8Array) => {
       stdout = appendOutput(stdout, chunk);
     });
+
     child.stderr?.on("data", (chunk: Uint8Array) => {
       stderr = appendOutput(stderr, chunk);
     });
+
     child.once("error", (cause) => {
       if (settled) return;
 
       settled = true;
       resume(Effect.fail(cause));
     });
+
     child.once("close", (exitCode) => {
       if (settled) return;
 

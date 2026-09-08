@@ -147,11 +147,13 @@ export const verifyHcaDeployment: (
         await client.readContract({ ...account, functionName: "entryPoint" }),
         infrastructure.entryPoint,
       );
+
       expectAddress(
         "upgrade gate",
         await client.readContract({ ...account, functionName: "UPGRADE_GATE" }),
         hca.upgradeGate,
       );
+
       expectAddress(
         "initial predecessor gate",
         await client.readContract({ ...account, functionName: "PREDECESSOR_UPGRADE_GATE" }),
@@ -204,6 +206,7 @@ export const verifyHcaDeployment: (
           );
         }),
       );
+
       await Promise.all(
         [
           deployment.contracts.defaultReverseRegistrarAdapter,

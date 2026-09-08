@@ -76,6 +76,7 @@ export const createDevnetState = Effect.fn("createDevnetState")(function* (
     yield* stateOperation("Unable to advance ENS devnet time", () =>
       client.increaseTime({ seconds }),
     );
+
     yield* stateOperation("Unable to mine the ENS devnet time-advancement block", () =>
       client.mine({ blocks: 1 }),
     );

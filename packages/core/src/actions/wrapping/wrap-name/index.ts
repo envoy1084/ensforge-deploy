@@ -133,6 +133,7 @@ const wrapNameEffect = Effect.fn("ensforge.wrapName")(function* (
           approved: true,
         }),
       );
+
       cleanupCalls.push(
         setOperatorApproval.call({
           name: route.name,

@@ -29,6 +29,7 @@ export const readHcaSession = Effect.fn("readHcaSession")(function* (
   const receipt = yield* hcaRpc(() =>
     config.publicClient.getTransactionReceipt({ hash: reference.enableTransactionHash }),
   );
+
   const block = yield* hcaRpc(() => config.publicClient.getBlock());
   const canonical = yield* hcaRpc(() =>
     config.publicClient.getBlock({ blockNumber: receipt.blockNumber }),
@@ -46,7 +47,9 @@ export const readHcaSession = Effect.fn("readHcaSession")(function* (
     eventName: "SessionEnabled",
     logs,
   });
+
   let enabled: (typeof enabledEvents)[number] | undefined;
+
   for (const event of enabledEvents) {
     if (
       event.args.account.toLowerCase() === account.address.toLowerCase() &&
