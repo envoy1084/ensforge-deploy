@@ -1,6 +1,5 @@
 import { Effect, Result } from "effect";
 
-import type { EnsV1Deployment, EnsV2Deployment } from "@ensforge/contracts/deployments";
 import { universalResolverFindResolverAbi } from "@ensforge/contracts/shared";
 import { getExpiryV1RegistrarAbi } from "@ensforge/contracts/v1";
 import {
@@ -11,6 +10,10 @@ import {
 } from "@ensforge/contracts/v2";
 import { isAddressEqual, zeroAddress } from "viem";
 
+import type {
+  EnsV1ConfigDeployment,
+  EnsV2ConfigDeployment,
+} from "../../../config/custom-network.js";
 import type { CodecError } from "../../../errors/codec-error.js";
 import { ContractError } from "../../../errors/contract-error.js";
 import { EthereumClient } from "../../../internal/client/ethereum-client.js";
@@ -26,8 +29,8 @@ import { getExpiryV1 } from "./v1.js";
 const routeEthExpiry = Effect.fn("routeEthExpiry")(function* (
   name: NormalizedName,
   label: string,
-  v1: EnsV1Deployment,
-  v2: EnsV2Deployment,
+  v1: EnsV1ConfigDeployment,
+  v2: EnsV2ConfigDeployment,
 ): Effect.fn.Return<ExpiryResult | null, ContractError | ViemError, EthereumClient | ReadContext> {
   const ethereum = yield* EthereumClient;
   const labelId = BigInt(labelhash(label));
@@ -122,8 +125,8 @@ const routeEthExpiry = Effect.fn("routeEthExpiry")(function* (
 
 const routeOtherExpiry = Effect.fn("routeOtherExpiry")(function* (
   name: NormalizedName,
-  v1: EnsV1Deployment,
-  v2: EnsV2Deployment,
+  v1: EnsV1ConfigDeployment,
+  v2: EnsV2ConfigDeployment,
 ): Effect.fn.Return<ExpiryResult | null, CodecError | ViemError, EthereumClient | ReadContext> {
   const ethereum = yield* EthereumClient;
   const analysis = analyzeName(name);
@@ -183,8 +186,8 @@ const routeOtherExpiry = Effect.fn("routeOtherExpiry")(function* (
 
 export const routeExpiry = Effect.fn("routeExpiry")(function* (
   name: NormalizedName,
-  v1: EnsV1Deployment,
-  v2: EnsV2Deployment,
+  v1: EnsV1ConfigDeployment,
+  v2: EnsV2ConfigDeployment,
 ): Effect.fn.Return<
   ExpiryResult | null,
   CodecError | ContractError | ViemError,

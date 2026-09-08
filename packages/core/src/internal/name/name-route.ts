@@ -1,6 +1,5 @@
 import { Effect } from "effect";
 
-import type { EnsV1Deployment, EnsV2Deployment } from "@ensforge/contracts/deployments";
 import { universalResolverFindResolverAbi } from "@ensforge/contracts/shared";
 import {
   ethRenewerV1IsRenewableAbi,
@@ -9,6 +8,7 @@ import {
 } from "@ensforge/contracts/v2";
 import { isAddressEqual, zeroAddress } from "viem";
 
+import type { EnsV1ConfigDeployment, EnsV2ConfigDeployment } from "../../config/custom-network.js";
 import type { CodecError } from "../../errors/codec-error.js";
 import { ContractError } from "../../errors/contract-error.js";
 import { analyzeName } from "../../names/analyze.js";
@@ -23,12 +23,12 @@ import { DeploymentService } from "../services/deployment.js";
 export interface V1NameRoute {
   readonly kind: "v1";
   readonly protocol: "v1";
-  readonly deployment: EnsV1Deployment;
+  readonly deployment: EnsV1ConfigDeployment;
 }
 
 interface V2RouteFields {
   readonly protocol: "v2";
-  readonly deployment: EnsV2Deployment;
+  readonly deployment: EnsV2ConfigDeployment;
   readonly label: string;
   readonly parentRegistry: `0x${string}`;
   readonly state: {
@@ -51,8 +51,8 @@ export interface AvailableNameRoute extends V2RouteFields {
 export interface ReservedNameRoute {
   readonly kind: "reserved";
   readonly protocol: "v1";
-  readonly deployment: EnsV2Deployment;
-  readonly v1: EnsV1Deployment;
+  readonly deployment: EnsV2ConfigDeployment;
+  readonly v1: EnsV1ConfigDeployment;
   readonly label: string;
   readonly parentRegistry: `0x${string}`;
   readonly state: V2NameRoute["state"];

@@ -1,6 +1,6 @@
 import { Schema } from "effect";
 
-import { EnsNetworkSchema } from "../config/network.js";
+import { EnsNetworkIdSchema } from "../config/network.js";
 
 export const IndexerGraphQLError = Schema.Struct({
   message: Schema.String,
@@ -18,7 +18,7 @@ export class IndexerResponseError extends Schema.TaggedError<IndexerResponseErro
   {
     code: Schema.Literal("GRAPHQL_FAILED"),
     message: Schema.String,
-    network: EnsNetworkSchema,
+    network: EnsNetworkIdSchema,
     protocol: Schema.Literals(["v1", "v2"]),
     operationName: Schema.String,
     errors: Schema.Array(IndexerGraphQLError),

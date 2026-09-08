@@ -1,11 +1,11 @@
 import { Effect } from "effect";
 
-import type { EnsV1Deployment } from "@ensforge/contracts/deployments";
 import { nameWrapperV1GetDataAbi } from "@ensforge/contracts/v1";
 import { isAddressEqual, zeroAddress } from "viem";
 
 import type { BlockParameters } from "../../action/block.js";
 import type { EnsforgeConfig } from "../../config/config.js";
+import type { EnsV1ConfigDeployment } from "../../config/custom-network.js";
 import { AuthorizationError } from "../../errors/authorization-error.js";
 import { EthereumClient } from "../../internal/client/ethereum-client.js";
 import { readNameRoute } from "../../internal/name/name-route.js";
@@ -20,7 +20,7 @@ export interface V1WrapperRoute {
   readonly protocol: "v1";
   readonly name: NormalizedName;
   readonly analysis: NameAnalysis;
-  readonly deployment: EnsV1Deployment;
+  readonly deployment: EnsV1ConfigDeployment;
   readonly node: `0x${string}`;
   readonly wrapped: boolean;
   readonly owner: `0x${string}` | null;

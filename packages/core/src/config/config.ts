@@ -1,31 +1,35 @@
-import type { EnsV1Deployment, EnsV2Deployment } from "@ensforge/contracts/deployments";
 import type { PublicClient, WalletClient } from "viem";
 
 import type { EnsProtocol } from "../schemas/protocol.js";
+import type {
+  CustomEnsNetwork,
+  EnsV1ConfigDeployment,
+  EnsV2ConfigDeployment,
+} from "./custom-network.js";
 import type { GatewayOptions, ResolvedGatewayOptions } from "./gateway-options.js";
 import type { IndexerConfig, ResolvedIndexerConfig } from "./indexer-options.js";
-import type { EnsChainId, EnsNetwork } from "./network.js";
+import type { EnsNetwork, EnsNetworkId } from "./network.js";
 import type { ReadOptions, ResolvedReadOptions } from "./read-options.js";
 import type { ResolvedWriteOptions, WriteOptions } from "./write-options.js";
 
 export const EnsforgeConfigTypeId: unique symbol = Symbol.for("@ensforge/core/EnsforgeConfig");
 
-export type EnsDeployment = EnsV1Deployment | EnsV2Deployment;
+export type EnsDeployment = EnsV1ConfigDeployment | EnsV2ConfigDeployment;
 
 export type EnsDeploymentProfile =
   | {
       readonly protocol: Extract<EnsProtocol, "v1">;
-      readonly v1: EnsV1Deployment;
+      readonly v1: EnsV1ConfigDeployment;
       readonly v2?: never;
     }
   | {
       readonly protocol: Extract<EnsProtocol, "v2">;
-      readonly v1?: EnsV1Deployment;
-      readonly v2: EnsV2Deployment;
+      readonly v1?: EnsV1ConfigDeployment;
+      readonly v2: EnsV2ConfigDeployment;
     };
 
 export interface SharedCreateConfigParameters {
-  readonly network: EnsNetwork;
+  readonly network: EnsNetwork | CustomEnsNetwork;
   readonly reads?: ReadOptions;
   readonly writes?: WriteOptions;
   readonly gateways?: GatewayOptions;
@@ -39,14 +43,14 @@ export interface CreateViemConfigParameters extends SharedCreateConfigParameters
 
 export type CreateConfigParameters = CreateViemConfigParameters;
 
-export type EnsRuntimeNetwork = EnsNetwork | "devnet";
-export type EnsRuntimeChainId = EnsChainId | 31337;
+export type EnsRuntimeNetwork = EnsNetworkId;
+export type EnsRuntimeChainId = number;
 
 /** Immutable, single-network configuration consumed by every ensforge action. */
 export interface EnsforgeConfig {
   readonly [EnsforgeConfigTypeId]: typeof EnsforgeConfigTypeId;
-  readonly network: EnsNetwork;
-  readonly chainId: EnsChainId;
+  readonly network: EnsNetworkId;
+  readonly chainId: number;
   readonly publicClient: PublicClient;
   readonly walletClient?: WalletClient;
   readonly reads: ResolvedReadOptions;

@@ -45,7 +45,9 @@ import type { CreateWagmiConfigParameters } from "@ensforge/core/wagmi";
 
 ### network
 
-`"mainnet" | "sepolia"`
+`"mainnet" | "sepolia" | CustomEnsNetwork`
+
+Also accepts a [custom deployment profile](/core/api/create-config#custom-deployments).
 
 Network whose Wagmi public client and ENS deployment should be selected.
 

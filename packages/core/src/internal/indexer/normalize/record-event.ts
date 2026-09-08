@@ -1,7 +1,7 @@
 import { Predicate, Schema } from "effect";
 
 import type { IndexedRecordEvent } from "../../../actions/indexer/models/record.js";
-import type { EnsNetwork } from "../../../config/network.js";
+import type { EnsNetworkId } from "../../../config/network.js";
 import type { Namehash } from "../../../schemas/hash.js";
 import type { V1GetRecordHistoryQuery } from "../generated/v1/get-record-history.js";
 import type { V2GetRecordHistoryQuery } from "../generated/v2/get-record-history.js";
@@ -27,7 +27,7 @@ const bigintField = (record: Readonly<Record<string, unknown>>, field: string) =
 };
 
 const eventBase = (
-  network: EnsNetwork,
+  network: EnsNetworkId,
   protocol: "v1" | "v2",
   indexedBlock: bigint,
   namehash: Namehash,
@@ -55,7 +55,7 @@ const eventBase = (
 export const normalizeV1RecordEvent = (
   event: V1RecordEvent,
   context: {
-    readonly network: EnsNetwork;
+    readonly network: EnsNetworkId;
     readonly indexedBlock: bigint;
     readonly namehash: Namehash;
   },
@@ -112,7 +112,7 @@ export const normalizeV1RecordEvent = (
 export const normalizeV2RecordEvent = (
   event: V2RecordEvent,
   context: {
-    readonly network: EnsNetwork;
+    readonly network: EnsNetworkId;
     readonly indexedBlock: bigint;
     readonly namehash: Namehash;
   },

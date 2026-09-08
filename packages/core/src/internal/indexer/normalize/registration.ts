@@ -1,7 +1,7 @@
 import { Effect, Schema } from "effect";
 
 import { IndexedRegistration } from "../../../actions/indexer/models/registration.js";
-import type { EnsNetwork } from "../../../config/network.js";
+import type { EnsNetworkId } from "../../../config/network.js";
 import { IndexerDecodeError } from "../../../errors/indexer-decode-error.js";
 import type { V1GetRegistrationsQuery } from "../generated/v1/get-registrations.js";
 import type { V2GetRegistrationsQuery } from "../generated/v2/get-registrations.js";
@@ -29,7 +29,7 @@ const normalizeCost = (
 
 export const normalizeV1Registration = Effect.fn("normalizeV1Registration")(function* (
   wire: V1Registration,
-  context: { readonly network: EnsNetwork; readonly indexedBlock: bigint },
+  context: { readonly network: EnsNetworkId; readonly indexedBlock: bigint },
 ): Effect.fn.Return<IndexedRegistration, IndexerDecodeError> {
   return yield* Effect.try({
     try: () => {
@@ -63,7 +63,7 @@ export const normalizeV1Registration = Effect.fn("normalizeV1Registration")(func
 
 export const normalizeV2Registration = Effect.fn("normalizeV2Registration")(function* (
   wire: V2Registration,
-  context: { readonly network: EnsNetwork; readonly indexedBlock: bigint },
+  context: { readonly network: EnsNetworkId; readonly indexedBlock: bigint },
 ): Effect.fn.Return<IndexedRegistration, IndexerDecodeError> {
   return yield* Effect.try({
     try: () => {

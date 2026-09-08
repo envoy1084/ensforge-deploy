@@ -1,13 +1,13 @@
 import { Schema } from "effect";
 
 import { ConfigError } from "../errors/config-error.js";
-import type { EnsNetwork } from "./network.js";
+import type { EnsNetwork, EnsNetworkId } from "./network.js";
 
 export type IndexerProtocol = "v1" | "v2";
 export type IndexerFailureMode = "strict" | "partial";
 
 export interface IndexerSourceContext {
-  readonly network: EnsNetwork;
+  readonly network: EnsNetworkId;
   readonly protocol: IndexerProtocol;
 }
 
@@ -108,7 +108,7 @@ const validateEndpoint = (endpoint: string | null, protocol: IndexerProtocol): v
 };
 
 export const resolveIndexerConfig = (
-  network: EnsNetwork,
+  network: EnsNetwork | undefined,
   config: IndexerConfig | false | undefined,
 ): ResolvedIndexerConfig => {
   if (config !== undefined && config !== false && (typeof config !== "object" || config === null)) {
@@ -129,15 +129,11 @@ export const resolveIndexerConfig = (
       message: "Indexer options contain an invalid policy value",
     });
   }
+  const defaults =
+    network === undefined ? { v1: null, v2: null } : defaultIndexerEndpoints[network];
   const endpoints = {
-    v1:
-      options.endpoints?.v1 === undefined
-        ? defaultIndexerEndpoints[network].v1
-        : options.endpoints.v1,
-    v2:
-      options.endpoints?.v2 === undefined
-        ? defaultIndexerEndpoints[network].v2
-        : options.endpoints.v2,
+    v1: options.endpoints?.v1 === undefined ? defaults.v1 : options.endpoints.v1,
+    v2: options.endpoints?.v2 === undefined ? defaults.v2 : options.endpoints.v2,
   };
 
   if (!Schema.is(endpointSchema)(endpoints.v1) || !Schema.is(endpointSchema)(endpoints.v2)) {
@@ -172,8 +168,10 @@ export const resolveIndexerConfig = (
     });
   }
 
+  const enabled =
+    options.enabled ?? (network !== undefined || endpoints.v1 !== null || endpoints.v2 !== null);
   const resolved = Object.freeze({
-    enabled: options.enabled ?? true,
+    enabled,
     endpoints: Object.freeze(endpoints),
     timeout,
     retry: Object.freeze({ attempts }),
@@ -182,13 +180,13 @@ export const resolveIndexerConfig = (
   });
   const sourceStates = Object.freeze({
     v1:
-      options.enabled === false || options.endpoints?.v1 === null
+      !enabled || options.endpoints?.v1 === null
         ? ("disabled" as const)
         : endpoints.v1 === null
           ? ("unavailable" as const)
           : ("enabled" as const),
     v2:
-      options.enabled === false || options.endpoints?.v2 === null
+      !enabled || options.endpoints?.v2 === null
         ? ("disabled" as const)
         : endpoints.v2 === null
           ? ("unavailable" as const)

@@ -1,10 +1,10 @@
 import { Schema } from "effect";
 
-import { EnsNetworkSchema } from "../../../config/network.js";
+import { EnsNetworkIdSchema } from "../../../config/network.js";
 import { IndexerSourceFailure } from "../get-indexer-status/types.js";
 
 export const IndexedEntitySource = Schema.Struct({
-  network: EnsNetworkSchema,
+  network: EnsNetworkIdSchema,
   protocol: Schema.Literals(["v1", "v2"]),
   indexedBlock: Schema.BigInt,
 });

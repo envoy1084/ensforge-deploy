@@ -42,7 +42,9 @@ import type { CreateConfigParameters } from "@ensforge/sdk";
 
 ### network
 
-`"mainnet" | "sepolia"`
+`"mainnet" | "sepolia" | CustomEnsNetwork`
+
+Also accepts a [custom deployment profile](/core/api/create-config#custom-deployments).
 
 Selects the ENS deployment. The public and wallet client chains must match this network.
 

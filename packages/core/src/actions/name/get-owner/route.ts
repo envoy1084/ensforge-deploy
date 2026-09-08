@@ -1,6 +1,5 @@
 import { Effect, Result } from "effect";
 
-import type { EnsV1Deployment, EnsV2Deployment } from "@ensforge/contracts/deployments";
 import {
   ethRegistryV2GetStateAbi,
   ethRenewerV1IsRenewableAbi,
@@ -10,6 +9,10 @@ import {
 } from "@ensforge/contracts/v2";
 import { isAddressEqual, zeroAddress } from "viem";
 
+import type {
+  EnsV1ConfigDeployment,
+  EnsV2ConfigDeployment,
+} from "../../../config/custom-network.js";
 import type { CodecError } from "../../../errors/codec-error.js";
 import { ContractError } from "../../../errors/contract-error.js";
 import { EthereumClient } from "../../../internal/client/ethereum-client.js";
@@ -25,8 +28,8 @@ import { interpretV1Owner, readV1Owner } from "./v1.js";
 const routeEthOwner = Effect.fn("routeEthOwner")(function* (
   name: NormalizedName,
   label: string,
-  v1: EnsV1Deployment,
-  v2: EnsV2Deployment,
+  v1: EnsV1ConfigDeployment,
+  v2: EnsV2ConfigDeployment,
 ): Effect.fn.Return<
   OwnerResult | null,
   CodecError | ContractError | ViemError,
@@ -100,8 +103,8 @@ const routeEthOwner = Effect.fn("routeEthOwner")(function* (
 
 const routeOtherOwner = Effect.fn("routeOtherOwner")(function* (
   name: NormalizedName,
-  v1: EnsV1Deployment,
-  v2: EnsV2Deployment,
+  v1: EnsV1ConfigDeployment,
+  v2: EnsV2ConfigDeployment,
 ): Effect.fn.Return<
   OwnerResult | null,
   CodecError | ContractError | ViemError,
@@ -165,8 +168,8 @@ const routeOtherOwner = Effect.fn("routeOtherOwner")(function* (
 
 export const routeOwner = Effect.fn("routeOwner")(function* (
   name: NormalizedName,
-  v1: EnsV1Deployment,
-  v2: EnsV2Deployment,
+  v1: EnsV1ConfigDeployment,
+  v2: EnsV2ConfigDeployment,
 ): Effect.fn.Return<
   OwnerResult | null,
   CodecError | ContractError | ViemError,

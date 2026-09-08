@@ -4,14 +4,14 @@ import type { PublicClient } from "viem";
 import type { Config as WagmiConfig } from "wagmi";
 import { getPublicClient, getWalletClient } from "wagmi/actions";
 
-import type { EnsChainId, EnsNetwork } from "../../config/network.js";
+import type { EnsNetworkId } from "../../config/network.js";
 import { ConfigError } from "../../errors/config-error.js";
 import type { WalletClientResolver } from "../services/wallet-client.js";
 
 export const getWagmiPublicClient = (
   wagmiConfig: WagmiConfig,
-  network: EnsNetwork,
-  chainId: EnsChainId,
+  network: EnsNetworkId,
+  chainId: number,
 ): PublicClient => {
   const publicClient = getPublicClient(wagmiConfig, { chainId });
 
@@ -27,8 +27,8 @@ export const getWagmiPublicClient = (
 
 export const makeWagmiWalletClientResolver = (
   wagmiConfig: WagmiConfig,
-  network: EnsNetwork,
-  chainId: EnsChainId,
+  network: EnsNetworkId,
+  chainId: number,
 ): WalletClientResolver =>
   Effect.fn("ensforge.resolveWagmiWalletClient")(function* () {
     return yield* Effect.tryPromise({

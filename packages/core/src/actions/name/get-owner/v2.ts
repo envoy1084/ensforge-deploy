@@ -1,9 +1,9 @@
 import { Effect } from "effect";
 
-import type { EnsV2Deployment } from "@ensforge/contracts/deployments";
 import { universalResolverV2InterfaceFindOwnerAbi } from "@ensforge/contracts/v2";
 import { isAddressEqual, zeroAddress } from "viem";
 
+import type { EnsV2ConfigDeployment } from "../../../config/custom-network.js";
 import type { CodecError } from "../../../errors/codec-error.js";
 import { EthereumClient } from "../../../internal/client/ethereum-client.js";
 import type { ViemError } from "../../../internal/errors/viem-error.js";
@@ -14,7 +14,7 @@ import type { OwnerResult } from "./types.js";
 
 export const getOwnerV2 = Effect.fn("getOwnerV2")(function* (
   name: NormalizedName,
-  deployment: EnsV2Deployment,
+  deployment: EnsV2ConfigDeployment,
 ): Effect.fn.Return<OwnerResult | null, CodecError | ViemError, EthereumClient | ReadContext> {
   const ethereum = yield* EthereumClient;
   const dnsName = yield* dnsEncodeName.effect(name);

@@ -9,7 +9,7 @@ import {
   type IndexerProtocol,
   type IndexerSourceState,
 } from "../../../config/indexer-options.js";
-import type { EnsNetwork } from "../../../config/network.js";
+import { EnsNetworkIdSchema, type EnsNetworkId } from "../../../config/network.js";
 import { IndexerPaginationError } from "../../../errors/indexer-pagination-error.js";
 import { Bytes32 } from "../../../schemas/hash.js";
 
@@ -21,7 +21,7 @@ const SourceCursor = Schema.Struct({
 const IndexerCursorPayload = Schema.Struct({
   version: Schema.Literal(1),
   action: Schema.String,
-  network: Schema.Literals(["mainnet", "sepolia"]),
+  network: EnsNetworkIdSchema,
   filterFingerprint: Bytes32,
   orderFingerprint: Bytes32,
   sourcesFingerprint: Bytes32,
@@ -31,7 +31,7 @@ export type IndexerCursorPayload = typeof IndexerCursorPayload.Type;
 
 export interface IndexerCursorBinding {
   readonly action: string;
-  readonly network: EnsNetwork;
+  readonly network: EnsNetworkId;
   readonly filter: unknown;
   readonly order: unknown;
   readonly sources: Readonly<

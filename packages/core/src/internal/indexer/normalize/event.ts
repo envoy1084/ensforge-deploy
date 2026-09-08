@@ -4,7 +4,7 @@ import { namehash as makeNamehash } from "viem/ens";
 
 import type { IndexedEvent } from "../../../actions/indexer/models/event.js";
 import type { IndexedRecordEvent } from "../../../actions/indexer/models/record.js";
-import type { EnsNetwork } from "../../../config/network.js";
+import type { EnsNetworkId } from "../../../config/network.js";
 import type { Namehash } from "../../../schemas/hash.js";
 import type { V1GetEventsQuery } from "../generated/v1/get-events.js";
 import type { V2GetEventsQuery } from "../generated/v2/get-events.js";
@@ -65,7 +65,7 @@ const namehashFrom = (
 };
 
 const eventBase = (
-  context: { readonly network: EnsNetwork; readonly indexedBlock: bigint },
+  context: { readonly network: EnsNetworkId; readonly indexedBlock: bigint },
   protocol: "v1" | "v2",
   event: {
     readonly id: string;
@@ -105,7 +105,7 @@ const recordEvent = (
 
 export const normalizeV1DomainEvent = (
   event: V1DomainEvent,
-  context: { readonly network: EnsNetwork; readonly indexedBlock: bigint },
+  context: { readonly network: EnsNetworkId; readonly indexedBlock: bigint },
 ): IndexedEvent => {
   const common = eventBase(context, "v1", {
     id: event.id,
@@ -152,7 +152,7 @@ export const normalizeV1DomainEvent = (
 
 export const normalizeV1RegistrationEvent = (
   event: V1RegistrationEvent,
-  context: { readonly network: EnsNetwork; readonly indexedBlock: bigint },
+  context: { readonly network: EnsNetworkId; readonly indexedBlock: bigint },
 ): IndexedEvent => {
   const name = event.registration.domain.name;
   const common = eventBase(context, "v1", {
@@ -194,7 +194,7 @@ export const normalizeV1RegistrationEvent = (
 
 export const normalizeV1ResolverEvent = (
   event: V1ResolverEvent,
-  context: { readonly network: EnsNetwork; readonly indexedBlock: bigint },
+  context: { readonly network: EnsNetworkId; readonly indexedBlock: bigint },
 ): IndexedEvent => {
   const domain = event.resolver.domain;
   const name = domain?.name ?? null;
@@ -243,7 +243,7 @@ export const normalizeV1ResolverEvent = (
 
 export const normalizeV2Event = (
   event: V2Event,
-  context: { readonly network: EnsNetwork; readonly indexedBlock: bigint },
+  context: { readonly network: EnsNetworkId; readonly indexedBlock: bigint },
 ): IndexedEvent => {
   const protocol = Schema.decodeUnknownSync(Schema.Literals(["v1", "v2"]))(event.protocol);
   const payload = parseData(event.data);

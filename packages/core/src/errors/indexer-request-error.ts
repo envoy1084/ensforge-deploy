@@ -1,6 +1,6 @@
 import { Schema } from "effect";
 
-import { EnsNetworkSchema } from "../config/network.js";
+import { EnsNetworkIdSchema } from "../config/network.js";
 
 export const IndexerRequestErrorCode = Schema.Literals([
   "TRANSPORT_FAILED",
@@ -16,7 +16,7 @@ export class IndexerRequestError extends Schema.TaggedError<IndexerRequestError>
   {
     code: IndexerRequestErrorCode,
     message: Schema.String,
-    network: EnsNetworkSchema,
+    network: EnsNetworkIdSchema,
     protocol: Schema.Literals(["v1", "v2"]),
     operationName: Schema.String,
     attempt: Schema.Int,

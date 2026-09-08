@@ -1,6 +1,5 @@
 import { Effect, Result } from "effect";
 
-import type { EnsV1Deployment } from "@ensforge/contracts/deployments";
 import {
   baseRegistrarV1OwnerOfAbi,
   ensRegistryV1OwnerAbi,
@@ -14,6 +13,7 @@ import {
   type Address,
 } from "viem";
 
+import type { EnsV1ConfigDeployment } from "../../../config/custom-network.js";
 import { ContractError } from "../../../errors/contract-error.js";
 import { EthereumClient } from "../../../internal/client/ethereum-client.js";
 import type { ViemError } from "../../../internal/errors/viem-error.js";
@@ -27,7 +27,7 @@ type OwnerCallResult = Result.Result<Address, ViemError>;
 
 export const readV1Owner = Effect.fn("readV1Owner")(function* (
   name: NormalizedName,
-  deployment: EnsV1Deployment,
+  deployment: EnsV1ConfigDeployment,
 ): Effect.fn.Return<readonly OwnerCallResult[], never, EthereumClient | ReadContext> {
   const ethereum = yield* EthereumClient;
   const analysis = analyzeName(name);
@@ -69,7 +69,7 @@ export const readV1Owner = Effect.fn("readV1Owner")(function* (
 
 export const interpretV1Owner = Effect.fn("interpretV1Owner")(function* (
   name: NormalizedName,
-  deployment: EnsV1Deployment,
+  deployment: EnsV1ConfigDeployment,
   results: readonly OwnerCallResult[],
 ): Effect.fn.Return<OwnerResult | null, ContractError | ViemError> {
   const registryResult = results[0];
@@ -212,7 +212,7 @@ export const interpretV1Owner = Effect.fn("interpretV1Owner")(function* (
 
 export const getOwnerV1 = Effect.fn("getOwnerV1")(function* (
   name: NormalizedName,
-  deployment: EnsV1Deployment,
+  deployment: EnsV1ConfigDeployment,
 ): Effect.fn.Return<OwnerResult | null, ContractError | ViemError, EthereumClient | ReadContext> {
   const results = yield* readV1Owner(name, deployment);
   return yield* interpretV1Owner(name, deployment, results);

@@ -1,8 +1,8 @@
 import { Effect } from "effect";
 
-import type { EnsV1Deployment } from "@ensforge/contracts/deployments";
 import { getExpiryV1NameWrapperAbi, getExpiryV1RegistrarAbi } from "@ensforge/contracts/v1";
 
+import type { EnsV1ConfigDeployment } from "../../../config/custom-network.js";
 import { EthereumClient } from "../../../internal/client/ethereum-client.js";
 import type { ViemError } from "../../../internal/errors/viem-error.js";
 import type { ReadContext } from "../../../internal/read/execution-context.js";
@@ -13,7 +13,7 @@ import type { ExpiryResult } from "./types.js";
 
 export const getExpiryV1 = Effect.fn("getExpiryV1")(function* (
   name: NormalizedName,
-  deployment: EnsV1Deployment,
+  deployment: EnsV1ConfigDeployment,
 ): Effect.fn.Return<ExpiryResult | null, ViemError, EthereumClient | ReadContext> {
   const ethereum = yield* EthereumClient;
   const analysis = analyzeName(name);

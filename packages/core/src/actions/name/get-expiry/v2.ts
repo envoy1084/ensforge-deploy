@@ -1,6 +1,5 @@
 import { Effect } from "effect";
 
-import type { EnsV2Deployment } from "@ensforge/contracts/deployments";
 import {
   getExpiryV2EthRegistryAbi,
   getExpiryV2GracePeriodAbi,
@@ -9,6 +8,7 @@ import {
 } from "@ensforge/contracts/v2";
 import { isAddressEqual, zeroAddress } from "viem";
 
+import type { EnsV2ConfigDeployment } from "../../../config/custom-network.js";
 import type { CodecError } from "../../../errors/codec-error.js";
 import { EthereumClient } from "../../../internal/client/ethereum-client.js";
 import type { ViemError } from "../../../internal/errors/viem-error.js";
@@ -21,7 +21,7 @@ import type { ExpiryResult } from "./types.js";
 
 export const getExpiryV2 = Effect.fn("getExpiryV2")(function* (
   name: NormalizedName,
-  deployment: EnsV2Deployment,
+  deployment: EnsV2ConfigDeployment,
 ): Effect.fn.Return<ExpiryResult | null, CodecError | ViemError, EthereumClient | ReadContext> {
   const ethereum = yield* EthereumClient;
   const analysis = analyzeName(name);

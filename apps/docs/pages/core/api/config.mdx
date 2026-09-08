@@ -14,6 +14,9 @@ description: Configure reads, writes, gateways, clients, and networks in ensforg
 type EnsNetwork = "mainnet" | "sepolia";
 ```
 
+The input also accepts a [`CustomEnsNetwork`](/core/api/create-config#custom-deployments) object.
+`EnsNetwork` names the built-in presets; resolved `EnsNetworkId` values can also be custom IDs.
+
 The network selects both the expected chain ID and the deployment profile. ensforge rejects clients
 connected to a different chain instead of silently reading the wrong deployment.
 
@@ -150,8 +153,8 @@ sources are ready, disabled, unavailable, or failed at runtime.
 
 ```ts
 interface EnsforgeConfig {
-  readonly network: EnsNetwork;
-  readonly chainId: 1 | 11155111;
+  readonly network: EnsNetworkId;
+  readonly chainId: number;
   readonly publicClient: PublicClient;
   readonly walletClient?: WalletClient;
   readonly reads: ResolvedReadOptions;

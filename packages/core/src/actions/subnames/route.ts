@@ -1,6 +1,5 @@
 import { Effect } from "effect";
 
-import type { EnsV1Deployment, EnsV2Deployment } from "@ensforge/contracts/deployments";
 import { nameWrapperV1GetDataAbi, nameWrapperV1IsWrappedAbi } from "@ensforge/contracts/v1";
 import {
   permissionedRegistryV2InterfaceGetStateAbi,
@@ -9,6 +8,7 @@ import {
 import { zeroAddress } from "viem";
 
 import type { EnsforgeConfig } from "../../config/config.js";
+import type { EnsV1ConfigDeployment, EnsV2ConfigDeployment } from "../../config/custom-network.js";
 import { NameError } from "../../errors/name-error.js";
 import { EthereumClient } from "../../internal/client/ethereum-client.js";
 import { readNameRoute } from "../../internal/name/name-route.js";
@@ -31,7 +31,7 @@ interface SharedRoute {
 
 export interface V1SubnameRoute extends SharedRoute {
   readonly protocol: "v1";
-  readonly deployment: EnsV1Deployment;
+  readonly deployment: EnsV1ConfigDeployment;
   readonly parentWrapped: boolean;
   readonly parentExpiry: bigint;
   readonly childWrapped: boolean;
@@ -41,7 +41,7 @@ export interface V1SubnameRoute extends SharedRoute {
 
 export interface V2SubnameRoute extends SharedRoute {
   readonly protocol: "v2";
-  readonly deployment: EnsV2Deployment;
+  readonly deployment: EnsV2ConfigDeployment;
   readonly parentRegistry: EthereumAddress;
   readonly parentTokenId: bigint;
   readonly parentExpiry: bigint;

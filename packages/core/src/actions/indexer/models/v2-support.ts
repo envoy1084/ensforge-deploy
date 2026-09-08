@@ -1,6 +1,6 @@
 import { Schema } from "effect";
 
-import { EnsNetworkSchema } from "../../../config/network.js";
+import { EnsNetworkIdSchema } from "../../../config/network.js";
 
 export const V2IndexerUnsupportedReason = Schema.Literals([
   "V2_INDEXER_DISABLED",
@@ -10,7 +10,7 @@ export type V2IndexerUnsupportedReason = typeof V2IndexerUnsupportedReason.Type;
 
 export const V2IndexerUnsupported = Schema.Struct({
   status: Schema.Literal("unsupported"),
-  network: EnsNetworkSchema,
+  network: EnsNetworkIdSchema,
   reason: V2IndexerUnsupportedReason,
 });
 export type V2IndexerUnsupported = typeof V2IndexerUnsupported.Type;

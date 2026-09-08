@@ -1,6 +1,6 @@
 import { Schema } from "effect";
 
-import { EnsNetworkSchema } from "../../../config/network.js";
+import { EnsNetworkIdSchema } from "../../../config/network.js";
 import { Hex } from "../../../schemas/hex.js";
 
 export const IndexerBlock = Schema.Struct({
@@ -55,7 +55,7 @@ export const IndexerSourceStatus = Schema.Union([
 export type IndexerSourceStatus = typeof IndexerSourceStatus.Type;
 
 export const IndexerStatus = Schema.Struct({
-  network: EnsNetworkSchema,
+  network: EnsNetworkIdSchema,
   sources: Schema.Array(IndexerSourceStatus),
 });
 export type IndexerStatus = typeof IndexerStatus.Type;

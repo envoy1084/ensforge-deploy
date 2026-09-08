@@ -47,8 +47,7 @@ export const createTestConfig = (parameters: CreateTestConfigParameters): Ensfor
 
   return Object.freeze(
     attachConfigContext(
-      // The public config type intentionally excludes local networks. This cast remains confined to
-      // the unpublished testing entry point while runtime services retain the real devnet values.
+      // This legacy test helper omits indexer services; production configs use createConfig.
       {
         [EnsforgeConfigTypeId]: EnsforgeConfigTypeId,
         ...serviceValues,
