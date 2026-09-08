@@ -14,7 +14,6 @@ Expose named factories backed by their provider packages:
 
 ```ts
 import { pimlico } from "@ensforge/hca/pimlico";
-import { alchemy } from "@ensforge/hca/alchemy";
 import { rhinestone } from "@ensforge/hca/rhinestone";
 
 const execution = pimlico({ client: existingPimlicoClient, paymaster: existingPaymasterClient });
@@ -42,13 +41,13 @@ objects/factories, not subclasses. Interfaces provide extensibility without inhe
 
 ## 2. Separate account encoding from delivery
 
-| Layer                       | Responsibility                                                                                                    |
-| --------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| Core HCA semantics          | Verify owner/profile, resolve ENS calls, enforce session policy, preserve wallet name ownership                   |
-| HCA account codec           | Deterministic factory data, execution encoding, nonce selection, signature/stub format                            |
-| Pimlico/Alchemy integration | Provider SDK clients, fee estimation, UserOperation preparation/simulation, paymaster data, submission and status |
-| Rhinestone integration      | Supported HCA SDK configuration, intent/session authorization, quotes, funding and settlement                     |
-| Workflow functions          | ENS commitment delay, fresh reveal quote, persistence, reconciliation and recovery                                |
+| Layer                  | Responsibility                                                                                                    |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| Core HCA semantics     | Verify owner/profile, resolve ENS calls, enforce session policy, preserve wallet name ownership                   |
+| HCA account codec      | Deterministic factory data, execution encoding, nonce selection, signature/stub format                            |
+| Pimlico integration    | Provider SDK clients, fee estimation, UserOperation preparation/simulation, paymaster data, submission and status |
+| Rhinestone integration | Supported HCA SDK configuration, intent/session authorization, quotes, funding and settlement                     |
+| Workflow functions     | ENS commitment delay, fresh reveal quote, persistence, reconciliation and recovery                                |
 
 Provider-neutral HCA codecs can live in `@ensforge/hca/account` internally and depend on core
 metadata. Existing contract-based actions remain in core. Do not make core instantiate the provider
@@ -269,38 +268,7 @@ before signing when an adapter lacks them.
 
 ## 8. Named provider implementations and dependencies
 
-### Pimlico
-
-Public export: `@ensforge/hca/pimlico`, factory `pimlico()`.
-Use the provider's `permissionless` package (including Pimlico actions/clients) with viem where needed.
-Keep existing clients injectable. The account is ENS HCA, not a default Safe/Kernel created by a sample.
-Pimlico supplies bundler/paymaster infrastructure; it does not supply this account's validation logic.
-
-Proof sequence: read supported EntryPoints → deployed funded HCA owner UserOperation → undeployed HCA
-factory setup → fee estimation with correct stub signature → optional sponsored operation → failed
-operation/timeout reconciliation. Match HCA nonce modes, signature encoding and allowed execution
-selectors from the verified source. Session/cross-chain support stays absent for this HCA.
-
-Sources: [Pimlico infrastructure](https://docs.pimlico.io/),
-[permissionless source](https://github.com/pimlicolabs/permissionless.js).
-Documentation establishes available infrastructure; actual HCA compatibility is still pending.
-
-### Alchemy
-
-Public export: `@ensforge/hca/alchemy`, factory `alchemy()`.
-Current Alchemy docs describe `@alchemy/aa-infra`, `@alchemy/common`, and viem's account-abstraction
-clients for low-level infrastructure. Select/pin versions during P5. Use those provider packages
-rather than wrapping hand-written HTTP alone. An Alchemy account package is not needed merely to
-use its bundler; do not replace the ENS HCA with LightAccount or Modular Account.
-
-Map gas-price estimation and sponsorship to the provider SDK's current types. Keep sponsorship policy
-administration out of an execution adapter: execution may request sponsorship under an existing
-policy, but must not create/edit organization funding policies implicitly.
-
-Source: [Alchemy low-level infrastructure](https://www.alchemy.com/docs/wallets/transactions/low-level-infra/overview).
-Prove HCA compatibility independently even if another bundler accepts the same UserOperation.
-
-### Rhinestone
+### Rhinestone (P3)
 
 Public export: `@ensforge/hca/rhinestone`, factory `rhinestone()`.
 ENS's matched source guide uses `@rhinestone/sdk` 1.8.0 with a substantial patch for this standalone
@@ -322,6 +290,22 @@ Sources: [ENS integration guide](https://github.com/ensdomains/contracts-v2/blob
 The guide includes proof deployments with addresses different from the selected artifact profile;
 re-run an authorized proof for the exact profile before enabling the route.
 
+### Pimlico (P4)
+
+Public export: `@ensforge/hca/pimlico`, factory `pimlico()`.
+Use the provider's `permissionless` package (including Pimlico actions/clients) with viem where needed.
+Keep existing clients injectable. The account is ENS HCA, not a default Safe/Kernel created by a sample.
+Pimlico supplies bundler/paymaster infrastructure; it does not supply this account's validation logic.
+
+Proof sequence: read supported EntryPoints → deployed funded HCA owner UserOperation → undeployed HCA
+factory setup → fee estimation with correct stub signature → optional sponsored operation → failed
+operation/timeout reconciliation. Match HCA nonce modes, signature encoding and allowed execution
+selectors from the verified source. Session/cross-chain support stays absent for this HCA.
+
+Sources: [Pimlico infrastructure](https://docs.pimlico.io/),
+[permissionless source](https://github.com/pimlicolabs/permissionless.js).
+Documentation establishes available infrastructure; actual HCA compatibility is still pending.
+
 ### Future ZeroDev and other accounts
 
 Reserve no public `zerodev()` export until implementation exists. Kernel's permission model belongs
@@ -340,7 +324,6 @@ packages/core/src/actions/hca/      contract actions and semantic plan preparati
 packages/sdk/src/groups/hca.ts      bindings on the existing Ensforge class
 packages/hca/src/account/           account encoding shared where genuinely applicable
 packages/hca/src/pimlico/           concrete provider adapter, payloads, fees, status
-packages/hca/src/alchemy/           concrete provider adapter, payloads, fees, status
 packages/hca/src/rhinestone/        account integration, sessions, routes, funding, status
 packages/hca/src/registration/      stateless start/resume orchestration functions
 packages/hca/src/storage/           versioned operation-store contract; adapters as needed

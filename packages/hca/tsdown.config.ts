@@ -5,7 +5,6 @@ export default defineConfig({
   entry: {
     index: "src/index.ts",
     pimlico: "src/providers/pimlico.ts",
-    alchemy: "src/providers/alchemy.ts",
     rhinestone: "src/providers/rhinestone.ts",
   },
   exports: { devExports: "workspace-source" },

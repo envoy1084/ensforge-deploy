@@ -1,6 +1,7 @@
 # HCA integration: research and implementation plan
 
-Status: P0 and P1 implemented; provider packages, session workflows and later APIs remain proposals.
+Status: P0–P2 implemented. Rhinestone is P3; Pimlico is P4. Provider implementations, session workflows
+and later APIs remain proposals.
 Last reviewed: 2026-09-08. Scope: the recorded ENSv2 Sepolia deployment, followed by separately
 verified provider integrations. No Mainnet support is implied.
 
@@ -20,9 +21,9 @@ The phased implementation checklist is at the end of this document.
 2. Core owns HCA contract actions and execution contracts. SDK binds those actions using the
    existing Promise/Effect convention. Ordinary ENS actions remain usable independently.
 3. Create the optional `@ensforge/hca` package with named provider exports:
-   `@ensforge/hca/pimlico`, `@ensforge/hca/alchemy`, and `@ensforge/hca/rhinestone`.
+   `@ensforge/hca/rhinestone` first, followed by `@ensforge/hca/pimlico`.
 4. Use each provider's supported packages. Do not publish a generic `erc4337` provider export.
-   Small shared ERC-4337 internals are appropriate when Pimlico and Alchemy actually reuse them.
+   Extract shared execution internals only when implemented providers demonstrably reuse them.
 5. Define a structural `ExecutionAdapter` interface. No abstract base class or compulsory inheritance.
    Account encoding and execution delivery are separate responsibilities.
 6. Expose provider-specific session, sponsorship, cross-chain, and recovery features through typed
@@ -118,23 +119,21 @@ There are three different routes:
 | Route               | Caller/authorization                      | Infrastructure                                     | Current confidence                                                             |
 | ------------------- | ----------------------------------------- | -------------------------------------------------- | ------------------------------------------------------------------------------ |
 | Owner transaction   | Wallet calls `executeByOwner`             | RPC + owner wallet                                 | Implemented in P1; local owner execution and rejection paths verified          |
-| Owner UserOperation | EntryPoint and fixed owner validator      | Compatible bundler; optional paymaster             | Contract supports it; Pimlico/Alchemy proofs pending                           |
+| Owner UserOperation | EntryPoint and fixed owner validator      | Compatible bundler; optional paymaster             | Contract supports it; Pimlico proof pending                                    |
 | ENS session intent  | Fixed IntentExecutor and scoped validator | Compatible Rhinestone SDK and route infrastructure | Upstream guide describes proofs; exact Ensforge profile/provider proof pending |
 
 A bundler submits UserOperations. A paymaster may fund gas. Neither changes the account's validator.
 The deployed `validateUserOp` path validates owner signatures; existing ENS session execution uses
-the intent/ERC-1271 path. A Pimlico or Alchemy adapter must not claim that it unlocks those sessions.
+the intent/ERC-1271 path. A Pimlico adapter must not claim that it unlocks those sessions.
 
 ```mermaid
 flowchart LR
   Calls[Existing ENS call intents] --> Prepare[Core HCA preparation]
   Prepare --> Wallet[Owner wallet transaction]
   Prepare --> Pimlico[Pimlico owner UserOperation]
-  Prepare --> Alchemy[Alchemy owner UserOperation]
   Prepare --> Rhinestone[Rhinestone owner or session intent]
   Wallet --> HCA[Verified HCA]
   Pimlico --> EP[EntryPoint]
-  Alchemy --> EP
   EP --> HCA
   Rhinestone --> Executor[Fixed IntentExecutor]
   Executor --> HCA
@@ -184,7 +183,6 @@ Planned exports:
 @ensforge/sdk/hca              bound action types and standalone re-exports
 @ensforge/hca                  provider-free HCA account/workflow helpers
 @ensforge/hca/pimlico          named Pimlico adapter and types
-@ensforge/hca/alchemy          named Alchemy adapter and types
 @ensforge/hca/rhinestone       named Rhinestone adapter and extensions
 ```
 
@@ -349,15 +347,15 @@ Required evidence before release:
 
 Resolve during the named phase rather than inventing answers:
 
-| Question                                                                        | Owner phase / required decision                                         |
-| ------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| Does released Rhinestone support this standalone account patch?                 | P4: inspect pinned SDK source and prove exact account/session route     |
-| Which Pimlico/Alchemy versions support our EntryPoint and estimation signature? | P3/P5: provider proof with the HCA, not their default account           |
-| Which source-chain funding artifacts match our destination generation?          | P7: independent manifest and claim/fill proof                           |
-| How do adapter results preserve existing `executeWritePlan` semantics?          | P1: new HCA submission types; do not change ordinary action results     |
-| How do serialized submissions retain provider typing?                           | P2: versioned codecs and validation on restore                          |
-| Which inherited Nexus management functions should be public?                    | P8: prove authorization and usefulness before adding high-level actions |
-| Browser versus remote session custody?                                          | P6/P9: caller-supplied signer/store; no automatic secret upload         |
+| Question                                                                | Owner phase / required decision                                         |
+| ----------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| Does released Rhinestone support this standalone account patch?         | P3: inspect pinned SDK source and prove exact account/session route     |
+| Which Pimlico version supports our EntryPoint and estimation signature? | P4: provider proof with the HCA, not their default account              |
+| Which source-chain funding artifacts match our destination generation?  | P6: independent manifest and claim/fill proof                           |
+| How do adapter results preserve existing `executeWritePlan` semantics?  | P1: new HCA submission types; do not change ordinary action results     |
+| How do serialized submissions retain provider typing?                   | P2: versioned codecs and validation on restore                          |
+| Which inherited Nexus management functions should be public?            | P7: prove authorization and usefulness before adding high-level actions |
+| Browser versus remote session custody?                                  | P5/P8: caller-supplied signer/store; no automatic secret upload         |
 
 ## 8. Phased TODOs
 
@@ -400,7 +398,7 @@ submission tracking and owner-only revocation. See the [shipped P1 API](../packa
 
 Direct execution always simulates the complete batch. Adapter execution requires a successful full
 simulation from its preparation step and consistent account/plan/adapter identities. Sessions remain
-rejected until P4. The current adapter envelope is the P1 owner-delivery boundary; P2 now adds provider typing, persistence, expiry/fee policies and extensions. ENS semantic preparers currently
+rejected until P3. The current adapter envelope is the P1 owner-delivery boundary; P2 now adds provider typing, persistence, expiry/fee policies and extensions. ENS semantic preparers currently
 retain their existing configured-wallet requirement; raw adapter calls do not need a wallet.
 
 Verified locally: prediction, existing/new deployment, owner/factory checks, delegated ENS intents,
@@ -428,7 +426,24 @@ Exit: the same SDK operation accepts an external adapter while preserving concre
 Local owner-delivery proofs cover restore rejection, expiry, budgets, duplicate submission, changed
 nonce, uncertain outcomes and interruption. No provider SDK compatibility is claimed by this proof.
 
-### P3 — Pimlico owner execution
+### P3 — Rhinestone destination sessions
+
+- [ ] Inspect `@rhinestone/sdk` release source against ENS's pinned 1.8.0 patch.
+- [ ] Pin a proven release or reproducible patch; do not assume stock 1.8.0 works.
+- [ ] Implement the named `rhinestone()` adapter through the P2 lifecycle and typed session extension.
+- [ ] Derive the exact HCA/resolver configuration and verify existing accounts before adoption.
+- [ ] Implement typed session preparation/authorization using the provider SDK.
+- [ ] Add core `enableHcaSession`, `enableHcaSessionWithRefund`, and `isHcaSessionEnabled` actions.
+- [ ] Extend core preparation/execution to accept validated destination sessions with full fixed-policy checks.
+- [ ] Add on-chain enablement, enabled-status checks, expiry and nonce reconciliation.
+- [ ] Prove allowed record updates, prohibited calls, wrong resolver, and expired/revoked sessions.
+- [ ] Add bounded refund configuration and separate registration price from execution fees.
+
+Same-chain destination execution only; source-account funding and cross-chain settlement remain a later phase.
+
+Exit: a destination session works with the exact artifact-backed HCA; direct owner route remains usable.
+
+### P4 — Pimlico owner execution
 
 - [ ] Install a verified `permissionless` version and implement the named `pimlico()` adapter.
 - [ ] Implement HCA account encoding, owner signature/stub, nonce and counterfactual factory data.
@@ -440,30 +455,7 @@ nonce, uncertain outcomes and interruption. No provider SDK compatibility is cla
 
 Exit: a provider-backed HCA owner route works without Rhinestone installed.
 
-### P4 — Rhinestone destination sessions
-
-- [ ] Inspect `@rhinestone/sdk` release source against ENS's pinned 1.8.0 patch.
-- [ ] Pin a proven release or reproducible patch; do not assume stock 1.8.0 works.
-- [ ] Derive the exact HCA/resolver configuration and verify existing accounts before adoption.
-- [ ] Implement typed session preparation/authorization using the provider SDK.
-- [ ] Add on-chain enablement, enabled-status checks, expiry and nonce reconciliation.
-- [ ] Prove allowed record updates, prohibited calls, wrong resolver, and expired/revoked sessions.
-- [ ] Add bounded refund configuration and separate registration price from execution fees.
-
-Exit: a destination session works with the exact artifact-backed HCA; direct owner route remains usable.
-
-### P5 — Alchemy owner execution and portability
-
-- [ ] Install verified Alchemy infrastructure packages; implement named `alchemy()` adapter.
-- [ ] Reuse only demonstrably shared UserOperation internals from Pimlico.
-- [ ] Keep the ENS HCA account; do not silently construct an Alchemy Modular Account.
-- [ ] Prove owner execution, factory handling, fees, sponsorship and failed UserOperations.
-- [ ] Exercise adapter-instance/chain/profile mismatch rejection and result restoration.
-- [ ] Publish provider-specific capabilities and limitations based on completed proofs.
-
-Exit: two independent provider integrations satisfy the same core contract with concrete SDK types.
-
-### P6 — resumable same-chain registration
+### P5 — resumable same-chain registration
 
 - [ ] Implement start/get/resume/cancel-local workflow functions with caller-supplied storage.
 - [ ] Persist commitment inputs and protected signer references before external side effects.
@@ -474,7 +466,7 @@ Exit: two independent provider integrations satisfy the same core contract with 
 
 Exit: end-to-end same-chain registration can resume without losing state or double-submitting.
 
-### P7 — Rhinestone cross-chain funding
+### P6 — Rhinestone cross-chain funding
 
 - [ ] Verify each source funding validator, account version, token and settlement route.
 - [ ] Implement source Nexus setup and multi-chain authorization through the SDK.
@@ -485,7 +477,7 @@ Exit: end-to-end same-chain registration can resume without losing state or doub
 
 Exit: cross-chain capability is enabled only for documented, verified combinations.
 
-### P8 — complete account and governance surface
+### P7 — complete account and governance surface
 
 - [ ] Finish deposits, signature inspection, nonces and module/registry inspection reads.
 - [ ] Add upgrade eligibility and direct-owner upgrade with both gate checks.
@@ -496,7 +488,7 @@ Exit: cross-chain capability is enabled only for documented, verified combinatio
 
 Exit: coverage is explicit without inventing unsupported contract capabilities.
 
-### P9 — React, remote orchestration and future accounts
+### P8 — React, remote orchestration and future accounts
 
 - [ ] Bind selected workflows to the existing React provider/config; do not add an HCA client provider.
 - [ ] Add user documentation and code examples that identify proposals versus shipped capabilities.
@@ -507,7 +499,7 @@ Exit: coverage is explicit without inventing unsupported contract capabilities.
 
 Exit: additional integrations preserve the one-SDK architecture and account compatibility checks.
 
-### P10 — release and Mainnet gates
+### P9 — release and Mainnet gates
 
 - [ ] Run relevant existing workspace checks, package builds and consumer/import verification.
 - [ ] Document exact provider package versions, deployment manifests and reproducible proof commands.

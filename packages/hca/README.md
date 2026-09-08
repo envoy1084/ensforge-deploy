@@ -3,8 +3,8 @@
 Optional, Effect-native execution adapter infrastructure for ENS HCA accounts. ENS actions remain in
 `@ensforge/core` and on the existing `sdk.hca` group. This package does not create another ENS client.
 
-P2 implements the adapter contract and persistence. The `pimlico`, `alchemy`, and `rhinestone`
-subpaths currently export types only. Real provider factories arrive in P3, P5, and P4 respectively;
+P2 implements the adapter contract and persistence. The `rhinestone` and `pimlico`
+subpaths currently export types only. Rhinestone arrives in P3 and Pimlico in P4;
 installing this package does not yet provide a bundler, paymaster, or session implementation.
 The root and provider subpaths load no provider SDKs and have no provider peer dependencies.
 

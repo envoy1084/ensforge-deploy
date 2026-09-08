@@ -75,7 +75,7 @@ checks the account again before submission. An adapter failure never falls back 
 `ExecutionAdapter<Prepared, Authorized, Submission>` preserves provider payload types through the
 SDK. The optional [`@ensforge/hca` package](../../../../hca/README.md) implements validated typed
 adapters, review summaries, fee/expiry policies, optional extensions and versioned submission codecs.
-Pimlico, Alchemy and Rhinestone factories remain later phases. Session authorization is still
+Rhinestone (P3) and Pimlico (P4) factories remain later phases. Session authorization is still
 rejected, even if an adapter claims support. `requiredCapabilities` rejects unavailable features
 before provider preparation; `operationId` is an optional tracking label, not a deduplication key.
 
