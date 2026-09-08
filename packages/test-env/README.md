@@ -41,6 +41,11 @@ and `ensDevnetImageDigest` in `src/devnet/source.ts`, plus `ENSFORGE_TEST_IMAGE`
 
 ## Development
 
+The image may remain private. CI logs in to GHCR with `GITHUB_TOKEN` and `packages: read`.
+In the package settings, ensure `thenamespace/ensforge` has at least Read access under
+**Manage Actions access**. Local pulls require a separate Docker login with a GitHub personal
+access token (classic) that has `read:packages` and access to the package.
+
 ```sh
 pnpm --filter @ensforge/test-env typecheck
 pnpm --filter @ensforge/test-env build
