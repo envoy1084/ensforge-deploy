@@ -13,6 +13,7 @@ export interface EnsMutationResult<Parameters, Success, Failure> {
   ) => void;
   readonly mutateAsync: (parameters: Parameters) => Promise<Success>;
   readonly mutateEffect: (parameters: Parameters) => Effect.Effect<Success, Failure>;
+  /** Stops local waiting; it does not cancel funding or revoke an on-chain session. */
   readonly interrupt: () => void;
   readonly isFailure: boolean;
   readonly isInitial: boolean;

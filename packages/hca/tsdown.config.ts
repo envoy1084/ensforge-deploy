@@ -3,6 +3,7 @@ import type { UserConfig } from "tsdown";
 
 export default defineConfig({
   entry: {
+    remote: "src/remote/index.ts",
     index: "src/index.ts",
     pimlico: "src/providers/pimlico.ts",
     rhinestone: "src/providers/rhinestone.ts",

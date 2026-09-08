@@ -546,11 +546,52 @@ Exit: coverage is explicit without inventing unsupported contract capabilities.
 
 ### P8 — React, remote orchestration and future accounts
 
-- [ ] Bind selected workflows to the existing React provider/config; do not add an HCA client provider.
-- [ ] Add remote execution only with authenticated operations and explicit session-key custody.
-- [ ] Separate browser cancellation, source cancellation and destination revocation in UI state.
-- [ ] Investigate ZeroDev/Kernel, Safe or other accounts independently; do not treat them as HCAs.
-- [ ] Revisit shared abstractions only after a second account implementation proves the need.
+- [x] Bind HCA reads, execution, registration and management to the existing React provider/config.
+- [x] Add authenticated saved-session registration orchestration with explicit server signer custody.
+- [x] Separate mutation interruption, local registration cancellation, source funding cancellation and destination session revocation.
+- [x] Investigate ZeroDev/Kernel and Safe independently; do not treat them as ENS HCAs.
+- [x] Retain existing account boundaries until a second implementation demonstrates a shared abstraction.
+
+Shared workflow persistence now lives in core, configured once through `storage`. Memory and lazy
+IndexedDB adapters implement atomic create/compare-and-swap; custom databases implement the same
+contract. Existing HCA storage namespaces and explicit registration IDs remain supported. Normal
+registration, renewal, wrapping, transfer, resolver/record updates, subname creation, migration and
+DNS import accept optional workflow IDs. Bulk registration, renewal and migration participate too.
+`setSubnameRecord` retains its existing creation-only resume parameter; it is not an independently
+persisted composite workflow.
+
+Explicit resume selects its saved instance when it carries an ID; an explicit workflow ID selects an
+existing instance. Otherwise normalized operation inputs, account, chain and deployments select
+unfinished work. Each instance receives a generated ID; a later implicit call after completion starts
+another instance. Conflicting explicit progress is rejected instead of overwriting newer checkpoints.
+HCA registration can omit its ID and storage argument when config storage is present; funding also
+uses config storage while retaining independent funding identifiers.
+
+Submission intents are saved before wallet requests and tracking references immediately afterwards.
+Stage checkpoints, atomic revision checks and fenced leases prevent concurrent progression. Unknown
+submission outcomes remain blocked: transaction recovery checks sender, destination, calldata and
+value against the RPC transaction before attaching its hash. Lost wallet batch IDs cannot be safely
+inferred. Storage persistence is not an exactly-once guarantee across a wallet and a database. Custom
+stores must honor atomicity and protect stored registration secrets; memory does not survive reloads.
+
+React exposes HCA/workflow hooks and generic `useEnsQuery`/`useEnsMutation` bindings for provider
+extensions. Local interruption stops waiting; it does not cancel a broadcast operation or revoke a
+session. `@ensforge/hca/remote` accepts only status/resume/cancel requests for saved session-backed
+registrations. Authentication and resource authorization precede signer resolution. The host owns
+HTTP/authentication and secret custody. Responses contain redacted, bigint-safe progress, not session
+keys, registration secrets, arbitrary calls or provider payloads.
+
+Independent account research: [Kernel creation](https://docs.zerodev.app/onboarding/create-a-smart-account)
+requires its own Kernel and EntryPoint versions, and [Kernel validators](https://docs.zerodev.app/smart-accounts/use-plugins/overview)
+have their own authorization model. [Safe7579](https://docs.safe.global/advanced/erc-7579/7579-safe)
+is a separate adapter for Safe; [ERC-7579](https://docs.safe.global/advanced/erc-7579/overview) standardizes
+interfaces rather than account internals. Consequently, common module interfaces alone do not prove
+compatibility with the pinned ENS HCA. No Kernel or Safe adapter is claimed by this implementation.
+
+Verification includes persistence concurrency/recovery regressions, real-browser IndexedDB atomicity
+across connections, local V1/V2 registration and renewal, automatic HCA registration restart/funding,
+and remote authentication/authorization/redaction. Hosted provider settlement and Mainnet verification
+remain the release gates already recorded above.
 
 Exit: additional integrations preserve the one-SDK architecture and account compatibility checks.
 

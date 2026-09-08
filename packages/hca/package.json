@@ -38,6 +38,10 @@
       "workspace-source": "./src/providers/pimlico.ts",
       "default": "./dist/pimlico.js"
     },
+    "./remote": {
+      "workspace-source": "./src/remote/index.ts",
+      "default": "./dist/remote.js"
+    },
     "./rhinestone": {
       "workspace-source": "./src/providers/rhinestone.ts",
       "default": "./dist/rhinestone.js"
@@ -51,6 +55,7 @@
     "exports": {
       ".": "./dist/index.js",
       "./pimlico": "./dist/pimlico.js",
+      "./remote": "./dist/remote.js",
       "./rhinestone": "./dist/rhinestone.js",
       "./package.json": "./package.json"
     },
