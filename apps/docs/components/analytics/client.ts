@@ -6,7 +6,7 @@ import {
   safeUrl,
   type AnalyticsProperties,
   type DocsEvent,
-} from "./events";
+} from "../runtime/page-context";
 
 let client: Promise<PostHog | undefined> | undefined;
 

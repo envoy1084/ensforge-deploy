@@ -4,7 +4,7 @@ import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { Avatar } from "@thenamespace/uikit/avatar";
 import { Button } from "@thenamespace/uikit/button";
 
-import { track } from "../analytics/client";
+import { track } from "../runtime/site-observers";
 
 const shortenAddress = (address: string): string => `${address.slice(0, 6)}…${address.slice(-4)}`;
 
