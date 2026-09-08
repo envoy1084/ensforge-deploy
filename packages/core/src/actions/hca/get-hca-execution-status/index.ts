@@ -5,8 +5,8 @@ import { isAddressEqual } from "viem";
 import { defineReadAction } from "../../../action/read-request.js";
 import { HcaError } from "../../../errors/hca-error.js";
 import { viemErrorToEffectError } from "../../../internal/errors/viem-error.js";
+import { hashHcaCalls } from "../../../internal/hca/calls-hash.js";
 import { hcaRpc, resolveHcaProfile } from "../../../internal/hca/context.js";
-import { fingerprintHcaCalls } from "../../../internal/hca/fingerprint.js";
 import { Hex } from "../../../schemas/hex.js";
 import { EthereumAddress } from "../../../schemas/identity.js";
 import type { WriteError } from "../../../write/types.js";
@@ -147,7 +147,7 @@ export const getHcaExecutionStatus = defineReadAction<
       config.publicClient.getTransaction({ hash: receipt.transactionHash }),
     );
 
-    const fingerprint = fingerprintHcaCalls(
+    const fingerprint = hashHcaCalls(
       {
         chainId: config.chainId,
         address: submission.hca,

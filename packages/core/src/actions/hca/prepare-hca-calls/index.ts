@@ -7,7 +7,7 @@ import { defineAction } from "../../../action/action.js";
 import { getWriteIntentPreparer } from "../../../action/write-intent.js";
 import type { EnsWriteIntent } from "../../../action/write-intent.js";
 import { HcaError } from "../../../errors/hca-error.js";
-import { fingerprintHcaCalls } from "../../../internal/hca/fingerprint.js";
+import { hashHcaCalls } from "../../../internal/hca/calls-hash.js";
 import { validateHcaSessionCalls } from "../../../internal/hca/session-policy.js";
 import { readHcaSession } from "../../../internal/hca/session-state.js";
 import { executeRead } from "../../../internal/read/execute-read.js";
@@ -155,7 +155,7 @@ export const prepareHcaCalls = defineAction<
         value,
         fingerprint:
           session === undefined
-            ? fingerprintHcaCalls(account, data, value)
+            ? hashHcaCalls(account, data, value)
             : keccak256(
                 encodeAbiParameters(
                   [
@@ -165,7 +165,7 @@ export const prepareHcaCalls = defineAction<
                     { type: "uint256" },
                   ],
                   [
-                    fingerprintHcaCalls(account, data, value),
+                    hashHcaCalls(account, data, value),
                     session.permissionId,
                     session.enableTransactionHash,
                     session.sessionNonce,

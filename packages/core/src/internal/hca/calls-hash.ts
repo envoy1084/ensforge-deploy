@@ -2,7 +2,7 @@ import { encodeAbiParameters, keccak256 } from "viem";
 
 import { type VerifiedHcaAccount } from "../../actions/hca/types.js";
 
-export const fingerprintHcaCalls = (
+export const hashHcaCalls = (
   account: Pick<VerifiedHcaAccount, "chainId" | "address" | "owner" | "initialImplementation">,
   data: `0x${string}`,
   value: bigint,
