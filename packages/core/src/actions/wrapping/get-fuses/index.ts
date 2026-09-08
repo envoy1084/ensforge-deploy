@@ -11,9 +11,11 @@ const getFusesEffect = Effect.fn("ensforge.getFuses")(function* (
   parameters: WrapperReadParameters,
 ) {
   const route = yield* resolveWrapperRoute(config, parameters.name, parameters);
+
   if (!route.supported) {
     return { protocol: "v2", supported: false, reason: "FUSES_NOT_SUPPORTED" } as const;
   }
+
   return {
     protocol: "v1",
     supported: true,

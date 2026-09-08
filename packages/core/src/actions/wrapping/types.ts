@@ -96,6 +96,9 @@ export interface ExtendSubnameExpiryParameters {
 }
 
 export type WrapperReadError = GetNameStateError;
+
 export type WrapperWriteError = WriteError;
+
 export type WrapperWriteResult = CallExecutionResult;
+
 export type WrapperWriteIntent = EnsWriteIntent<WrapperWriteResult, WrapperWriteError>;

@@ -79,4 +79,5 @@ export interface TransferSubnameParameters extends SubnameParameters {
 }
 
 export type SubnameWriteResult = CallExecutionResult;
+
 export type SubnameError = WriteError;

@@ -36,6 +36,7 @@ const getRegistryEffect = Effect.fn("ensforge.getIndexedRegistry")(function* (
       message: "Indexer actions are disabled for this configuration",
     });
   }
+
   const decoded = yield* Schema.decodeUnknownEffect(GetRegistryParametersSchema)(parameters).pipe(
     Effect.mapError(
       () =>
@@ -45,12 +46,15 @@ const getRegistryEffect = Effect.fn("ensforge.getIndexedRegistry")(function* (
         }),
     ),
   );
+
   const unsupported = getV2IndexerUnsupported(config);
+
   if (unsupported !== null) return unsupported;
 
   if (decoded.address !== undefined) {
     const operationName = "V2GetRegistryByAddress";
     const address = getAddress(decoded.address);
+
     const response = yield* requestIndexer<
       V2GetRegistryByAddressQuery,
       V2GetRegistryByAddressQueryVariables
@@ -60,14 +64,18 @@ const getRegistryEffect = Effect.fn("ensforge.getIndexedRegistry")(function* (
       document: V2GetRegistryByAddressDocument,
       variables: { address: address.toLowerCase() },
     });
+
     const data = yield* requireIndexerData(config, "v2", operationName, response);
+
     if (data.registry === null) return { status: "supported", value: null };
+
     const indexedBlock = yield* decodeIndexedBlock(
       config,
       "v2",
       operationName,
       data["_meta"].block.number,
     );
+
     return {
       status: "supported",
       value: yield* normalizeV2Registry(data.registry, {
@@ -84,7 +92,9 @@ const getRegistryEffect = Effect.fn("ensforge.getIndexedRegistry")(function* (
     catch: () =>
       new IndexerFilterError({ code: "INVALID_FILTER", message: "The managed name is invalid" }),
   });
+
   const operationName = "V2GetRegistryByName";
+
   const response = yield* requestIndexer<
     V2GetRegistryByNameQuery,
     V2GetRegistryByNameQueryVariables
@@ -94,15 +104,19 @@ const getRegistryEffect = Effect.fn("ensforge.getIndexedRegistry")(function* (
     document: V2GetRegistryByNameDocument,
     variables: { name },
   });
+
   const data = yield* requireIndexerData(config, "v2", operationName, response);
   const registry = data.domain?.subregistry ?? null;
+
   if (registry === null) return { status: "supported", value: null };
+
   const indexedBlock = yield* decodeIndexedBlock(
     config,
     "v2",
     operationName,
     data["_meta"].block.number,
   );
+
   return {
     status: "supported",
     value: yield* normalizeV2Registry(registry, {

@@ -11,6 +11,7 @@ describe("interface resolution integration", () => {
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
       const fixture = devnet.fixtures.records.v1;
+
       const result = yield* getInterface.effect(devnet.configs.v1, {
         name: fixture.name,
         interfaceId: fixture.interface.id,
@@ -28,6 +29,7 @@ describe("interface resolution integration", () => {
       const devnet = getIntegrationDevnet();
       const migratedFixture = devnet.fixtures.records.v2;
       const reservedFixture = devnet.fixtures.records.reserved;
+
       const [migrated, reserved] = yield* Effect.all([
         getInterface.effect(devnet.configs.v2, {
           name: migratedFixture.name,
@@ -47,6 +49,7 @@ describe("interface resolution integration", () => {
   it.effect("returns null when the requested interface is unsupported", () =>
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
+
       const result = yield* getInterface.effect(devnet.configs.v2, {
         name: devnet.fixtures.records.v2.name,
         interfaceId: "0xffffffff",
@@ -59,6 +62,7 @@ describe("interface resolution integration", () => {
   it.effect("returns null when the name has no resolver", () =>
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
+
       const result = yield* getInterface.effect(devnet.configs.v2, {
         name: devnet.fixtures.v2.noResolver.name,
         interfaceId: "0x01ffc9a7",
@@ -71,6 +75,7 @@ describe("interface resolution integration", () => {
   it.effect("rejects malformed interface IDs", () =>
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
+
       const error = yield* Effect.flip(
         getInterface.effect(devnet.configs.v2, {
           name: devnet.fixtures.records.v2.name,

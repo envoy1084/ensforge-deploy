@@ -15,14 +15,17 @@ export const deriveHcaAddress = (
       [salt, owner, implementation],
     ),
   );
+
   const outerSalt = keccak256(
     encodeAbiParameters([{ type: "address" }, { type: "uint256" }], [factory, BigInt(innerSalt)]),
   );
+
   const bytecode = concatHex([
     "0x3d604d80600a3d3981f3363d3d373d3d3d363d73",
     proxyLogic,
     "0x5af43d82803e903d91602b57fd5bf3",
     outerSalt,
   ]);
+
   return getCreate2Address({ from: verifiableFactory, salt: outerSalt, bytecode });
 };

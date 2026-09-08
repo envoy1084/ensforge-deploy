@@ -34,6 +34,7 @@ const routeEthExpiry = Effect.fn("routeEthExpiry")(function* (
 ): Effect.fn.Return<ExpiryResult | null, ContractError | ViemError, EthereumClient | ReadContext> {
   const ethereum = yield* EthereumClient;
   const labelId = BigInt(labelhash(label));
+
   const [stateResult, v2GraceResult, v1ExpiryResult, v1GraceResult] = yield* Effect.all(
     [
       Effect.result(
@@ -73,6 +74,7 @@ const routeEthExpiry = Effect.fn("routeEthExpiry")(function* (
   if (Result.isFailure(stateResult)) return yield* stateResult.failure;
 
   const state = stateResult.success;
+
   if (state.status !== 0 && state.status !== 1 && state.status !== 2) {
     return yield* new ContractError({
       code: "DECODE_FAILED",
@@ -82,8 +84,10 @@ const routeEthExpiry = Effect.fn("routeEthExpiry")(function* (
   }
 
   const isV2Registration = state.status === 2 || !isAddressEqual(state.latestOwner, zeroAddress);
+
   if (isV2Registration) {
     if (state.expiry === 0n) return null;
+
     if (Result.isFailure(v2GraceResult)) return yield* v2GraceResult.failure;
 
     return {
@@ -97,6 +101,7 @@ const routeEthExpiry = Effect.fn("routeEthExpiry")(function* (
   }
 
   if (Result.isFailure(v1ExpiryResult)) return yield* v1ExpiryResult.failure;
+
   if (v1ExpiryResult.success !== 0n) {
     if (Result.isFailure(v1GraceResult)) return yield* v1GraceResult.failure;
 
@@ -111,6 +116,7 @@ const routeEthExpiry = Effect.fn("routeEthExpiry")(function* (
   }
 
   if (state.expiry === 0n) return null;
+
   if (Result.isFailure(v2GraceResult)) return yield* v2GraceResult.failure;
 
   return {
@@ -130,9 +136,11 @@ const routeOtherExpiry = Effect.fn("routeOtherExpiry")(function* (
 ): Effect.fn.Return<ExpiryResult | null, CodecError | ViemError, EthereumClient | ReadContext> {
   const ethereum = yield* EthereumClient;
   const analysis = analyzeName(name);
+
   if (analysis.label === undefined) return null;
 
   const dnsName = yield* dnsEncodeName.effect(name);
+
   const [parentResult, resolverResult, v1Result] = yield* Effect.all(
     [
       Effect.result(
@@ -157,10 +165,12 @@ const routeOtherExpiry = Effect.fn("routeOtherExpiry")(function* (
   );
 
   if (Result.isFailure(parentResult)) return yield* parentResult.failure;
+
   if (Result.isFailure(resolverResult)) return yield* resolverResult.failure;
 
   const [resolver] = resolverResult.success;
   const usesV1Mirror = isAddressEqual(resolver, v2.migration.ensV1Resolver);
+
   if (isAddressEqual(parentResult.success, zeroAddress) || usesV1Mirror) {
     return Result.isFailure(v1Result) ? yield* v1Result.failure : v1Result.success;
   }

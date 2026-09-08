@@ -105,6 +105,7 @@ describe("indexed name queries", () => {
       ...indexedName,
       namehash: `0x${"f".repeat(64)}` as const,
     });
+
     const compare = compareIndexedNames({ field: "createdAt", direction: "asc" });
 
     assert.isBelow(compare(indexedName, laterHash), 0);

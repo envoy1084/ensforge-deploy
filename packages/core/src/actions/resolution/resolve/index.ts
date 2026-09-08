@@ -30,6 +30,7 @@ const resolveWithResolverEffect = Effect.fn("ensforge.resolveWithResolver")(func
     parameters,
     executeResolveCall(parameters, config.gateways),
   );
+
   return result === null
     ? yield* new ContractError({
         code: "DECODE_FAILED",

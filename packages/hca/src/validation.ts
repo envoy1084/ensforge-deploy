@@ -22,12 +22,15 @@ export const checkReview = Effect.fn("hca.checkReview")(function* (
   identity: HcaExecutionIdentity,
 ) {
   yield* decode(HcaExecutionReview, review);
+
   const now = BigInt(Math.floor((yield* Clock.currentTimeMillis) / 1000));
+
   if (review.expiresAt !== undefined && review.expiresAt <= now)
     return yield* new HcaError({
       code: "EXECUTION_EXPIRED",
       message: "Execution quote expired; prepare again before signing or submitting",
     });
+
   if (
     review.simulation.chainId !== identity.chainId ||
     review.simulation.hca.toLowerCase() !== identity.hca.toLowerCase()
@@ -36,6 +39,7 @@ export const checkReview = Effect.fn("hca.checkReview")(function* (
       code: "ADAPTER_MISMATCH",
       message: "Simulation evidence belongs to another chain or account",
     });
+
   if (review.authorizations.length === 0 || review.fees.some((fee) => fee.expected > fee.maximum))
     return yield* new HcaError({
       code: "INVALID_EXECUTION",
@@ -53,11 +57,13 @@ export const checkContext = Effect.fn("hca.checkContext")(function* (
       code: "ADAPTER_MISMATCH",
       message: "Execution context does not match this SDK network",
     });
+
   const chainId = yield* Effect.tryPromise({
     try: () => config.publicClient.getChainId(),
     catch: (cause) =>
       new HcaError({ code: "ADAPTER_FAILED", message: "Cannot verify RPC chain", cause }),
   });
+
   if (chainId !== config.chainId)
     return yield* new HcaError({ code: "ADAPTER_MISMATCH", message: "RPC network changed" });
 });
@@ -66,8 +72,10 @@ export const checkContext = Effect.fn("hca.checkContext")(function* (
 export const freezeEnvelope = <T>(value: T): T => {
   if (value !== null && typeof value === "object") {
     for (const child of Object.values(value)) freezeEnvelope(child);
+
     Object.freeze(value);
   }
+
   return value;
 };
 
@@ -91,6 +99,7 @@ export const checkAccount = Effect.fn("hca.checkAccount")(function* (
           }),
       ),
     );
+
   if (
     current.profileId !== plan.account.profileId ||
     current.currentImplementation.toLowerCase() !==

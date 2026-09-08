@@ -24,12 +24,14 @@ const getRegistrationPriceEffect = Effect.fn("ensforge.getRegistrationPrice")(fu
 ) {
   const name = yield* normalizeName.effect(parameters.name);
   const label = yield* getSecondLevelEthLabel(name);
+
   return yield* executeRead(
     config,
     parameters,
     Effect.gen(function* () {
       const { profile } = yield* DeploymentService;
       const available = yield* isAvailable.effect(config, parameters);
+
       if (!available) {
         return {
           status: "unavailable",
@@ -40,14 +42,17 @@ const getRegistrationPriceEffect = Effect.fn("ensforge.getRegistrationPrice")(fu
       }
 
       const ethereum = yield* EthereumClient;
+
       if (profile.protocol === "v1") {
         const registrar = profile.v1.contracts.ethRegistrarController;
+
         const price = yield* ethereum.readContract({
           address: registrar,
           abi: ethRegistrarControllerV1RentPriceAbi,
           functionName: "rentPrice",
           args: [label, parameters.duration],
         });
+
         return {
           status: "available",
           name,
@@ -64,10 +69,12 @@ const getRegistrationPriceEffect = Effect.fn("ensforge.getRegistrationPrice")(fu
       if (parameters.paymentToken === undefined) {
         return { status: "payment-token-required", name, protocol: "v2" } as const;
       }
+
       const support = yield* isPaymentTokenSupported.effect(config, {
         ...parameters,
         paymentToken: parameters.paymentToken,
       });
+
       if (!support.supported) {
         return {
           status: "unsupported-payment-token",
@@ -76,13 +83,16 @@ const getRegistrationPriceEffect = Effect.fn("ensforge.getRegistrationPrice")(fu
           paymentToken: parameters.paymentToken,
         } as const;
       }
+
       const registrar = profile.v2.contracts.ethRegistrar;
+
       const [base, premium] = yield* ethereum.readContract({
         address: registrar,
         abi: ethRegistrarV2GetRegisterPriceAbi,
         functionName: "getRegisterPrice",
         args: [label, parameters.duration, parameters.paymentToken],
       });
+
       return {
         status: "available",
         name,

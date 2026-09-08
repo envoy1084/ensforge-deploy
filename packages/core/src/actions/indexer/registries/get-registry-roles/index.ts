@@ -65,6 +65,7 @@ const getRegistryRolesEffect = Effect.fn("ensforge.getRegistryRoles")(function* 
       message: "Indexer actions are disabled for this configuration",
     });
   }
+
   const decoded = yield* Schema.decodeUnknownEffect(GetRegistryRolesParametersSchema)(
     parameters,
   ).pipe(
@@ -76,10 +77,13 @@ const getRegistryRolesEffect = Effect.fn("ensforge.getRegistryRoles")(function* 
         }),
     ),
   );
+
   const unsupported = getV2IndexerUnsupported(config);
+
   if (unsupported !== null) return unsupported;
 
   const registry = getAddress(decoded.registry);
+
   const filter = yield* Effect.try({
     try: (): RegistryRoleFilter => ({
       ...decoded.filter,
@@ -94,29 +98,37 @@ const getRegistryRolesEffect = Effect.fn("ensforge.getRegistryRoles")(function* 
         message: "The registry role filter is invalid",
       }),
   });
+
   const pageSize = decoded.pageSize ?? Math.min(20, config.indexer.maximumPageSize);
+
   if (pageSize > config.indexer.maximumPageSize) {
     return yield* new IndexerFilterError({
       code: "INVALID_FILTER",
       message: `pageSize cannot exceed ${config.indexer.maximumPageSize}`,
     });
   }
+
   const binding = makeIndexerCursorBinding(config, "getRegistryRoles", { registry, filter }, null);
+
   const positions =
     decoded.cursor === undefined
       ? { v1: { position: null, exhausted: true }, v2: { position: null, exhausted: false } }
       : (yield* decodeIndexerCursor(decoded.cursor, binding)).sources;
+
   let after = positions.v2.position;
   let indexedBlock = 0n;
   let hasNextPage = true;
+
   const items: Array<
     Extract<GetRegistryRolesResult, { status: "supported" }>["value"]["items"][number]
   > = [];
+
   const operationName = "V2GetRegistryRoles";
   const requestSize = Math.min(Math.max(pageSize * 2, 20), config.indexer.maximumPageSize);
 
   while (hasNextPage && items.length < pageSize) {
     const requestAfter = after;
+
     const response = yield* requestIndexer<
       V2GetRegistryRolesQuery,
       V2GetRegistryRolesQueryVariables
@@ -132,30 +144,41 @@ const getRegistryRolesEffect = Effect.fn("ensforge.getRegistryRoles")(function* 
         after,
       },
     });
+
     const data = yield* requireIndexerData(config, "v2", operationName, response);
+
     indexedBlock = yield* decodeIndexedBlock(
       config,
       "v2",
       operationName,
       data["_meta"].block.number,
     );
+
     const connection = data.roleConnection;
+
     hasNextPage = connection.pageInfo.hasNextPage;
+
     for (const { cursor, node } of connection.edges) {
       after = cursor;
+
       const role = yield* normalizeV2RegistryRole(registry, node, {
         network: config.network,
         protocol: "v2",
         indexedBlock,
         operationName,
       });
+
       if (matchesRoleFilter(role, filter)) items.push(role);
+
       if (items.length === pageSize) {
         hasNextPage = cursor !== connection.edges.at(-1)?.cursor || connection.pageInfo.hasNextPage;
+
         break;
       }
     }
+
     const next = connection.pageInfo.endCursor;
+
     if (items.length < pageSize && connection.pageInfo.hasNextPage) {
       if (next === null || next === requestAfter) {
         return yield* new IndexerDecodeError({
@@ -167,15 +190,18 @@ const getRegistryRolesEffect = Effect.fn("ensforge.getRegistryRoles")(function* 
           cause: connection.pageInfo,
         });
       }
+
       after = next;
     }
   }
+
   const cursor = hasNextPage
     ? yield* encodeIndexerCursor(binding, {
         v1: { position: null, exhausted: true },
         v2: { position: after, exhausted: false },
       })
     : null;
+
   return {
     status: "supported",
     value: {

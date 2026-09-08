@@ -32,6 +32,7 @@ describe("low-level universal resolution integration", () => {
       const v1Fixture = devnet.fixtures.records.v1;
       const v2Fixture = devnet.fixtures.records.v2;
       const reservedFixture = devnet.fixtures.records.reserved;
+
       const [v1, migrated, reserved] = yield* Effect.all([
         resolve.effect(devnet.configs.v1, {
           name: v1Fixture.name,
@@ -63,6 +64,7 @@ describe("low-level universal resolution integration", () => {
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
       const name = devnet.fixtures.v2.noResolver.name;
+
       const result = yield* resolve.effect(devnet.configs.v2, {
         name,
         data: textCall(name, "email"),
@@ -77,6 +79,7 @@ describe("low-level universal resolution integration", () => {
       const devnet = getIntegrationDevnet();
       const v1Fixture = devnet.fixtures.records.v1;
       const v2Fixture = devnet.fixtures.records.v2;
+
       const [v1, v2] = yield* Effect.all([
         resolveWithResolver.effect(devnet.configs.v1, {
           name: v1Fixture.name,
@@ -102,6 +105,7 @@ describe("low-level universal resolution integration", () => {
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
       const fixture = devnet.fixtures.records.v2;
+
       const [invalidData, invalidResolver, zeroResolver] = yield* Effect.all([
         Effect.flip(resolve.effect(devnet.configs.v2, { name: fixture.name, data: "0x123" })),
         Effect.flip(
@@ -132,6 +136,7 @@ describe("low-level universal resolution integration", () => {
       const fixture = devnet.fixtures.records.v2;
       const missingName = devnet.fixtures.v2.noResolver.name;
       const emailCall = textCall(fixture.name, "email");
+
       const results = yield* resolveBatch.effect(devnet.configs.v2, {
         calls: [
           { name: fixture.name, data: emailCall },
@@ -146,6 +151,7 @@ describe("low-level universal resolution integration", () => {
       });
 
       const [email, description, missing, duplicate] = results;
+
       assert.isDefined(email);
       assert.isDefined(description);
       assert.isDefined(missing);
@@ -166,6 +172,7 @@ describe("low-level universal resolution integration", () => {
       const devnet = getIntegrationDevnet();
       const fixture = devnet.fixtures.records.v2;
       const empty = yield* resolveBatch.effect(devnet.configs.v2, { calls: [] });
+
       const result = yield* readBatch.effect(devnet.configs.v2, {
         resolutions: resolveBatch.request({
           calls: [{ name: fixture.name, data: textCall(fixture.name, "email") }],
@@ -174,7 +181,9 @@ describe("low-level universal resolution integration", () => {
       });
 
       expect(empty).toEqual([]);
+
       const resolution = result.resolutions[0];
+
       assert.isDefined(resolution);
       assert.isNotNull(resolution);
       expect(decodeText(resolution.data)).toBe(fixture.texts.email);

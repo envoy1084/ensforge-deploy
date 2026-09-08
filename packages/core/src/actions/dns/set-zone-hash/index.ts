@@ -20,6 +20,7 @@ export const setZoneHash = makeResolverWriteAction<SetZoneHashParameters>({
           message: `Invalid DNS zone hash for ${context.name}`,
         });
       }
+
       return yield* Effect.try({
         try: () =>
           encodeFunctionData({

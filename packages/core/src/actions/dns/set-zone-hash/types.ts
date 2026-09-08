@@ -7,4 +7,5 @@ export interface SetZoneHashParameters {
 }
 
 export type SetZoneHashResult = CallExecutionResult;
+
 export type SetZoneHashError = WriteError;

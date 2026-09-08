@@ -4,10 +4,13 @@ import type { EnsforgeConfig } from "../config/index.js";
 import { defineExtendedAction, type EnsAction, type EnsActionEffect } from "./action.js";
 
 const EnsReadRequestTypeId: unique symbol = Symbol.for("@ensforge/core/EnsReadRequest");
+
 const EnsReadRequestEffectTypeId: unique symbol = Symbol.for(
   "@ensforge/core/EnsReadRequest/effect",
 );
+
 declare const EnsReadRequestSuccessTypeId: unique symbol;
+
 declare const EnsReadRequestFailureTypeId: unique symbol;
 
 export interface EnsReadRequest<Success, Failure> {

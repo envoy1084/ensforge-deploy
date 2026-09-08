@@ -75,5 +75,6 @@ export const getHcaDeployment = (chainId: number): HcaDeploymentProfile => {
   if (chainId !== sepoliaHcaDeployment.deployment.chainId) {
     throw new RangeError(`No recorded HCA deployment for chain ${chainId}`);
   }
+
   return sepoliaHcaDeployment;
 };

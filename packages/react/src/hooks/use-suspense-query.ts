@@ -34,11 +34,13 @@ export const makeSuspenseQueryHook =
     input: UseEnsSuspenseAtomParameters<Parameters, Success, Failure, Mapped>,
   ): EnsSuspenseAtomResult<Mapped> => {
     const { defaults, sdk } = useEnsforgeContext();
+
     const {
       atom: atomOptions,
       map,
       ...parameters
     } = input as UseEnsAtomParameters<Parameters, Success, Failure, Mapped>;
+
     const options = resolveEnsAtomOptions(defaults.atoms, atomOptions);
     const atom = factory(sdk, parameters as Parameters, options);
     const result = useAtomSuspense(atom, { suspendOnWaiting: false });

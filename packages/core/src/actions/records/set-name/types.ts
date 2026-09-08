@@ -6,4 +6,5 @@ export interface SetNameParameters {
 }
 
 export type SetNameResult = CallExecutionResult;
+
 export type SetNameError = WriteError;

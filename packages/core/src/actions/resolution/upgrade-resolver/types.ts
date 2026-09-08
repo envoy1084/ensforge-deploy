@@ -31,4 +31,5 @@ export type UpgradeResolverResult =
     };
 
 export type UpgradeResolverError = WriteError;
+
 export type UpgradeResolverIntent = EnsWriteIntent<CallExecutionResult, UpgradeResolverError>;

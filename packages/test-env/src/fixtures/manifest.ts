@@ -1,6 +1,7 @@
 import type { Address, Hex } from "viem";
 
 export type FixtureLifecycle = "active" | "available" | "grace" | "expired";
+
 export type FixtureResolverState = "own" | "inherited" | "missing";
 
 export interface EnsNameFixture {

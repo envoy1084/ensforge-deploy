@@ -14,7 +14,9 @@ const isDnsWireName = Schema.makeFilter<`0x${string}`>((value) => {
 
   while (offset < bytes.length) {
     const length = bytes[offset];
+
     if (length === undefined) return "Expected a complete DNS label";
+
     offset += 1;
 
     if (length === 0) {
@@ -22,6 +24,7 @@ const isDnsWireName = Schema.makeFilter<`0x${string}`>((value) => {
     }
 
     if (offset + length > bytes.length) return "Expected a complete DNS label";
+
     offset += length;
   }
 

@@ -22,11 +22,13 @@ const getTokenApprovalEffect = Effect.fn("ensforge.getTokenApproval")(function* 
   parameters: NameCapabilityParameters,
 ) {
   const name = yield* normalizeName.effect(parameters.name);
+
   return yield* executeRead(
     config,
     parameters,
     Effect.gen(function* () {
       const route = yield* readNameRoute(name);
+
       if (route.kind !== "v1" && route.kind !== "reserved") {
         return {
           supported: false,
@@ -34,15 +36,18 @@ const getTokenApprovalEffect = Effect.fn("ensforge.getTokenApproval")(function* 
           reason: "PER_TOKEN_APPROVAL_UNSUPPORTED",
         } as const;
       }
+
       const deployment = route.kind === "reserved" ? route.v1 : route.deployment;
       const ethereum = yield* EthereumClient;
       const node = namehash(name);
+
       const wrapped = yield* ethereum.readContract({
         address: deployment.contracts.nameWrapper,
         abi: nameWrapperV1IsWrappedAbi,
         functionName: "isWrapped",
         args: [node],
       });
+
       if (wrapped) {
         const approved = yield* ethereum.readContract({
           address: deployment.contracts.nameWrapper,
@@ -50,6 +55,7 @@ const getTokenApprovalEffect = Effect.fn("ensforge.getTokenApproval")(function* 
           functionName: "getApproved",
           args: [BigInt(node)],
         });
+
         return {
           supported: true,
           protocol: "v1",
@@ -59,17 +65,22 @@ const getTokenApprovalEffect = Effect.fn("ensforge.getTokenApproval")(function* 
           approved: isAddressEqual(approved, zeroAddress) ? null : approved,
         } as const;
       }
+
       const analysis = analyzeName(name);
+
       if (!analysis.isSecondLevelEth || analysis.ethSecondLevelLabel === undefined) {
         return { supported: false, protocol: "v1", reason: "NAME_NOT_TOKENIZED" } as const;
       }
+
       const tokenId = BigInt(labelhash(analysis.ethSecondLevelLabel));
+
       const approved = yield* ethereum.readContract({
         address: deployment.contracts.baseRegistrar,
         abi: baseRegistrarV1GetApprovedAbi,
         functionName: "getApproved",
         args: [tokenId],
       });
+
       return {
         supported: true,
         protocol: "v1",

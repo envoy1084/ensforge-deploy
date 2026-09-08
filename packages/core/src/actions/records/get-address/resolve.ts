@@ -39,6 +39,7 @@ const decodeRecord = Effect.fn("decodeAddressResult")(function* (
         cause,
       }),
   });
+
   const address = yield* Effect.try({
     try: () => decodeAddressRecord({ coinType, data: raw }),
     catch: (cause) =>
@@ -83,11 +84,13 @@ export const resolveAddresses = Effect.fn("resolveAddresses")(function* (
   );
 
   if (normalizedCoinTypes.length === 0) return [];
+
   const uniqueCoinTypes = Array.from(
     new Map(normalizedCoinTypes.map((coinType) => [coinType.toString(), coinType])).values(),
   );
 
   const node = namehash(name);
+
   const calls = yield* Effect.try({
     try: () => uniqueCoinTypes.map((coinType) => encodeAddressCall(node, coinType)),
     catch: (cause) =>
@@ -99,6 +102,7 @@ export const resolveAddresses = Effect.fn("resolveAddresses")(function* (
             cause,
           }),
   });
+
   const results = yield* resolveRecords(name, calls);
 
   if (results === null) {
@@ -107,6 +111,7 @@ export const resolveAddresses = Effect.fn("resolveAddresses")(function* (
 
   const uniqueResults = yield* Effect.forEach(uniqueCoinTypes, (coinType, index) => {
     const result = results[index];
+
     return result === undefined
       ? new ContractError({
           code: "DECODE_FAILED",
@@ -115,12 +120,14 @@ export const resolveAddresses = Effect.fn("resolveAddresses")(function* (
         })
       : decodeRecord(coinType, result);
   });
+
   const resultsByCoinType = new Map(
     uniqueResults.map((result) => [result.coinType.toString(), result]),
   );
 
   return yield* Effect.forEach(normalizedCoinTypes, (coinType) => {
     const result = resultsByCoinType.get(coinType.toString());
+
     return result === undefined
       ? new ContractError({
           code: "DECODE_FAILED",

@@ -25,6 +25,7 @@ import {
 } from "./types.js";
 
 type StatusWireResult = V1IndexerStatusQuery | V2IndexerStatusQuery;
+
 type SourceError =
   | IndexerConfigError
   | IndexerDecodeError
@@ -70,6 +71,7 @@ const queryStatus = (
         ...(response.data === undefined ? {} : { data: response.data }),
       });
     }
+
     if (response.data === undefined) {
       return yield* new IndexerDecodeError({
         code: "INVALID_RESPONSE",
@@ -80,6 +82,7 @@ const queryStatus = (
         cause: response,
       });
     }
+
     return response.data;
   });
 
@@ -88,11 +91,13 @@ export const getIndexerSourceStatus = Effect.fn("getIndexerSourceStatus")(functi
   protocol: IndexerProtocol,
 ): Effect.fn.Return<IndexerSourceStatus> {
   const sourceState = getIndexerRuntimeConfig(config.indexer).sourceStates[protocol];
+
   if (sourceState !== "enabled") return { protocol, status: sourceState };
 
   return yield* queryStatus(config, protocol).pipe(
     Effect.flatMap((result) => {
       const meta = result["_meta"];
+
       if (meta === null) {
         return new IndexerDecodeError({
           code: "INVALID_RESPONSE",

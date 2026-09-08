@@ -20,15 +20,18 @@ const getDnsImportPlanEffect = Effect.fn("ensforge.getDnsImportPlan")(function* 
   parameters: GetDnsImportPlanParameters,
 ) {
   const name = yield* normalizeName.effect(parameters.name);
+
   return yield* executeRead(
     config,
     parameters,
     Effect.gen(function* () {
       const claim = yield* getDnsClaimStatus.effect(config, parameters);
+
       if (claim.status === "unsupported") return claim;
 
       const { profile } = yield* DeploymentService;
       const v1 = profile.v1;
+
       if (v1 === undefined) {
         return {
           status: "unsupported",
@@ -36,12 +39,15 @@ const getDnsImportPlanEffect = Effect.fn("ensforge.getDnsImportPlan")(function* 
           reason: "DNS_REGISTRAR_UNAVAILABLE",
         } as const;
       }
+
       const ethereum = yield* EthereumClient;
+
       const oracle = yield* ethereum.readContract({
         address: v1.contracts.dnsRegistrar,
         abi: dnsRegistrarV1OracleAbi,
         functionName: "oracle",
       });
+
       if (claim.status === "claimed") {
         return {
           status: "already-claimed",
@@ -52,6 +58,7 @@ const getDnsImportPlanEffect = Effect.fn("ensforge.getDnsImportPlan")(function* 
           resolver: claim.resolver,
         } satisfies DnsImportPlan;
       }
+
       return {
         status: "proof-required",
         name,

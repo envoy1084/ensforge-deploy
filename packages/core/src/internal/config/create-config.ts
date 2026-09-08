@@ -30,9 +30,11 @@ export const createConfigFromClients = (
   const indexer = resolveIndexerConfig(preset, parameters.indexer);
 
   validateClientChain(publicClient, "public", network, chainId);
+
   if (clients.walletClient !== undefined) {
     validateClientChain(clients.walletClient, "wallet", network, chainId);
   }
+
   validateDeployments(deployments, chainId);
 
   const serviceValues: EnsforgeServiceValues = {
@@ -47,6 +49,7 @@ export const createConfigFromClients = (
       ? {}
       : { walletClientResolver: clients.walletClientResolver }),
   };
+
   const config = attachConfigContext(
     {
       [EnsforgeConfigTypeId]: EnsforgeConfigTypeId,

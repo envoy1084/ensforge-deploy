@@ -20,8 +20,10 @@ export interface NameAnalysis {
 export const analyzeName = (name: NormalizedName): NameAnalysis => {
   const labels = Object.freeze(name === "" ? [] : name.split("."));
   const depth = labels.length;
+
   const kind: NameKind =
     depth === 0 ? "root" : depth === 1 ? "top-level" : depth === 2 ? "second-level" : "subname";
+
   const tld = labels.at(-1);
   const isEth = tld === "eth";
   const ethSecondLevelLabel = isEth && depth >= 2 ? labels.at(-2) : undefined;

@@ -51,12 +51,14 @@ import { resolveAvatarRecord } from "../get-avatar/resolve.js";
 import type { GetRecordsError, GetRecordsResult, GetRecordsSelection } from "./types.js";
 
 const defaultAbiContentTypes = ["json", "zlib-json", "cbor", "uri"] as const;
+
 const abiContentTypeBits = {
   json: 1n,
   "zlib-json": 2n,
   cbor: 4n,
   uri: 8n,
 } as const satisfies Record<AbiContentType, bigint>;
+
 const abiContentTypesByBit = new Map<bigint, AbiContentType>([
   [1n, "json"],
   [2n, "zlib-json"],
@@ -121,6 +123,7 @@ const prepareDescriptors = Effect.fn("prepareRecordDescriptors")(function* (
               message: `Invalid ENS coin type: ${input}`,
             }),
     });
+
     const call = yield* encodeRecordCall("address", () =>
       coinType === 60n
         ? encodeFunctionData({ abi: addrResolverAbi, functionName: "addr", args: [node] })
@@ -130,6 +133,7 @@ const prepareDescriptors = Effect.fn("prepareRecordDescriptors")(function* (
             args: [node, coinType],
           }),
     );
+
     descriptors.push({ kind: "address", coinType, call });
   }
 
@@ -137,6 +141,7 @@ const prepareDescriptors = Effect.fn("prepareRecordDescriptors")(function* (
     const call = yield* encodeRecordCall("text", () =>
       encodeFunctionData({ abi: textResolverAbi, functionName: "text", args: [node, key] }),
     );
+
     descriptors.push({ kind: "text", key, call });
   }
 
@@ -148,6 +153,7 @@ const prepareDescriptors = Effect.fn("prepareRecordDescriptors")(function* (
         args: [node, "avatar"],
       }),
     );
+
     descriptors.push({ kind: "avatar", call });
   }
 
@@ -159,6 +165,7 @@ const prepareDescriptors = Effect.fn("prepareRecordDescriptors")(function* (
         args: [node],
       }),
     );
+
     descriptors.push({ kind: "contentHash", call });
   }
 
@@ -167,13 +174,16 @@ const prepareDescriptors = Effect.fn("prepareRecordDescriptors")(function* (
       selection.abi === true
         ? defaultAbiContentTypes
         : (selection.abi.contentTypes ?? defaultAbiContentTypes);
+
     const mask = Array.from(new Set(contentTypes)).reduce(
       (value, contentType) => value | abiContentTypeBits[contentType],
       0n,
     );
+
     const call = yield* encodeRecordCall("ABI", () =>
       encodeFunctionData({ abi: abiResolverAbi, functionName: "ABI", args: [node, mask] }),
     );
+
     descriptors.push({ kind: "abi", contentTypes, call });
   }
 
@@ -181,6 +191,7 @@ const prepareDescriptors = Effect.fn("prepareRecordDescriptors")(function* (
     const call = yield* encodeRecordCall("public key", () =>
       encodeFunctionData({ abi: pubkeyResolverAbi, functionName: "pubkey", args: [node] }),
     );
+
     descriptors.push({ kind: "pubkey", call });
   }
 
@@ -188,6 +199,7 @@ const prepareDescriptors = Effect.fn("prepareRecordDescriptors")(function* (
     const call = yield* encodeRecordCall("name", () =>
       encodeFunctionData({ abi: nameResolverAbi, functionName: "name", args: [node] }),
     );
+
     descriptors.push({ kind: "name", call });
   }
 
@@ -200,6 +212,7 @@ const prepareDescriptors = Effect.fn("prepareRecordDescriptors")(function* (
           message: `Invalid EIP-165 interface ID: ${input}`,
         }),
     });
+
     const call = yield* encodeRecordCall("interface", () =>
       encodeFunctionData({
         abi: interfaceResolverAbi,
@@ -207,6 +220,7 @@ const prepareDescriptors = Effect.fn("prepareRecordDescriptors")(function* (
         args: [node, interfaceId],
       }),
     );
+
     descriptors.push({ kind: "interface", interfaceId, call });
   }
 
@@ -214,6 +228,7 @@ const prepareDescriptors = Effect.fn("prepareRecordDescriptors")(function* (
     const call = yield* encodeRecordCall("data", () =>
       encodeFunctionData({ abi: dataResolverAbi, functionName: "data", args: [node, key] }),
     );
+
     descriptors.push({ kind: "data", key, call });
   }
 
@@ -222,12 +237,14 @@ const prepareDescriptors = Effect.fn("prepareRecordDescriptors")(function* (
 
 const decodeAbiValue = (contentType: Exclude<AbiContentType, "uri">, raw: ViemHex) => {
   const bytes = hexToBytes(raw);
+
   const value =
     contentType === "json"
       ? JSON.parse(bytesToString(bytes))
       : contentType === "zlib-json"
         ? JSON.parse(strFromU8(unzlibSync(bytes)))
         : decodeCbor(bytes);
+
   return Schema.decodeUnknownSync(Abi)(value);
 };
 
@@ -284,6 +301,7 @@ const decodeDescriptor = Effect.fn("decodeRecordDescriptor")(function* (
             cause,
           }),
       });
+
       const address = yield* Effect.try({
         try: () => decodeAddressRecord({ coinType: descriptor.coinType, data: raw }),
         catch: (cause) =>
@@ -294,6 +312,7 @@ const decodeDescriptor = Effect.fn("decodeRecordDescriptor")(function* (
                 message: `Invalid encoded address for coin type ${descriptor.coinType}`,
               }),
       });
+
       return {
         kind: "address",
         value:
@@ -313,6 +332,7 @@ const decodeDescriptor = Effect.fn("decodeRecordDescriptor")(function* (
             cause,
           }),
       });
+
       return {
         kind: "text",
         value: { key: descriptor.key, value: value.length === 0 ? null : value },
@@ -329,6 +349,7 @@ const decodeDescriptor = Effect.fn("decodeRecordDescriptor")(function* (
             cause,
           }),
       });
+
       return { kind: "avatar", value: value.length === 0 ? null : value } as const;
     }
     case "contentHash": {
@@ -348,6 +369,7 @@ const decodeDescriptor = Effect.fn("decodeRecordDescriptor")(function* (
             cause,
           }),
       });
+
       const decoded = yield* Effect.try({
         try: () => decodeContentHash(raw),
         catch: (cause) =>
@@ -358,6 +380,7 @@ const decodeDescriptor = Effect.fn("decodeRecordDescriptor")(function* (
                 message: "Invalid encoded content hash",
               }),
       });
+
       return {
         kind: "contentHash",
         value: decoded === null ? { protocol: null, value: null, raw: null } : { ...decoded, raw },
@@ -374,34 +397,42 @@ const decodeDescriptor = Effect.fn("decodeRecordDescriptor")(function* (
             cause,
           }),
       });
+
       if (contentTypeBit === 0n || encodedAbi === "0x") {
         return { kind: "abi", value: { contentType: null, value: null, raw: null } } as const;
       }
+
       const contentType = abiContentTypesByBit.get(contentTypeBit);
+
       if (contentType === undefined || !descriptor.contentTypes.includes(contentType)) {
         return yield* new CodecError({
           code: "UNSUPPORTED_ABI_CONTENT_TYPE",
           message: `Unsupported ENS ABI content type: ${contentTypeBit}`,
         });
       }
+
       const raw = yield* Effect.try({
         try: () => Schema.decodeSync(AbiRecordData)(encodedAbi),
         catch: () =>
           new CodecError({ code: "INVALID_ABI", message: `Invalid ${contentType} ENS ABI record` }),
       });
+
       if (contentType === "uri") {
         const value = yield* Effect.try({
           try: () => bytesToString(hexToBytes(raw)),
           catch: () =>
             new CodecError({ code: "INVALID_ABI", message: "Invalid URI ENS ABI record" }),
         });
+
         return { kind: "abi", value: { contentType, value, raw } } as const;
       }
+
       const value = yield* Effect.try({
         try: () => decodeAbiValue(contentType, raw),
         catch: () =>
           new CodecError({ code: "INVALID_ABI", message: `Invalid ${contentType} ENS ABI record` }),
       });
+
       return { kind: "abi", value: { contentType, value, raw } } as const;
     }
     case "pubkey": {
@@ -415,8 +446,10 @@ const decodeDescriptor = Effect.fn("decodeRecordDescriptor")(function* (
             cause,
           }),
       });
+
       if (encodedX === zeroHash && encodedY === zeroHash)
         return { kind: "pubkey", value: null } as const;
+
       const [x, y] = yield* Effect.try({
         try: () => [Schema.decodeSync(Hex)(encodedX), Schema.decodeSync(Hex)(encodedY)] as const,
         catch: (cause) =>
@@ -426,6 +459,7 @@ const decodeDescriptor = Effect.fn("decodeRecordDescriptor")(function* (
             cause,
           }),
       });
+
       return { kind: "pubkey", value: { x, y } } as const;
     }
     case "name": {
@@ -439,6 +473,7 @@ const decodeDescriptor = Effect.fn("decodeRecordDescriptor")(function* (
             cause,
           }),
       });
+
       return { kind: "name", value: { name: value.length === 0 ? null : value } } as const;
     }
     case "interface": {
@@ -458,6 +493,7 @@ const decodeDescriptor = Effect.fn("decodeRecordDescriptor")(function* (
             cause,
           }),
       });
+
       return {
         kind: "interface",
         value: {
@@ -479,6 +515,7 @@ const decodeDescriptor = Effect.fn("decodeRecordDescriptor")(function* (
             cause,
           }),
       });
+
       return {
         kind: "data",
         value: { key: descriptor.key, value: value === "0x" ? null : value },
@@ -498,34 +535,47 @@ export const resolveSelectedRecords: (
   "resolveSelectedRecords",
 )(function* (client, name, selection, chainId, gatewayPolicy, gatewayUrls) {
   const descriptors = yield* prepareDescriptors(name, selection);
+
   const encodedResults = yield* resolveRecords(
     name,
     descriptors.map(({ call }) => call),
   );
+
   const decoded = yield* Effect.forEach(descriptors, (descriptor, index) =>
     decodeDescriptor(descriptor, encodedResults === null ? null : (encodedResults[index] ?? null)),
   );
 
   const result: MutableResult = { name };
+
   if (selection.addresses !== undefined) result.addresses = [];
+
   if (selection.texts !== undefined) result.texts = [];
+
   if (selection.avatar === true) result.avatar = null;
+
   if (selection.contentHash === true)
     result.contentHash = { protocol: null, value: null, raw: null };
+
   if (selection.abi !== undefined && selection.abi !== false)
     result.abi = { contentType: null, value: null, raw: null };
+
   if (selection.pubkey === true) result.pubkey = null;
+
   if (selection.name === true) result.nameRecord = { name: null };
+
   if (selection.interfaces !== undefined) result.interfaces = [];
+
   if (selection.data !== undefined) result.data = [];
 
   for (const record of decoded) {
     switch (record.kind) {
       case "address":
         result.addresses?.push(record.value);
+
         break;
       case "text":
         result.texts?.push(record.value);
+
         break;
       case "avatar":
         result.avatar =
@@ -539,24 +589,31 @@ export const resolveSelectedRecords: (
                 gatewayPolicy,
                 gatewayUrls,
               );
+
         break;
       case "contentHash":
         result.contentHash = record.value;
+
         break;
       case "abi":
         result.abi = record.value;
+
         break;
       case "pubkey":
         result.pubkey = record.value;
+
         break;
       case "name":
         result.nameRecord = record.value;
+
         break;
       case "interface":
         result.interfaces?.push(record.value);
+
         break;
       case "data":
         result.data?.push(record.value);
+
         break;
     }
   }

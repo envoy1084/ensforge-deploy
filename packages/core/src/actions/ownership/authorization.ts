@@ -15,11 +15,13 @@ export const requireOwnershipAuthorization = Effect.fn("ensforge.requireOwnershi
     operation: WriteOperation,
   ) {
     const address = typeof account === "string" ? account : account.address;
+
     const authorization = yield* getRequiredAuthorization.effect(config, {
       name,
       account: address,
       operation,
     });
+
     if (authorization.authorization.status !== "authorized" || authorization.blockers.length > 0) {
       const reason =
         authorization.blockers.length > 0
@@ -29,11 +31,13 @@ export const requireOwnershipAuthorization = Effect.fn("ensforge.requireOwnershi
             : authorization.authorization.status === "unknown"
               ? authorization.authorization.reason
               : "blocked";
+
       return yield* new AuthorizationError({
         code: "UNAUTHORIZED",
         message: `Account ${address} cannot perform ${operation.type} for ${name}: ${reason}`,
       });
     }
+
     return authorization;
   },
 );

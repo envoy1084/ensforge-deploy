@@ -13,6 +13,7 @@ const getResolverEffect = Effect.fn("ensforge.getResolver")(function* (
 ) {
   const name = yield* normalizeName.effect(parameters.name);
   const discovery = yield* executeRead(config, parameters, findResolver(name));
+
   return discovery?.address ?? null;
 });
 

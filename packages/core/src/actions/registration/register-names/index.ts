@@ -18,15 +18,18 @@ const registerNamesEffect = Effect.fn("ensforge.registerNames")(function* (
       message: "registerNames requires at least one registration",
     });
   }
+
   const names = yield* Effect.forEach(parameters.registrations, (registration) =>
     normalizeName.effect(registration.name),
   );
+
   if (new Set(names).size !== names.length) {
     return yield* new RegistrationError({
       code: "REGISTRATION_FAILED",
       message: "registerNames cannot contain duplicate names",
     });
   }
+
   const registrations = yield* Effect.forEach(
     parameters.registrations,
     (registration, index) =>
@@ -42,11 +45,13 @@ const registerNamesEffect = Effect.fn("ensforge.registerNames")(function* (
       }),
     { concurrency: 1 },
   );
+
   const status = registrations.some((registration) => registration.status === "partial")
     ? "partial"
     : registrations.every((registration) => registration.status === "completed")
       ? "completed"
       : "waiting";
+
   const nextActionAt = registrations.reduce<bigint | null>(
     (earliest, registration) =>
       registration.nextActionAt === null ||
@@ -55,6 +60,7 @@ const registerNamesEffect = Effect.fn("ensforge.registerNames")(function* (
         : registration.nextActionAt,
     null,
   );
+
   return { status, registrations, nextActionAt };
 });
 

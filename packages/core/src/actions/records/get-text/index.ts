@@ -20,6 +20,7 @@ const getTextEffect = Effect.fn("ensforge.getText")(function* (
 ) {
   const name = yield* normalizeName.effect(parameters.name);
   const [result] = yield* executeRead(config, parameters, resolveTexts(name, [parameters.key]));
+
   return result === undefined
     ? yield* new ContractError({
         code: "DECODE_FAILED",
@@ -34,6 +35,7 @@ const getTextsEffect = Effect.fn("ensforge.getTexts")(function* (
   parameters: GetTextsParameters,
 ) {
   const name = yield* normalizeName.effect(parameters.name);
+
   return yield* executeRead(config, parameters, resolveTexts(name, parameters.keys));
 });
 

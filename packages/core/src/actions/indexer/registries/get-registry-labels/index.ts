@@ -42,6 +42,7 @@ const getRegistryLabelsEffect = Effect.fn("ensforge.getRegistryLabels")(function
       message: "Indexer actions are disabled for this configuration",
     });
   }
+
   const decoded = yield* Schema.decodeUnknownEffect(GetRegistryLabelsParametersSchema)(
     parameters,
   ).pipe(
@@ -53,28 +54,34 @@ const getRegistryLabelsEffect = Effect.fn("ensforge.getRegistryLabels")(function
         }),
     ),
   );
+
   const unsupported = getV2IndexerUnsupported(config);
+
   if (unsupported !== null) return unsupported;
 
   const address = getAddress(decoded.address);
   const relationship: RegistryNameRelationship = decoded.relationship ?? "label";
   const pageSize = decoded.pageSize ?? Math.min(20, config.indexer.maximumPageSize);
+
   if (pageSize > config.indexer.maximumPageSize) {
     return yield* new IndexerFilterError({
       code: "INVALID_FILTER",
       message: `pageSize cannot exceed ${config.indexer.maximumPageSize}`,
     });
   }
+
   const binding = makeIndexerCursorBinding(
     config,
     "getRegistryLabels",
     { address, relationship },
     null,
   );
+
   const positions =
     decoded.cursor === undefined
       ? { v1: { position: null, exhausted: true }, v2: { position: null, exhausted: false } }
       : (yield* decodeIndexerCursor(decoded.cursor, binding)).sources;
+
   const operationName =
     relationship === "label" ? "V2GetRegistryLabels" : "V2GetRegistryReferences";
 
@@ -83,6 +90,7 @@ const getRegistryLabelsEffect = Effect.fn("ensforge.getRegistryLabels")(function
     first: pageSize,
     after: positions.v2.position,
   };
+
   const data =
     relationship === "label"
       ? yield* Effect.gen(function* () {
@@ -95,7 +103,9 @@ const getRegistryLabelsEffect = Effect.fn("ensforge.getRegistryLabels")(function
             document: V2GetRegistryLabelsDocument,
             variables: queryVariables,
           });
+
           const result = yield* requireIndexerData(config, "v2", operationName, response);
+
           return {
             indexedBlock: result["_meta"].block.number,
             connection: result.registry?.labelConnection,
@@ -111,15 +121,19 @@ const getRegistryLabelsEffect = Effect.fn("ensforge.getRegistryLabels")(function
             document: V2GetRegistryReferencesDocument,
             variables: queryVariables,
           });
+
           const result = yield* requireIndexerData(config, "v2", operationName, response);
+
           return {
             indexedBlock: result["_meta"].block.number,
             connection: result.registry?.referencedByConnection,
           };
         });
+
   const indexedBlock = yield* decodeIndexedBlock(config, "v2", operationName, data.indexedBlock);
   const connection = data.connection;
   const edges = connection?.edges ?? [];
+
   const items = yield* Effect.all(
     edges.map(({ node }) =>
       normalizeV2IndexerName(node, {
@@ -146,8 +160,10 @@ const getRegistryLabelsEffect = Effect.fn("ensforge.getRegistryLabels")(function
     ),
     { concurrency: "unbounded" },
   );
+
   const hasNextPage = connection?.pageInfo.hasNextPage ?? false;
   const nextPosition = connection?.pageInfo.endCursor ?? null;
+
   if (hasNextPage && (nextPosition === null || nextPosition === positions.v2.position)) {
     return yield* new IndexerDecodeError({
       code: "INVALID_RESPONSE",
@@ -158,12 +174,14 @@ const getRegistryLabelsEffect = Effect.fn("ensforge.getRegistryLabels")(function
       cause: connection?.pageInfo,
     });
   }
+
   const cursor = hasNextPage
     ? yield* encodeIndexerCursor(binding, {
         v1: { position: null, exhausted: true },
         v2: { position: nextPosition, exhausted: false },
       })
     : null;
+
   return {
     status: "supported",
     value: {

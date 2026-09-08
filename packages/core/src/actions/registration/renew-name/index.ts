@@ -68,6 +68,7 @@ const renewNameEffect = Effect.fn("ensforge.renewName")(function* (
 ): Effect.fn.Return<RenewNameResult, WriteError> {
   const name = yield* normalizeName.effect(parameters.name);
   const id = planId(name, parameters);
+
   if (
     parameters.resume?.write.status === "completed" &&
     parameters.resume.write.completedStages.some((stage) => stage.id === "renew")
@@ -78,10 +79,12 @@ const renewNameEffect = Effect.fn("ensforge.renewName")(function* (
         "Renewal resume data does not match the supplied renewal",
       );
     }
+
     const [expiry, finalState] = yield* Effect.all(
       [getExpiry.effect(config, { name }), getNameState.effect(config, { name })] as const,
       { concurrency: "unbounded" },
     );
+
     return { ...parameters.resume, newExpiry: expiry?.expiry ?? null, finalState };
   }
 
@@ -96,13 +99,16 @@ const renewNameEffect = Effect.fn("ensforge.renewName")(function* (
     ] as const,
     { concurrency: "unbounded" },
   );
+
   const quote = yield* requireQuote(priceResult);
+
   if (parameters.resume !== undefined && parameters.resume.route !== quote.route) {
     return yield* renewalError(
       "ROUTE_CHANGED",
       `The renewal route for ${name} changed while resuming`,
     );
   }
+
   if (parameters.maxPrice !== undefined && quote.price > parameters.maxPrice) {
     return yield* renewalError(
       "PRICE_EXCEEDS_MAXIMUM",
@@ -116,10 +122,12 @@ const renewNameEffect = Effect.fn("ensforge.renewName")(function* (
     token: null,
     amount: 0n,
   };
+
   if (quote.currency.kind === "erc20" && !approval.required) {
     const currency = quote.currency;
     const { account } = yield* provideConfig(config, resolveWalletContext(parameters));
     const payer = typeof account === "string" ? account : account.address;
+
     const allowance = yield* Effect.tryPromise({
       try: () =>
         config.publicClient.readContract({
@@ -130,6 +138,7 @@ const renewNameEffect = Effect.fn("ensforge.renewName")(function* (
         }),
       catch: (cause) => viemErrorToEffectError(cause, "readContract"),
     });
+
     if (allowance < quote.price) {
       approval = {
         required: true,
@@ -141,6 +150,7 @@ const renewNameEffect = Effect.fn("ensforge.renewName")(function* (
   }
 
   const stages: Array<WritePlan["stages"][number]> = [];
+
   if (approval.required && approval.token !== null) {
     stages.push({
       type: "calls",
@@ -158,6 +168,7 @@ const renewNameEffect = Effect.fn("ensforge.renewName")(function* (
       confirmation: confirmed,
     });
   }
+
   stages.push({
     type: "calls",
     id: "renew",
@@ -181,13 +192,16 @@ const renewNameEffect = Effect.fn("ensforge.renewName")(function* (
           : renewalError("RENEWAL_FAILED", `Unable to renew ${name}`),
       ),
     );
+
   const completed = write.status === "completed";
+
   const [newExpiry, finalState] = completed
     ? yield* Effect.all(
         [getExpiry.effect(config, { name }), getNameState.effect(config, { name })] as const,
         { concurrency: "unbounded" },
       )
     : ([null, null] as const);
+
   return {
     status: write.status === "completed" ? "completed" : "partial",
     name,

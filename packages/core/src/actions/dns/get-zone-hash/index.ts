@@ -21,6 +21,7 @@ const getZoneHashEffect = Effect.fn("ensforge.getZoneHash")(function* (
   parameters: GetZoneHashParameters,
 ) {
   const name = yield* normalizeName.effect(parameters.name);
+
   const call = yield* Effect.try({
     try: () =>
       encodeFunctionData({
@@ -35,6 +36,7 @@ const getZoneHashEffect = Effect.fn("ensforge.getZoneHash")(function* (
         cause,
       }),
   });
+
   return yield* executeRead(
     config,
     parameters,
@@ -43,10 +45,13 @@ const getZoneHashEffect = Effect.fn("ensforge.getZoneHash")(function* (
         [getResolver.effect(config, parameters), resolveRecords(name, [call])] as const,
         { concurrency: "unbounded" },
       );
+
       if (result === null || result[0] === undefined) {
         return { name, resolver, value: null } satisfies ZoneHashResult;
       }
+
       const encoded = result[0];
+
       const value = yield* Effect.try({
         try: () =>
           decodeFunctionResult({
@@ -61,6 +66,7 @@ const getZoneHashEffect = Effect.fn("ensforge.getZoneHash")(function* (
             cause,
           }),
       });
+
       return { name, resolver, value: value === "0x" ? null : value } satisfies ZoneHashResult;
     }),
   );

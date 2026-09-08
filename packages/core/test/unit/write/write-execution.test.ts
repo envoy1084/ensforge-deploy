@@ -33,8 +33,11 @@ import {
 import { createTestConfig, ensTestChainId } from "../../../src/testing/index.js";
 
 const account = "0x0000000000000000000000000000000000000001";
+
 const target = "0x0000000000000000000000000000000000000002";
+
 const firstHash = `0x${"1".repeat(64)}` as Hex;
+
 const secondHash = `0x${"2".repeat(64)}` as Hex;
 
 const chain = defineChain({
@@ -43,6 +46,7 @@ const chain = defineChain({
   nativeCurrency: { decimals: 18, name: "Ether", symbol: "ETH" },
   rpcUrls: { default: { http: ["http://127.0.0.1:8545"] } },
 });
+
 const deployment = {
   ...mainnetV1Deployment,
   id: "write-test-v1",
@@ -55,6 +59,7 @@ const receipt = (transactionHash: Hex) =>
 const makeHarness = (writes?: WriteOptions) => {
   let blockNumber = 10n;
   let timestamp = 100n;
+
   const publicClient = {
     chain,
     getBlock: vi.fn(async () => ({ number: blockNumber, timestamp })),
@@ -67,6 +72,7 @@ const makeHarness = (writes?: WriteOptions) => {
     })),
     waitForTransactionReceipt: vi.fn(async ({ hash }: { readonly hash: Hex }) => receipt(hash)),
   } as unknown as PublicClient;
+
   const walletClient = {
     account: { address: account },
     chain,
@@ -94,12 +100,14 @@ const makeHarness = (writes?: WriteOptions) => {
       version: "2.0.0",
     })),
   } as unknown as WalletClient;
+
   const config = createTestConfig({
     deployments: { protocol: "v1", v1: deployment },
     publicClient,
     walletClient,
     ...(writes === undefined ? {} : { writes }),
   });
+
   return {
     config,
     publicClient,
@@ -130,6 +138,7 @@ describe("write execution", () => {
     Effect.gen(function* () {
       const harness = makeHarness();
       const intent = testWrite.call({ to: target, data: "0x1234" });
+
       const [prepared, simulated] = yield* Effect.all([
         prepareCalls.effect(harness.config, { calls: [intent] }),
         simulateCalls.effect(harness.config, { calls: [intent] }),
@@ -146,6 +155,7 @@ describe("write execution", () => {
   it.effect("estimates calls and aggregates maximum costs", () =>
     Effect.gen(function* () {
       const harness = makeHarness();
+
       const result = yield* estimateCalls.effect(harness.config, {
         calls: [testWrite.call({ to: target }), testWrite.call({ to: target })],
       });
@@ -173,6 +183,7 @@ describe("write execution", () => {
   it.effect("executes confirmed calls sequentially", () =>
     Effect.gen(function* () {
       const harness = makeHarness();
+
       const result = yield* sendCalls.effect(harness.config, {
         calls: [testWrite.call({ to: target }), testWrite.call({ to: target })],
         mode: "sequential",
@@ -195,6 +206,7 @@ describe("write execution", () => {
         simulation: "skip",
         confirmation: { type: "submitted" },
       });
+
       const result = yield* sendCalls.effect(harness.config, {
         calls: [testWrite.call({ to: target })],
         mode: "sequential",
@@ -209,6 +221,7 @@ describe("write execution", () => {
   it.effect("retries only idempotent confirmation polling", () =>
     Effect.gen(function* () {
       const harness = makeHarness({ statusRetries: 1 });
+
       vi.mocked(harness.publicClient.waitForTransactionReceipt)
         .mockRejectedValueOnce(new Error("temporary receipt failure"))
         .mockResolvedValueOnce(receipt(firstHash));
@@ -227,20 +240,25 @@ describe("write execution", () => {
   it.effect("returns explicit partial completion after an onchain change", () =>
     Effect.gen(function* () {
       const harness = makeHarness();
+
       vi.mocked(harness.walletClient.sendTransaction)
         .mockReset()
         .mockResolvedValueOnce(firstHash)
         .mockRejectedValueOnce(new UserRejectedRequestError(new Error("rejected")));
+
       const result = yield* sendCalls.effect(harness.config, {
         calls: [testWrite.call({ to: target }), testWrite.call({ to: target })],
         mode: "sequential",
       });
 
       assert.strictEqual(result.mode, "sequential");
+
       if (result.mode !== "sequential") return;
+
       assert.strictEqual(result.status, "partial");
       assert.strictEqual(result.calls[0]?.status, "confirmed");
       assert.strictEqual(result.calls[1]?.status, "not-started");
+
       if (result.mode === "sequential") {
         assert.instanceOf(result.failure, WalletError);
       }
@@ -250,6 +268,7 @@ describe("write execution", () => {
   it.effect("fails without partial progress when the wallet rejects before submission", () =>
     Effect.gen(function* () {
       const harness = makeHarness();
+
       vi.mocked(harness.walletClient.sendTransaction)
         .mockReset()
         .mockRejectedValueOnce(new UserRejectedRequestError(new Error("rejected")));
@@ -270,9 +289,11 @@ describe("write execution", () => {
   it.effect("preserves a submitted transaction across timeout and plan resume", () =>
     Effect.gen(function* () {
       const harness = makeHarness();
+
       vi.mocked(harness.publicClient.waitForTransactionReceipt).mockRejectedValueOnce(
         new TimeoutError({ body: {}, url: "http://127.0.0.1:8545" }),
       );
+
       const plan = {
         id: "confirmation-resume-plan",
         stages: [
@@ -286,6 +307,7 @@ describe("write execution", () => {
       } as const;
 
       const partial = yield* executeWritePlan.effect(harness.config, { plan });
+
       assert.strictEqual(partial.status, "partial");
       assert.instanceOf(partial.failure, TransactionError);
       assert.strictEqual(partial.failure.code, "CONFIRMATION_TIMEOUT");
@@ -295,6 +317,7 @@ describe("write execution", () => {
       vi.mocked(harness.publicClient.waitForTransactionReceipt).mockResolvedValueOnce(
         receipt(secondHash),
       );
+
       const completed = yield* executeWritePlan.effect(harness.config, { plan, resume: partial });
 
       assert.strictEqual(completed.status, "completed");
@@ -308,6 +331,7 @@ describe("write execution", () => {
   it.effect("preserves submitted progress when its receipt reverted", () =>
     Effect.gen(function* () {
       const harness = makeHarness();
+
       vi.mocked(harness.publicClient.waitForTransactionReceipt).mockResolvedValueOnce({
         ...receipt(firstHash),
         status: "reverted",
@@ -319,7 +343,9 @@ describe("write execution", () => {
       });
 
       assert.strictEqual(result.mode, "sequential");
+
       if (result.mode !== "sequential") return;
+
       assert.strictEqual(result.status, "partial");
       assert.strictEqual(result.calls[0]?.status, "submitted");
       assert.strictEqual(result.calls[0]?.hash, firstHash);
@@ -332,6 +358,7 @@ describe("write execution", () => {
     Effect.gen(function* () {
       const harness = makeHarness();
       const capabilities = yield* getWalletCapabilities.effect(harness.config, {});
+
       const result = yield* sendCalls.effect(harness.config, {
         calls: [testWrite.call({ to: target }), testWrite.call({ to: target })],
         mode: "batch",
@@ -350,6 +377,7 @@ describe("write execution", () => {
   it.effect("rejects capabilities that the wallet does not advertise", () =>
     Effect.gen(function* () {
       const harness = makeHarness();
+
       const error = yield* sendCalls
         .effect(harness.config, {
           calls: [testWrite.call({ to: target })],
@@ -367,12 +395,15 @@ describe("write execution", () => {
   it.effect("reads and resumes a persisted native batch", () =>
     Effect.gen(function* () {
       const harness = makeHarness();
+
       const submitted = yield* sendCalls.effect(harness.config, {
         calls: [testWrite.call({ to: target })],
         mode: "batch",
         confirmation: { type: "submitted" },
       });
+
       assert.strictEqual(submitted.mode, "batch");
+
       if (submitted.mode !== "batch") return;
 
       const status = yield* getCallsStatus.effect(harness.config, { id: submitted.id });
@@ -388,11 +419,14 @@ describe("write execution", () => {
   it.effect("does not poll an already confirmed native batch again", () =>
     Effect.gen(function* () {
       const harness = makeHarness();
+
       const confirmed = yield* sendCalls.effect(harness.config, {
         calls: [testWrite.call({ to: target })],
         mode: "batch",
       });
+
       assert.strictEqual(confirmed.mode, "batch");
+
       if (confirmed.mode !== "batch") return;
 
       const resumed = yield* resumeCalls.effect(harness.config, { batch: confirmed });
@@ -405,6 +439,7 @@ describe("write execution", () => {
   it.effect("retries native batch status polling without resubmission", () =>
     Effect.gen(function* () {
       const harness = makeHarness({ statusRetries: 1 });
+
       vi.mocked(harness.walletClient.waitForCallsStatus)
         .mockRejectedValueOnce(new Error("temporary status failure"))
         .mockResolvedValueOnce({
@@ -432,6 +467,7 @@ describe("write execution", () => {
   it.effect("reports failed and cross-chain native batch statuses", () =>
     Effect.gen(function* () {
       const harness = makeHarness();
+
       vi.mocked(harness.walletClient.waitForCallsStatus).mockResolvedValueOnce({
         atomic: true,
         chainId: ensTestChainId,
@@ -441,12 +477,14 @@ describe("write execution", () => {
         statusCode: 500,
         version: "2.0.0",
       });
+
       const failed = yield* sendCalls
         .effect(harness.config, {
           calls: [testWrite.call({ to: target })],
           mode: "batch",
         })
         .pipe(Effect.flip);
+
       assert.instanceOf(failed, TransactionError);
       assert.strictEqual(failed.code, "BATCH_STATUS_FAILED");
 
@@ -459,9 +497,11 @@ describe("write execution", () => {
         statusCode: 200,
         version: "2.0.0",
       });
+
       const crossChain = yield* getCallsStatus
         .effect(harness.config, { id: "batch-1" })
         .pipe(Effect.flip);
+
       assert.instanceOf(crossChain, TransactionError);
       assert.strictEqual(crossChain.code, "INVALID_BATCH_STATUS");
     }),
@@ -470,6 +510,7 @@ describe("write execution", () => {
   it.effect("resumes a submitted native write-plan stage without resubmitting", () =>
     Effect.gen(function* () {
       const harness = makeHarness();
+
       const plan = {
         id: "native-resume-plan",
         stages: [
@@ -482,7 +523,9 @@ describe("write execution", () => {
           },
         ],
       } as const;
+
       const submitted = yield* executeWritePlan.effect(harness.config, { plan });
+
       assert.strictEqual(submitted.status, "submitted");
 
       const completed = yield* executeWritePlan.effect(harness.config, {
@@ -502,11 +545,13 @@ describe("write execution", () => {
   it.effect("falls back to sequential execution when native calls are unavailable", () =>
     Effect.gen(function* () {
       const harness = makeHarness();
+
       vi.mocked(harness.walletClient.getCapabilities).mockRejectedValue(
         new MethodNotFoundRpcError(new Error("unsupported"), {
           method: "wallet_getCapabilities",
         }),
       );
+
       const result = yield* sendCalls.effect(harness.config, {
         calls: [testWrite.call({ to: target })],
         mode: "auto",
@@ -520,9 +565,11 @@ describe("write execution", () => {
   it.effect("falls back when an RPC reports wallet capabilities as an invalid request", () =>
     Effect.gen(function* () {
       const harness = makeHarness();
+
       vi.mocked(harness.walletClient.getCapabilities).mockRejectedValue(
         new InvalidRequestRpcError(new Error("Unsupported method: wallet_getCapabilities on eth")),
       );
+
       const result = yield* sendCalls.effect(harness.config, {
         calls: [testWrite.call({ to: target })],
         mode: "auto",
@@ -536,6 +583,7 @@ describe("write execution", () => {
   it.effect("returns waiting progress and resumes a staged plan", () =>
     Effect.gen(function* () {
       const harness = makeHarness();
+
       const plan = {
         id: "registration-like-plan",
         stages: [
@@ -543,15 +591,19 @@ describe("write execution", () => {
           { type: "calls", id: "write", calls: [testWrite.call({ to: target })] },
         ],
       } as const;
+
       const waiting = yield* executeWritePlan.effect(harness.config, { plan });
+
       assert.strictEqual(waiting.status, "waiting");
       assert.strictEqual(waiting.currentStage, "window");
 
       harness.setBlock(11n, 200n);
+
       const completed = yield* executeWritePlan.effect(harness.config, {
         plan,
         resume: waiting,
       });
+
       assert.strictEqual(completed.status, "completed");
       assert.strictEqual(completed.completedStages[0]?.id, "write");
     }),
@@ -560,10 +612,12 @@ describe("write execution", () => {
   it.effect("resumes only the unsubmitted calls of a partially completed stage", () =>
     Effect.gen(function* () {
       const harness = makeHarness();
+
       vi.mocked(harness.walletClient.sendTransaction)
         .mockReset()
         .mockResolvedValueOnce(firstHash)
         .mockRejectedValueOnce(new UserRejectedRequestError(new Error("rejected")));
+
       const plan = {
         id: "partial-plan",
         stages: [
@@ -575,10 +629,13 @@ describe("write execution", () => {
           },
         ],
       } as const;
+
       const partial = yield* executeWritePlan.effect(harness.config, { plan });
+
       assert.strictEqual(partial.status, "partial");
 
       vi.mocked(harness.walletClient.sendTransaction).mockReset().mockResolvedValue(secondHash);
+
       const completed = yield* executeWritePlan.effect(harness.config, {
         plan,
         resume: partial,
@@ -596,10 +653,12 @@ describe("write execution", () => {
   it.effect("preserves completed stages when the next stage fails", () =>
     Effect.gen(function* () {
       const harness = makeHarness();
+
       vi.mocked(harness.walletClient.sendTransaction)
         .mockReset()
         .mockResolvedValueOnce(firstHash)
         .mockRejectedValueOnce(new UserRejectedRequestError(new Error("rejected")));
+
       const plan = {
         id: "dependent-stage-plan",
         stages: [
@@ -617,6 +676,7 @@ describe("write execution", () => {
           },
         ],
       } as const;
+
       const partial = yield* executeWritePlan.effect(harness.config, { plan });
 
       assert.strictEqual(partial.status, "partial");
@@ -625,6 +685,7 @@ describe("write execution", () => {
       assert.instanceOf(partial.failure, WalletError);
 
       vi.mocked(harness.walletClient.sendTransaction).mockReset().mockResolvedValue(secondHash);
+
       const completed = yield* executeWritePlan.effect(harness.config, {
         plan,
         resume: partial,

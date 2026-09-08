@@ -18,6 +18,7 @@ export const hcaRpc = <A>(operation: () => Promise<A>) =>
     try: operation,
     catch: (cause) => viemErrorToEffectError(cause, "readContract"),
   });
+
 export const validateHcaAddress = (address: unknown) =>
   Schema.is(EthereumAddress)(address) && address !== zeroAddress
     ? Effect.succeed(address)
@@ -27,12 +28,14 @@ export const validateHcaAddress = (address: unknown) =>
           message: "Expected a nonzero HCA-related Ethereum address",
         }),
       );
+
 export const validateHcaSalt = (salt: unknown) =>
   Schema.decodeUnknownEffect(HcaSalt)(salt).pipe(
     Effect.mapError(
       () => new HcaError({ code: "INVALID_PARAMETERS", message: "HCA salt must be a uint256" }),
     ),
   );
+
 const HcaProfileShape = Schema.Struct({
   generation: Schema.Struct({
     id: Schema.Literal(hcaAccountGeneration.id),
@@ -66,6 +69,7 @@ export const resolveHcaProfile = Effect.fn("resolveHcaProfile")(function* (confi
   const profile =
     config.hca ??
     (config.chainId === sepoliaHcaDeployment.deployment.chainId ? sepoliaHcaDeployment : undefined);
+
   if (
     !profile ||
     !Schema.is(HcaProfileShape)(profile) ||
@@ -79,12 +83,14 @@ export const resolveHcaProfile = Effect.fn("resolveHcaProfile")(function* (confi
       message: "No compatible HCA profile is configured for this ENS deployment",
     });
   }
+
   if ((yield* hcaRpc(() => config.publicClient.getChainId())) !== config.chainId) {
     return yield* new HcaError({
       code: "DEPLOYMENT_MISMATCH",
       message: "RPC chain does not match the HCA configuration",
     });
   }
+
   if (
     Object.keys(profile.deployment.contracts).length !==
     Object.keys(config.deployments.v2.contracts).length
@@ -94,9 +100,11 @@ export const resolveHcaProfile = Effect.fn("resolveHcaProfile")(function* (confi
       message: "HCA profile has an incomplete ENS deployment",
     });
   }
+
   for (const [key, address] of Object.entries(profile.deployment.contracts)) {
     const expected =
       config.deployments.v2.contracts[key as keyof typeof config.deployments.v2.contracts];
+
     if (expected === undefined || !isAddressEqual(address, expected)) {
       return yield* new HcaError({
         code: "DEPLOYMENT_MISMATCH",
@@ -104,6 +112,7 @@ export const resolveHcaProfile = Effect.fn("resolveHcaProfile")(function* (confi
       });
     }
   }
+
   if (
     !isAddressEqual(
       profile.deployment.implementations.permissionedResolver,
@@ -115,5 +124,6 @@ export const resolveHcaProfile = Effect.fn("resolveHcaProfile")(function* (confi
       message: "HCA profile resolver implementation mismatch",
     });
   }
+
   return profile as HcaDeploymentProfile;
 });

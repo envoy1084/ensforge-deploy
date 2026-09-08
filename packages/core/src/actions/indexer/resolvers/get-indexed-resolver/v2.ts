@@ -18,6 +18,7 @@ import type { EnsProtocol } from "../../../../schemas/protocol.js";
 import type { GetIndexedResolverError, GetIndexedResolverResult } from "./types.js";
 
 const operationName = "V2GetIndexedResolver";
+
 const bindingProtocol = (id: string): EnsProtocol =>
   id.startsWith("v2-") || id.includes("-v2-") ? "v2" : "v1";
 
@@ -31,6 +32,7 @@ export const queryV2IndexedResolver = Effect.fn("queryV2IndexedResolver")(functi
     address: address.toLowerCase(),
     protocol: requestedProtocol ?? null,
   };
+
   const data =
     namehash === null
       ? yield* Effect.gen(function* () {
@@ -43,6 +45,7 @@ export const queryV2IndexedResolver = Effect.fn("queryV2IndexedResolver")(functi
             document: V2GetIndexedResolverDocument,
             variables: { ...variables, first: 100 },
           });
+
           return yield* requireIndexerData(config, "v2", operationName, response);
         })
       : yield* Effect.gen(function* () {
@@ -55,20 +58,27 @@ export const queryV2IndexedResolver = Effect.fn("queryV2IndexedResolver")(functi
             document: V2GetIndexedResolverBindingDocument,
             variables: { ...variables, namehash: namehash.toLowerCase() },
           });
+
           return yield* requireIndexerData(config, "v2", operationName, response);
         });
+
   if (data.detail === null && data.bindings.length === 0) return null;
+
   const protocol =
     requestedProtocol ??
     (data.bindings.some(({ id }) => bindingProtocol(id) === "v2") ? "v2" : "v1");
+
   const bindings = data.bindings.filter(({ id }) => bindingProtocol(id) === protocol);
+
   if (bindings.length === 0 && (protocol === "v1" || data.detail === null)) return null;
+
   const indexedBlock = yield* decodeIndexedBlock(
     config,
     "v2",
     operationName,
     data["_meta"].block.number,
   );
+
   return yield* normalizeV2IndexedResolver(address, protocol, data.detail, bindings, {
     network: config.network,
     protocol: "v2",

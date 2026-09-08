@@ -24,23 +24,28 @@ const getMigrationPlanEffect = Effect.fn("ensforge.getMigrationPlan")(function* 
   parameters: GetMigrationPlanParameters,
 ) {
   const name = yield* normalizeName.effect(parameters.name);
+
   return yield* executeRead(
     config,
     parameters,
     Effect.gen(function* () {
       const eligibility = yield* getMigrationEligibility.effect(config, parameters);
+
       if (
         eligibility.status.status === "migrated-unlocked" ||
         eligibility.status.status === "migrated-locked"
       ) {
         return { status: "not-required", name, reason: "ALREADY_MIGRATED" } as const;
       }
+
       if (eligibility.status.status === "not-required") {
         return { status: "not-required", name, reason: eligibility.status.reason } as const;
       }
+
       if (eligibility.status.status === "unsupported") {
         return { status: "unsupported", name, blockers: eligibility.blockers } as const;
       }
+
       if (!eligibility.authorized && eligibility.owner !== null) {
         return {
           status: "authorization-required",
@@ -50,21 +55,27 @@ const getMigrationPlanEffect = Effect.fn("ensforge.getMigrationPlan")(function* 
           target: eligibility.target,
         } as const;
       }
+
       if (!eligibility.eligible || !eligibility.target.supported || eligibility.owner === null) {
         return { status: "blocked", name, blockers: eligibility.blockers } as const;
       }
 
       const { profile } = yield* DeploymentService;
+
       if (profile.protocol !== "v2") {
         return { status: "unsupported", name, blockers: ["ENSV2_NOT_ACTIVE"] } as const;
       }
+
       const label = analyzeName(name).label;
+
       if (label === undefined) {
         return { status: "unsupported", name, blockers: ["NOT_ETH_NAME"] } as const;
       }
+
       const locked =
         eligibility.target.route === "wrapped-locked" ||
         eligibility.target.route === "locked-child";
+
       return {
         status: "ready",
         name,

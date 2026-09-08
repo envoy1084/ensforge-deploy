@@ -17,7 +17,9 @@ const getEnsEventsEffect = Effect.fn("ensforge.getEnsEvents")(function* (
 ) {
   const normalizedName =
     parameters.name === undefined ? undefined : yield* normalizeName.effect(parameters.name);
+
   const contracts = getEnsEventContracts(config.deployments);
+
   const logs = yield* Effect.tryPromise({
     try: () =>
       config.publicClient.getLogs({
@@ -32,12 +34,16 @@ const getEnsEventsEffect = Effect.fn("ensforge.getEnsEvents")(function* (
     .map((log) => normalizeEnsLog(log, contracts))
     .filter((event): event is EnsEvent => event !== null)
     .filter((event) => matchesEnsEventFilters(event, parameters, normalizedName));
+
   // Array#toSorted is outside the package's ES2022 type target.
   // oxlint-disable-next-line unicorn/no-array-sort
   return events.sort((left: EnsEvent, right: EnsEvent) => {
     const block = Number((left.blockNumber ?? 0n) - (right.blockNumber ?? 0n));
+
     if (block !== 0) return block;
+
     const transaction = (left.transactionIndex ?? 0) - (right.transactionIndex ?? 0);
+
     return transaction !== 0 ? transaction : (left.logIndex ?? 0) - (right.logIndex ?? 0);
   });
 });

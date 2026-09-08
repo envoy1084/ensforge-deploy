@@ -18,6 +18,7 @@ export const freezeDeployment = <T extends object>(value: T): T => {
   for (const child of Object.values(value)) {
     if (child !== null && typeof child === "object") freezeDeployment(child);
   }
+
   return Object.freeze(value);
 };
 
@@ -30,6 +31,7 @@ export const resolveNetwork = (input: unknown): ResolvedNetwork => {
       deployments: getNetworkProfile(input),
     };
   }
+
   if (typeof input === "string") {
     throw new ConfigError({
       code: "UNSUPPORTED_NETWORK",
@@ -38,6 +40,7 @@ export const resolveNetwork = (input: unknown): ResolvedNetwork => {
   }
 
   const decoded = Schema.decodeUnknownExit(CustomEnsNetworkSchema)(input);
+
   if (Exit.isFailure(decoded)) {
     throw new ConfigError({
       code: "INVALID_CUSTOM_NETWORK",
@@ -45,14 +48,18 @@ export const resolveNetwork = (input: unknown): ResolvedNetwork => {
         "Provide a custom network ID, a positive safe chain ID, and complete valid contract address groups for the selected protocol",
     });
   }
+
   const custom = structuredClone(decoded.value);
+
   if (Schema.is(EnsNetworkSchema)(custom.id)) {
     throw new ConfigError({
       code: "INVALID_CUSTOM_NETWORK",
       message: "Custom network IDs must not reuse mainnet or sepolia",
     });
   }
+
   const metadata = { chainId: custom.chainId };
+
   const v1 =
     custom.v1 === undefined
       ? undefined
@@ -63,6 +70,7 @@ export const resolveNetwork = (input: unknown): ResolvedNetwork => {
           protocol: "v1" as const,
           status: custom.v1.status ?? "active",
         };
+
   const deployments: EnsDeploymentProfile =
     custom.protocol === "v1"
       ? {

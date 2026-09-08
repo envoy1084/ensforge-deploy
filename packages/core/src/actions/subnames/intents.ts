@@ -96,6 +96,7 @@ export const v1CreateSubnameIntent = Effect.fn("ensforge.v1CreateSubnameIntent")
             ],
           }),
     );
+
     return encodedIntent({
       operation: "createSubname",
       protocol: "v1",
@@ -119,12 +120,14 @@ export const deployUserRegistryIntent = Effect.fn("ensforge.deployUserRegistryIn
         functionName: "initialize",
         args: [parameters.owner, parameters.roles],
       });
+
       return encodeFunctionData({
         abi: verifiableFactoryV2DeployProxyAbi,
         functionName: "deployProxy",
         args: [parameters.implementation, parameters.salt, initialization],
       });
     });
+
     return encodedIntent({
       operation: "createSubregistry",
       protocol: "v2",
@@ -147,6 +150,7 @@ export const setRegistryParentIntent = Effect.fn("ensforge.setRegistryParentInte
         args: [parameters.parentRegistry, parameters.parentLabel],
       }),
     );
+
     return encodedIntent({
       operation: "setSubregistryParent",
       protocol: "v2",
@@ -169,6 +173,7 @@ export const attachSubregistryIntent = Effect.fn("ensforge.attachSubregistryInte
         args: [parameters.parentTokenId, parameters.subregistry],
       }),
     );
+
     return encodedIntent({
       operation: "attachSubregistry",
       protocol: "v2",
@@ -201,6 +206,7 @@ export const registerV2SubnameIntent = Effect.fn("ensforge.registerV2SubnameInte
         ],
       }),
     );
+
     return encodedIntent({
       operation: "createSubname",
       protocol: "v2",

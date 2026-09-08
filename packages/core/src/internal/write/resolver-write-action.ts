@@ -41,10 +41,12 @@ export const makeResolverWriteAction = <Parameters extends { readonly name: stri
       records: definition.records(parameters),
       account: context.account,
     });
+
     const data = yield* definition.encode(parameters, {
       name: prepared.name,
       node: prepared.target.node,
     });
+
     return {
       to: prepared.target.address,
       data,
@@ -62,8 +64,10 @@ export const makeResolverWriteAction = <Parameters extends { readonly name: stri
       parameters,
       preparer,
     );
+
     const result = yield* executeSequential(config, { calls: [intent] });
     const call = result.calls[0];
+
     if (call === undefined) {
       return yield* new WritePlanError({
         code: "INVALID_CALL_PLAN",
@@ -71,6 +75,7 @@ export const makeResolverWriteAction = <Parameters extends { readonly name: stri
         cause: result,
       });
     }
+
     return call;
   });
 

@@ -10,9 +10,13 @@ import { seedRead, seedTransaction } from "./contract.js";
 import type { RegistrationFixtureManifest } from "./manifest.js";
 
 const duration = 365n * 86_400n;
+
 const v1Secret = "0x4444444444444444444444444444444444444444444444444444444444444444";
+
 const v2Secret = "0x5555555555555555555555555555555555555555555555555555555555555555";
+
 const tokenBalance = 1_000_000_000_000_000_000_000_000n;
+
 const mockTokenAbi = [
   ...erc20Abi,
   {
@@ -40,6 +44,7 @@ export const seedRegistrationFixtures = Effect.fn("seedRegistrationFixtures")(fu
     reverseRecord: 0,
     secret: v1Secret,
   } as const;
+
   const v1Commitment = yield* seedRead(
     () =>
       environment.clients.publicClient.readContract({
@@ -50,6 +55,7 @@ export const seedRegistrationFixtures = Effect.fn("seedRegistrationFixtures")(fu
       }),
     "Unable to create the ENS v1 registration commitment",
   );
+
   yield* seedTransaction(
     environment,
     {
@@ -80,6 +86,7 @@ export const seedRegistrationFixtures = Effect.fn("seedRegistrationFixtures")(fu
       }),
     "Unable to create the ENS v2 registration commitment",
   );
+
   yield* seedTransaction(
     environment,
     {
@@ -106,6 +113,7 @@ export const seedRegistrationFixtures = Effect.fn("seedRegistrationFixtures")(fu
       },
       `Unable to mint registration funds from ${token}`,
     );
+
     for (const spender of [
       environment.deployments.v2.contracts.ethRegistrar,
       environment.deployments.v2.migration.ethRenewerV1,

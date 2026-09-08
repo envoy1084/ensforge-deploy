@@ -25,6 +25,7 @@ export type GetNamesForAddressParameters = typeof GetNamesForAddressParameters.T
 
 export const GetNamesForAddressResult = IndexerPage(RelatedIndexedName);
 export type GetNamesForAddressResult = IndexerPageType<RelatedIndexedNameType>;
+
 export type GetNamesForAddressError = GetNamesError;
 
 export const defaultAddressRelations = Object.freeze(["owner"] as const);

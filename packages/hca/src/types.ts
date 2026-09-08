@@ -19,20 +19,25 @@ export interface VersionedExecution {
   /** Stable, public, credential-free configuration digest. */
   readonly configurationFingerprint: `0x${string}`;
 }
+
 export interface PreparedExecution<P> extends PreparedHcaExecution<P>, VersionedExecution {
   readonly review: HcaExecutionReview;
 }
+
 export interface AuthorizedExecution<A> extends AuthorizedHcaExecution<A>, VersionedExecution {
   readonly review: HcaExecutionReview;
 }
+
 export interface ExecutionSubmission<S> extends HcaAdapterSubmission<S>, VersionedExecution {
   readonly locator: HcaExecutionLocator;
 }
+
 export interface SubmissionCodec<S> {
   readonly version: number;
   /** Whitelist tracking fields only; never include credentials, signers or signed operations. */
   readonly schema: Schema.Codec<S, unknown>;
 }
+
 export interface ExecutionExtensions {
   readonly sessions?: object;
   readonly crossChain?: object;
@@ -41,6 +46,7 @@ export interface ExecutionExtensions {
   readonly cancellation?: object;
   readonly lookup?: object;
 }
+
 export type ExecutionOutcome =
   | { readonly status: "cancelled" | "expired"; readonly reason: string }
   | { readonly status: "pending" | "unknown" }
@@ -48,6 +54,7 @@ export type ExecutionOutcome =
       readonly status: "succeeded" | "failed";
       readonly receipts: Extract<HcaExecutionStatus, { receipts: unknown }>["receipts"];
     };
+
 export interface ExecutionAdapterDefinition<
   P,
   A,
@@ -81,6 +88,7 @@ export interface ExecutionAdapterDefinition<
   >;
   readonly getStatus: EnsAction<ExecutionSubmission<S>, ExecutionOutcome, HcaError>;
 }
+
 export interface TypedExecutionAdapter<
   P,
   A,

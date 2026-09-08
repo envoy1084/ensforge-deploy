@@ -68,6 +68,7 @@ describe("readBatch", () => {
     const requests = { value: action.request(42) };
 
     const promiseResult = await readBatch(config, requests, { blockNumber: 123n });
+
     const effectResult = await Effect.runPromise(
       readBatch.effect(config, requests, { blockNumber: 123n }),
     );
@@ -99,8 +100,10 @@ describe("readBatchSettled", () => {
     const config = makeConfig();
     const failure = { _tag: "TestFailure", message: "failed" } as const;
     const succeeds = defineReadAction((_: EnsforgeConfig, value: number) => Effect.succeed(value));
+
     const fails = defineReadAction((currentConfig: EnsforgeConfig, __: undefined) => {
       void currentConfig;
+
       return Effect.fail(failure);
     });
 

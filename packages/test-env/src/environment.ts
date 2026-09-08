@@ -12,7 +12,9 @@ export const createDevnetEnvironment = Effect.fn("createDevnetEnvironment")(func
 ) {
   const deployments = yield* mapDevnetDeployments(instance.deployments);
   const clients = createDevnetClients(instance.rpcUrl, deployments.multicall3);
+
   yield* verifyDevnetClients(clients, deployments.requiredAddresses);
+
   const configs = yield* createDevnetConfigs(deployments, clients);
   const state = yield* createDevnetState(clients.testClient);
 

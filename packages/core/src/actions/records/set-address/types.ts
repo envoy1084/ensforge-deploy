@@ -17,6 +17,9 @@ export interface SetAddressesParameters {
 }
 
 export type SetAddressResult = CallExecutionResult;
+
 export type SetAddressError = WriteError;
+
 export type SetAddressesResult = CallExecutionResult;
+
 export type SetAddressesError = WriteError;

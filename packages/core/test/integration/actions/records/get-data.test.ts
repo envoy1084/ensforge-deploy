@@ -11,6 +11,7 @@ describe("data resolution integration", () => {
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
       const fixture = devnet.fixtures.records.v1;
+
       const result = yield* getData.effect(devnet.configs.v1, {
         name: fixture.name,
         key: fixture.data.key,
@@ -25,6 +26,7 @@ describe("data resolution integration", () => {
       const devnet = getIntegrationDevnet();
       const migratedFixture = devnet.fixtures.records.v2;
       const reservedFixture = devnet.fixtures.records.reserved;
+
       const [migrated, reserved] = yield* Effect.all([
         getData.effect(devnet.configs.v2, {
           name: migratedFixture.name,
@@ -44,6 +46,7 @@ describe("data resolution integration", () => {
   it.effect("returns null when the requested data key is unset", () =>
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
+
       const result = yield* getData.effect(devnet.configs.v2, {
         name: devnet.fixtures.records.v2.name,
         key: "com.ensforge.missing",
@@ -56,6 +59,7 @@ describe("data resolution integration", () => {
   it.effect("returns null when the name has no resolver", () =>
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
+
       const result = yield* getData.effect(devnet.configs.v2, {
         name: devnet.fixtures.v2.noResolver.name,
         key: "com.ensforge.fixture",
@@ -69,6 +73,7 @@ describe("data resolution integration", () => {
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
       const fixture = devnet.fixtures.records.v2;
+
       const result = yield* readBatch.effect(devnet.configs.v2, {
         data: getData.request({ name: fixture.name, key: fixture.data.key }),
         interface: getInterface.request({

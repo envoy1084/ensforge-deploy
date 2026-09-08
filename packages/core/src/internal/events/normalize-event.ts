@@ -28,11 +28,17 @@ const recordEvents = new Set([
 
 const eventKind = (eventName: string): EnsEventKind => {
   if (eventName === "CommitmentMade") return "commitment";
+
   if (eventName === "NameRegistered") return "registration";
+
   if (eventName === "NameRenewed" || eventName === "ExpiryExtended") return "renewal";
+
   if (eventName === "NameMigrated") return "migration";
+
   if (recordEvents.has(eventName)) return "records";
+
   if (eventName === "NewResolver" || eventName === "ResolverUpdated") return "resolver";
+
   if (
     eventName === "NewOwner" ||
     eventName === "LabelRegistered" ||
@@ -43,6 +49,7 @@ const eventKind = (eventName: string): EnsEventKind => {
   ) {
     return "subname";
   }
+
   if (
     eventName === "Transfer" ||
     eventName === "TransferSingle" ||
@@ -52,6 +59,7 @@ const eventKind = (eventName: string): EnsEventKind => {
   ) {
     return "ownership";
   }
+
   if (
     eventName === "EACRolesChanged" ||
     eventName === "Approval" ||
@@ -59,6 +67,7 @@ const eventKind = (eventName: string): EnsEventKind => {
   ) {
     return "manager";
   }
+
   return "other";
 };
 
@@ -67,19 +76,23 @@ const property = (args: unknown, key: string): unknown =>
 
 const addressProperty = (args: unknown, key: string): Address | undefined => {
   const value = property(args, key);
+
   return Predicate.isString(value) && isAddress(value) ? value : undefined;
 };
 
 const bigintProperty = (args: unknown, ...keys: ReadonlyArray<string>): bigint | undefined => {
   for (const key of keys) {
     const value = property(args, key);
+
     if (Predicate.isBigInt(value)) return value;
   }
+
   return undefined;
 };
 
 const hexProperty = (args: unknown, key: string): Hex | undefined => {
   const value = property(args, key);
+
   return Predicate.isString(value) && /^0x[0-9a-fA-F]+$/.test(value) ? (value as Hex) : undefined;
 };
 
@@ -88,14 +101,18 @@ const decodedName = (
 ): { readonly name?: NormalizedName; readonly label?: string } => {
   const nameValue = property(args, "name");
   const labelValue = property(args, "label");
+
   const candidate = Predicate.isString(nameValue)
     ? nameValue
     : Predicate.isString(labelValue)
       ? labelValue
       : undefined;
+
   if (candidate === undefined) return {};
+
   try {
     const label = candidate.includes(".") ? undefined : candidate;
+
     return {
       name: normalizeName(label === undefined ? candidate : `${label}.eth`),
       ...(label === undefined ? {} : { label }),
@@ -112,9 +129,11 @@ export const normalizeEnsLog = (
   const contract = contracts.find(
     (candidate) => candidate.address.toLowerCase() === log.address.toLowerCase(),
   );
+
   if (contract === undefined) return null;
 
   let decoded: { readonly eventName: string; readonly args?: unknown };
+
   try {
     decoded = decodeEventLog({
       abi: contract.abi,
@@ -125,10 +144,12 @@ export const normalizeEnsLog = (
   } catch {
     return null;
   }
+
   const args = decoded.args;
   const identity = decodedName(args);
   const node = hexProperty(args, "node");
   const commitment = hexProperty(args, "commitment");
+
   return {
     kind: eventKind(decoded.eventName),
     protocol: contract.protocol,
@@ -164,30 +185,42 @@ export const matchesEnsEventFilters = (
   normalizedName?: NormalizedName,
 ): boolean => {
   if (parameters.kinds !== undefined && !parameters.kinds.includes(event.kind)) return false;
+
   if (parameters.commitment !== undefined && event.commitment !== parameters.commitment)
     return false;
+
   if (parameters.account !== undefined) {
     const account = parameters.account.toLowerCase();
+
     if (![event.owner, event.from, event.to].some((value) => value?.toLowerCase() === account)) {
       return false;
     }
   }
+
   if (normalizedName === undefined) return true;
+
   if (event.name === normalizedName) return true;
 
   const analysis = analyzeName(normalizedName);
+
   const identifiers = new Set<unknown>([
     namehash(normalizedName),
     BigInt(namehash(normalizedName)),
   ]);
+
   if (analysis.ethSecondLevelLabel !== undefined) {
     identifiers.add(analysis.ethSecondLevelLabel);
     identifiers.add(labelhash(analysis.ethSecondLevelLabel));
     identifiers.add(BigInt(labelhash(analysis.ethSecondLevelLabel)));
   }
+
   if (event.label !== undefined && identifiers.has(event.label)) return true;
+
   if (event.node !== undefined && identifiers.has(event.node)) return true;
+
   if (event.tokenId !== undefined && identifiers.has(event.tokenId)) return true;
+
   if (!Predicate.isObject(event.raw.args)) return false;
+
   return Object.values(event.raw.args).some((value) => identifiers.has(value));
 };

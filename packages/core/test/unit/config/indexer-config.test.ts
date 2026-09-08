@@ -39,6 +39,7 @@ describe("indexer config", () => {
 
   it("rejects endpoint credentials without exposing them", () => {
     const indexer = { endpoints: { v1: "https://user:secret@indexer.example/graphql" } };
+
     expect(() =>
       createConfig({
         network: "mainnet",

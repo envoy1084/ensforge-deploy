@@ -12,6 +12,7 @@ export const readBlockTimestamp = Effect.fn("readBlockTimestamp")(function* (): 
 > {
   const { client } = yield* PublicClientService;
   const context = yield* ReadContext;
+
   const block = yield* Effect.tryPromise({
     try: () => client.getBlock(context.block),
     catch: (cause) => viemErrorToEffectError(cause, "getBlock"),

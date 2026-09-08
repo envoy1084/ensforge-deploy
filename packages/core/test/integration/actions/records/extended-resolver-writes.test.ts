@@ -31,6 +31,7 @@ const encodeDnsName = (name: string) =>
 const dnsTxtRecord = (name: string, value: string) => {
   const encodedValue = stringToHex(value);
   const rdata = concatHex([numberToHex(encodedValue.length / 2 - 1, { size: 1 }), encodedValue]);
+
   return concatHex([
     encodeDnsName(name),
     numberToHex(16, { size: 2 }),
@@ -46,6 +47,7 @@ describe("extended resolver writes integration", () => {
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
       const name = devnet.fixtures.permissions.v2.permissionedResolver.name;
+
       const result = yield* setRecords.effect(devnet.configs.v2, {
         name,
         records: [
@@ -57,6 +59,7 @@ describe("extended resolver writes integration", () => {
           { type: "data", key: "com.ensforge.phase11", value: "0x1234" },
         ],
       });
+
       const records = yield* Effect.all(
         {
           text: getText.effect(devnet.configs.v2, {
@@ -79,6 +82,7 @@ describe("extended resolver writes integration", () => {
       assert.strictEqual(records.address.address, devnet.accounts.owner2);
       assert.strictEqual(records.data.value, "0x1234");
       assert.isTrue(records.version.supported);
+
       if (records.version.supported) assert.strictEqual(records.version.version, 1n);
     }),
   );
@@ -89,6 +93,7 @@ describe("extended resolver writes integration", () => {
       Effect.gen(function* () {
         const devnet = getIntegrationDevnet();
         const name = devnet.fixtures.v1.recordWrites.name;
+
         const result = yield* setRecords.effect(devnet.configs.v1, {
           name,
           aggregation: "wallet",
@@ -98,6 +103,7 @@ describe("extended resolver writes integration", () => {
             { type: "data", key: "com.ensforge.phase11.fallback", value: "0x11" },
           ],
         });
+
         const text = yield* getText.effect(devnet.configs.v1, {
           name,
           key: "com.ensforge.phase11.fallback",
@@ -114,11 +120,13 @@ describe("extended resolver writes integration", () => {
       const name = devnet.fixtures.v1.recordWrites.name;
       const recordName = `phase11.${name}`;
       const data = dnsTxtRecord(recordName, "ensforge-phase-11");
+
       const zoneHash =
         "0x4444444444444444444444444444444444444444444444444444444444444444" as const;
 
       yield* setDnsRecords.effect(devnet.configs.v1, { name, data });
       yield* setZoneHash.effect(devnet.configs.v1, { name, value: zoneHash });
+
       const [record, zone] = yield* Effect.all(
         [
           getDnsRecord.effect(devnet.configs.v1, { name, recordName, resource: 16 }),
@@ -138,13 +146,19 @@ describe("extended resolver writes integration", () => {
       const name = devnet.fixtures.permissions.v2.permissionedResolver.name;
 
       yield* setAlias.effect(devnet.configs.v2, { name, target: "alias-target.eth" });
+
       const set = yield* getAlias.effect(devnet.configs.v2, { name });
+
       yield* setAlias.effect(devnet.configs.v2, { name, target: null });
+
       const cleared = yield* getAlias.effect(devnet.configs.v2, { name });
 
       assert.isTrue(set.supported);
+
       if (set.supported) assert.strictEqual(set.target, "alias-target.eth");
+
       assert.isTrue(cleared.supported);
+
       if (cleared.supported) assert.isNull(cleared.target);
     }),
   );
@@ -152,6 +166,7 @@ describe("extended resolver writes integration", () => {
   it.effect("rejects alias and DNS profiles on incompatible resolvers", () =>
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
+
       const [alias, dns] = yield* Effect.all(
         [
           simulateCalls

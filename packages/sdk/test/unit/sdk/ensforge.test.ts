@@ -240,8 +240,10 @@ describe("Ensforge", () => {
 
     for (const [group, names] of Object.entries(actionNames)) {
       const namespace = Reflect.get(sdk, group) as Readonly<Record<string, unknown>>;
+
       expect(Object.keys(namespace)).toEqual(names);
       expect(Object.isFrozen(namespace)).toBe(true);
+
       for (const action of Object.values(namespace)) {
         expect(action).toBeTypeOf("function");
         expect(Object.isFrozen(action)).toBe(true);
@@ -256,6 +258,7 @@ describe("Ensforge", () => {
       chains: [mainnet],
       transports: { [mainnet.id]: testTransport },
     });
+
     const sdk = createEnsforge({ network: "mainnet", wagmiConfig });
 
     expect(sdk.config.publicClient.chain?.id).toBe(mainnet.id);
@@ -266,17 +269,22 @@ describe("Ensforge", () => {
       network: "mainnet",
       publicClient: makeMainnetPublicClient(),
     });
+
     const owner = sdk.name.getOwner.request({ name: "ens.eth" });
+
     const records = sdk.records.getRecords.request({
       name: "ens.eth",
       records: { avatar: true, texts: ["url"] },
     });
+
     const batch = sdk.batch.readBatch.effect({ owner, records });
+
     const write = sdk.records.setText.call({
       name: "ens.eth",
       key: "url",
       value: "https://ens.domains",
     });
+
     const events = sdk.events.watchEnsEvents.stream({ name: "ens.eth" });
 
     expect(Effect.isEffect(sdk.name.getOwner.effect({ name: "ens.eth" }))).toBe(true);

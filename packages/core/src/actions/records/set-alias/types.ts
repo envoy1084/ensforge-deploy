@@ -6,4 +6,5 @@ export interface SetAliasParameters {
 }
 
 export type SetAliasResult = CallExecutionResult;
+
 export type SetAliasError = WriteError;

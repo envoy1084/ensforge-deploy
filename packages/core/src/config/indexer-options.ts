@@ -4,6 +4,7 @@ import { ConfigError } from "../errors/config-error.js";
 import type { EnsNetwork, EnsNetworkId } from "./network.js";
 
 export type IndexerProtocol = "v1" | "v2";
+
 export type IndexerFailureMode = "strict" | "partial";
 
 export interface IndexerSourceContext {
@@ -12,6 +13,7 @@ export interface IndexerSourceContext {
 }
 
 export type IndexerHeaderValues = Readonly<Record<string, string>>;
+
 export type IndexerHeaders =
   | IndexerHeaderValues
   | ((source: IndexerSourceContext) => IndexerHeaderValues | Promise<IndexerHeaderValues>);
@@ -83,13 +85,16 @@ interface IndexerRuntimeConfig {
 const runtimeConfigs = new WeakMap<ResolvedIndexerConfig, IndexerRuntimeConfig>();
 
 const endpointSchema = Schema.Union([Schema.String, Schema.Null]);
+
 const nonNegativeInteger = Schema.Int.pipe(Schema.check(Schema.isGreaterThanOrEqualTo(0)));
+
 const positiveInteger = Schema.Int.pipe(Schema.check(Schema.isGreaterThan(0)));
 
 const validateEndpoint = (endpoint: string | null, protocol: IndexerProtocol): void => {
   if (endpoint === null) return;
 
   let url: URL;
+
   try {
     url = new URL(endpoint);
   } catch {
@@ -117,7 +122,9 @@ export const resolveIndexerConfig = (
       message: "Indexer configuration must be an options object, false, or omitted",
     });
   }
+
   const options = config === false ? { enabled: false } : (config ?? {});
+
   if (
     (options.enabled !== undefined && typeof options.enabled !== "boolean") ||
     (options.endpoints !== undefined &&
@@ -129,8 +136,10 @@ export const resolveIndexerConfig = (
       message: "Indexer options contain an invalid policy value",
     });
   }
+
   const defaults =
     network === undefined ? { v1: null, v2: null } : defaultIndexerEndpoints[network];
+
   const endpoints = {
     v1: options.endpoints?.v1 === undefined ? defaults.v1 : options.endpoints.v1,
     v2: options.endpoints?.v2 === undefined ? defaults.v2 : options.endpoints.v2,
@@ -142,6 +151,7 @@ export const resolveIndexerConfig = (
       message: "Indexer endpoints must be URLs, null, or omitted",
     });
   }
+
   validateEndpoint(endpoints.v1, "v1");
   validateEndpoint(endpoints.v2, "v2");
 
@@ -170,6 +180,7 @@ export const resolveIndexerConfig = (
 
   const enabled =
     options.enabled ?? (network !== undefined || endpoints.v1 !== null || endpoints.v2 !== null);
+
   const resolved = Object.freeze({
     enabled,
     endpoints: Object.freeze(endpoints),
@@ -178,6 +189,7 @@ export const resolveIndexerConfig = (
     failureMode,
     maximumPageSize,
   });
+
   const sourceStates = Object.freeze({
     v1:
       !enabled || options.endpoints?.v1 === null
@@ -192,11 +204,13 @@ export const resolveIndexerConfig = (
           ? ("unavailable" as const)
           : ("enabled" as const),
   });
+
   runtimeConfigs.set(resolved, {
     sourceStates,
     ...(options.headers === undefined ? {} : { headers: options.headers }),
     ...(options.fetch === undefined ? {} : { fetch: options.fetch }),
   });
+
   return resolved;
 };
 

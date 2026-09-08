@@ -70,9 +70,11 @@ const readAllowance = Effect.fn("ensforge.registerName.readAllowance")(function*
       "Payment-token allowance is only used by ENSv2 registration",
     );
   }
+
   const deployment = config.deployments.v2;
   const { account } = yield* provideConfig(config, resolveWalletContext(parameters));
   const owner = typeof account === "string" ? account : account.address;
+
   return yield* Effect.tryPromise({
     try: () =>
       config.publicClient.readContract({
@@ -134,14 +136,17 @@ const registerNameEffect = Effect.fn("ensforge.registerName")(function* (
   const completedRegistration = parameters.resume?.write.completedStages.some(
     (stage) => stage.id === "register",
   );
+
   if (parameters.resume !== undefined && completedRegistration) {
     const name = yield* normalizeName.effect(parameters.name);
+
     if (name !== parameters.resume.name) {
       return yield* registrationError(
         "REGISTRATION_FAILED",
         "Registration resume data belongs to a different name",
       );
     }
+
     const commitment = yield* makeRegistrationCommitment
       .effect(config, commitmentParameters(parameters))
       .pipe(
@@ -149,19 +154,23 @@ const registerNameEffect = Effect.fn("ensforge.registerName")(function* (
           registrationError("REGISTRATION_FAILED", "Unable to validate registration resume data"),
         ),
       );
+
     if (commitment.commitment !== parameters.resume.commitment) {
       return yield* registrationError(
         "REGISTRATION_FAILED",
         "Registration resume data does not match the supplied commitment",
       );
     }
+
     if (parameters.maxPrice !== undefined && parameters.resume.price.total > parameters.maxPrice) {
       return yield* registrationError(
         "PRICE_EXCEEDS_MAXIMUM",
         `The registration price for ${name} exceeds maxPrice`,
       );
     }
+
     const stages: Array<WritePlan["stages"][number]> = [];
+
     if (parameters.resume.committedByWorkflow) {
       stages.push({
         type: "calls",
@@ -172,6 +181,7 @@ const registerNameEffect = Effect.fn("ensforge.registerName")(function* (
         confirmation: confirmed,
       });
     }
+
     if (parameters.resume.paymentApprovalIncluded && parameters.paymentToken !== undefined) {
       stages.push({
         type: "calls",
@@ -187,6 +197,7 @@ const registerNameEffect = Effect.fn("ensforge.registerName")(function* (
         confirmation: confirmed,
       });
     }
+
     stages.push({
       type: "calls",
       id: "register",
@@ -200,6 +211,7 @@ const registerNameEffect = Effect.fn("ensforge.registerName")(function* (
       atomicity: "none",
       confirmation: confirmed,
     });
+
     if ((parameters.records?.length ?? 0) > 0) {
       stages.push({
         type: "calls",
@@ -210,6 +222,7 @@ const registerNameEffect = Effect.fn("ensforge.registerName")(function* (
         confirmation: parameters.confirmation ?? confirmed,
       });
     }
+
     const write = yield* executeWritePlan
       .effect(config, {
         plan: {
@@ -225,10 +238,12 @@ const registerNameEffect = Effect.fn("ensforge.registerName")(function* (
           registrationError("REGISTRATION_FAILED", `Unable to resume registration for ${name}`),
         ),
       );
+
     const safeWrite: WritePlanProgress = {
       ...write,
       failure: redactFailure(write.failure, name),
     };
+
     return {
       ...parameters.resume,
       status: safeWrite.status,
@@ -251,12 +266,14 @@ const registerNameEffect = Effect.fn("ensforge.registerName")(function* (
           : registrationError("REGISTRATION_FAILED", "Unable to prepare name registration"),
       ),
     );
+
   if (registrationPlan.status === "commitment-expired") {
     return yield* registrationError(
       "COMMITMENT_EXPIRED",
       `The commitment for ${registrationPlan.name} has expired; create a new secret and restart`,
     );
   }
+
   if (
     parameters.resume !== undefined &&
     parameters.resume.commitment !== registrationPlan.commitment.commitment
@@ -266,6 +283,7 @@ const registerNameEffect = Effect.fn("ensforge.registerName")(function* (
       "Registration resume data does not match the supplied commitment",
     );
   }
+
   if (
     parameters.maxPrice !== undefined &&
     registrationPlan.price.status === "available" &&
@@ -278,8 +296,10 @@ const registerNameEffect = Effect.fn("ensforge.registerName")(function* (
   }
 
   const commitment = registrationPlan.commitment.commitment;
+
   const committedByWorkflow =
     parameters.resume?.committedByWorkflow ?? registrationPlan.status === "commitment-required";
+
   const planId = registrationPlanId(registrationPlan.name, commitment, parameters);
   let resume = parameters.resume?.write;
 
@@ -290,6 +310,7 @@ const registerNameEffect = Effect.fn("ensforge.registerName")(function* (
         `The commitment for ${registrationPlan.name} is no longer available`,
       );
     }
+
     resume = yield* executeWritePlan
       .effect(config, {
         plan: {
@@ -335,12 +356,14 @@ const registerNameEffect = Effect.fn("ensforge.registerName")(function* (
       `The commitment for ${registrationPlan.name} was not found after submission`,
     );
   }
+
   if (registrationPlan.status === "commitment-expired") {
     return yield* registrationError(
       "COMMITMENT_EXPIRED",
       `The commitment for ${registrationPlan.name} has expired; create a new secret and restart`,
     );
   }
+
   if (registrationPlan.price.status !== "available") {
     return yield* registrationError(
       "REGISTRATION_FAILED",
@@ -349,21 +372,26 @@ const registerNameEffect = Effect.fn("ensforge.registerName")(function* (
   }
 
   let paymentApprovalIncluded = parameters.resume?.paymentApprovalIncluded ?? false;
+
   if (config.deployments.protocol === "v2") {
     const paymentToken = parameters.paymentToken;
+
     if (paymentToken === undefined) {
       return yield* registrationError(
         "PAYMENT_TOKEN_REQUIRED",
         `A payment token is required to register ${registrationPlan.name}`,
       );
     }
+
     if (!paymentApprovalIncluded) {
       const allowance = yield* readAllowance(config, paymentToken, parameters);
+
       paymentApprovalIncluded = allowance < registrationPlan.price.total;
     }
   }
 
   const stages: Array<WritePlan["stages"][number]> = [];
+
   if (committedByWorkflow) {
     stages.push({
       type: "calls",
@@ -374,6 +402,7 @@ const registerNameEffect = Effect.fn("ensforge.registerName")(function* (
       confirmation: confirmed,
     });
   }
+
   if (
     registrationPlan.status === "commitment-pending" &&
     registrationPlan.commitmentStatus.status === "pending"
@@ -384,6 +413,7 @@ const registerNameEffect = Effect.fn("ensforge.registerName")(function* (
       condition: { type: "timestamp", target: registrationPlan.commitmentStatus.readyAt },
     });
   }
+
   if (paymentApprovalIncluded && parameters.paymentToken !== undefined) {
     stages.push({
       type: "calls",
@@ -399,6 +429,7 @@ const registerNameEffect = Effect.fn("ensforge.registerName")(function* (
       confirmation: confirmed,
     });
   }
+
   stages.push({
     type: "calls",
     id: "register",
@@ -412,6 +443,7 @@ const registerNameEffect = Effect.fn("ensforge.registerName")(function* (
     atomicity: "none",
     confirmation: confirmed,
   });
+
   if ((parameters.records?.length ?? 0) > 0) {
     stages.push({
       type: "calls",
@@ -440,10 +472,12 @@ const registerNameEffect = Effect.fn("ensforge.registerName")(function* (
             ),
       ),
     );
+
   const safeWrite: WritePlanProgress = {
     ...write,
     failure: redactFailure(write.failure, registrationPlan.name),
   };
+
   return {
     status: safeWrite.status,
     name: registrationPlan.name,

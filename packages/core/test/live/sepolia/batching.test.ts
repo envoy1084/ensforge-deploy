@@ -24,6 +24,7 @@ describe("Sepolia semantic batching", () => {
         },
         { concurrency: 3 },
       );
+
       const batched = yield* readBatch.effect(sepoliaConfig, {
         nativeOwner: getOwner.request({ name: sepoliaNames.v2.profile }),
         nativeAddress: getAddress.request({ name: sepoliaNames.v2.profile }),

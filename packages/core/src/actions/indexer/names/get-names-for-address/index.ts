@@ -40,7 +40,9 @@ const parseOffset = (position: string | null): Effect.Effect<number, IndexerPagi
   Effect.try({
     try: () => {
       const offset = position === null ? 0 : Number(position);
+
       if (!Number.isSafeInteger(offset) || offset < 0) throw new Error("Invalid offset");
+
       return offset;
     },
     catch: (cause) =>
@@ -75,6 +77,7 @@ const getNamesForAddressEffect = Effect.fn("ensforge.getNamesForAddress")(functi
       message: "Indexer actions are disabled for this configuration",
     });
   }
+
   const decoded = yield* Schema.decodeUnknownEffect(GetNamesForAddressParametersSchema)(
     parameters,
   ).pipe(
@@ -86,19 +89,23 @@ const getNamesForAddressEffect = Effect.fn("ensforge.getNamesForAddress")(functi
         }),
     ),
   );
+
   const relations = decoded.relations ?? defaultAddressRelations;
+
   if (relations.length === 0) {
     return yield* new IndexerFilterError({
       code: "INVALID_FILTER",
       message: "At least one address relation is required",
     });
   }
+
   const selectedRelations = new Set<NameRelation>(relations);
   const v1Relevant = relations.some((relation) => relation !== "role-holder");
   const v2Relevant = relations.some((relation) => relation !== "registry-owner");
   const filter: NameFilter = decoded.filter ?? {};
   const order: NameOrder = decoded.order ?? defaultNameOrder;
   const pageSize = decoded.pageSize ?? Math.min(20, config.indexer.maximumPageSize);
+
   if (pageSize > config.indexer.maximumPageSize) {
     return yield* new IndexerFilterError({
       code: "INVALID_FILTER",
@@ -107,12 +114,14 @@ const getNamesForAddressEffect = Effect.fn("ensforge.getNamesForAddress")(functi
   }
 
   const states = getIndexerRuntimeConfig(config.indexer).sourceStates;
+
   const binding = makeIndexerCursorBinding(
     config,
     "getNamesForAddress",
     { address: decoded.address, relations: [...relations], filter },
     order,
   );
+
   const initial: IndexerCursorPositions = {
     v1: {
       position: null,
@@ -120,10 +129,12 @@ const getNamesForAddressEffect = Effect.fn("ensforge.getNamesForAddress")(functi
     },
     v2: { position: null, exhausted: states.v2 !== "enabled" || !v2Relevant },
   };
+
   const positions =
     decoded.cursor === undefined
       ? initial
       : (yield* decodeIndexerCursor(decoded.cursor, binding)).sources;
+
   const [v1Offset, v2Offset] = yield* Effect.all([
     parseOffset(positions.v1.position),
     parseOffset(positions.v2.position),
@@ -149,15 +160,18 @@ const getNamesForAddressEffect = Effect.fn("ensforge.getNamesForAddress")(functi
             },
           };
         }
+
         const names = Arr.sort(
           result.success.names.filter(
             (name) => !(protocol === "v1" && states.v2 === "enabled" && name.isMigrated),
           ),
           Order.make<RelatedIndexedName>((left, right) => {
             const compared = compareIndexedNames(order)(left, right);
+
             return compared < 0 ? -1 : compared > 0 ? 1 : 0;
           }),
         );
+
         return {
           status: "complete",
           page: {
@@ -202,18 +216,23 @@ const getNamesForAddressEffect = Effect.fn("ensforge.getNamesForAddress")(functi
           ]
         : []),
   ];
+
   const results = yield* Effect.all(effects, { concurrency: "unbounded" });
   const collected = yield* collectIndexerSourcePages(results, config.indexer.failureMode);
 
   const allRelations = new Map<string, Set<NameRelation>>();
+
   for (const page of collected.pages) {
     for (const { item } of page.candidates) {
       const key = item.namehash.toLowerCase();
       const current = allRelations.get(key) ?? new Set<NameRelation>();
+
       for (const relation of item.relations) current.add(relation);
+
       allRelations.set(key, current);
     }
   }
+
   const pages = collected.pages.map((page) => ({
     ...page,
     candidates: page.candidates.map((candidate) => ({
@@ -224,6 +243,7 @@ const getNamesForAddressEffect = Effect.fn("ensforge.getNamesForAddress")(functi
       },
     })),
   }));
+
   const merged = mergeIndexerPages({
     sources: pages,
     limit: pageSize,
@@ -231,7 +251,9 @@ const getNamesForAddressEffect = Effect.fn("ensforge.getNamesForAddress")(functi
     identity: (name) => name.namehash.toLowerCase(),
     preference: (name, source) => (name.protocol === "v2" ? 3 : source === "v2" ? 2 : 1),
   });
+
   const pageByProtocol = new Map(pages.map((page) => [page.protocol, page]));
+
   const next: IndexerCursorPositions = {
     v1: {
       position: merged.positions.v1 ?? positions.v1.position,
@@ -242,8 +264,10 @@ const getNamesForAddressEffect = Effect.fn("ensforge.getNamesForAddress")(functi
       exhausted: exhausted(pageByProtocol.get("v2"), merged.positions.v2, positions.v2.exhausted),
     },
   };
+
   const hasNextPage = pages.some((page) => !next[page.protocol].exhausted);
   const cursor = hasNextPage ? yield* encodeIndexerCursor(binding, next) : null;
+
   return {
     items: merged.items,
     pageInfo: { cursor, hasNextPage },

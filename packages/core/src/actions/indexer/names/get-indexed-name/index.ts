@@ -27,10 +27,13 @@ const getIndexedNameEffect = Effect.fn("ensforge.getIndexedName")(function* (
 
   const states = getIndexerRuntimeConfig(config.indexer).sourceStates;
   const preferred = states.v2 === "enabled" ? "v2" : states.v1 === "enabled" ? "v1" : null;
+
   if (preferred === null) return null;
 
   const first = yield* Effect.result(queryIndexedNameSource(config, preferred, lookup));
+
   if (Result.isSuccess(first) && first.success !== null) return first.success;
+
   if (Result.isFailure(first) && config.indexer.failureMode === "strict") {
     return yield* first.failure;
   }
@@ -42,6 +45,7 @@ const getIndexedNameEffect = Effect.fn("ensforge.getIndexedName")(function* (
         : (effect) => effect,
     );
   }
+
   return null;
 });
 

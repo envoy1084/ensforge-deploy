@@ -22,10 +22,12 @@ import { sendCalls } from "./send-calls.js";
 
 const waitIsComplete = Effect.fn("waitIsComplete")(function* (condition: WriteWaitCondition) {
   const { client } = yield* PublicClientService;
+
   const block = yield* Effect.tryPromise({
     try: () => client.getBlock({ blockTag: "latest" }),
     catch: (cause) => viemErrorToEffectError(cause, "getBlock"),
   });
+
   return condition.type === "block"
     ? block.number !== null && block.number >= condition.target
     : block.timestamp >= condition.target;
@@ -39,7 +41,9 @@ const validatePlan = (parameters: ExecuteWritePlanParameters): WritePlanError | 
       cause: parameters.plan,
     });
   }
+
   const ids = new Set(parameters.plan.stages.map((stage) => stage.id));
+
   if (ids.size !== parameters.plan.stages.length) {
     return new WritePlanError({
       code: "INVALID_CALL_PLAN",
@@ -47,6 +51,7 @@ const validatePlan = (parameters: ExecuteWritePlanParameters): WritePlanError | 
       cause: parameters.plan,
     });
   }
+
   if (parameters.resume !== undefined && parameters.resume.planId !== parameters.plan.id) {
     return new WritePlanError({
       code: "INVALID_CALL_PLAN",
@@ -54,9 +59,11 @@ const validatePlan = (parameters: ExecuteWritePlanParameters): WritePlanError | 
       cause: parameters.resume,
     });
   }
+
   const callStageIds = parameters.plan.stages
     .filter((stage) => stage.type === "calls")
     .map((stage) => stage.id);
+
   for (const [index, completed] of (parameters.resume?.completedStages ?? []).entries()) {
     if (callStageIds[index] !== completed.id) {
       return new WritePlanError({
@@ -66,6 +73,7 @@ const validatePlan = (parameters: ExecuteWritePlanParameters): WritePlanError | 
       });
     }
   }
+
   return undefined;
 };
 
@@ -86,7 +94,9 @@ const executeWritePlanEffect = Effect.fn("ensforge.executeWritePlan")(function* 
   parameters: ExecuteWritePlanParameters,
 ): Effect.fn.Return<WritePlanProgress, WriteError> {
   const invalid = validatePlan(parameters);
+
   if (invalid !== undefined) return yield* invalid;
+
   yield* Effect.annotateCurrentSpan({
     "ens.network": config.network,
     "ens.write.operation": "execute-plan",
@@ -95,6 +105,7 @@ const executeWritePlanEffect = Effect.fn("ensforge.executeWritePlan")(function* 
   });
 
   const completed = [...(parameters.resume?.completedStages ?? [])];
+
   const completedIds = new Set(
     completed
       .filter(
@@ -108,6 +119,7 @@ const executeWritePlanEffect = Effect.fn("ensforge.executeWritePlan")(function* 
   for (const stage of parameters.plan.stages) {
     if (stage.type === "wait") {
       const ready = yield* provideConfig(config, waitIsComplete(stage.condition));
+
       if (!ready) {
         return {
           planId: parameters.plan.id,
@@ -118,20 +130,25 @@ const executeWritePlanEffect = Effect.fn("ensforge.executeWritePlan")(function* 
           failure: null,
         };
       }
+
       continue;
     }
+
     if (completedIds.has(stage.id)) continue;
 
     const previousIndex = completed.findIndex((result) => result.id === stage.id);
     const previous = previousIndex === -1 ? undefined : completed[previousIndex];
+
     const partial =
       previous?.result.mode === "sequential" && previous.result.status === "partial"
         ? previous.result
         : undefined;
+
     const submittedBatch =
       previous?.result.mode === "batch" && previous.result.status === "submitted"
         ? previous.result
         : undefined;
+
     const resumedPartial =
       partial === undefined
         ? undefined
@@ -140,10 +157,13 @@ const executeWritePlanEffect = Effect.fn("ensforge.executeWritePlan")(function* 
             partial,
             stage.confirmation ?? config.writes.confirmation,
           );
+
     if (resumedPartial?.failure !== null && resumedPartial?.failure !== undefined) {
       const resumedStage = { id: stage.id, result: resumedPartial } satisfies WriteStageResult;
+
       if (previousIndex === -1) completed.push(resumedStage);
       else completed[previousIndex] = resumedStage;
+
       return {
         planId: parameters.plan.id,
         status: "partial",
@@ -153,8 +173,10 @@ const executeWritePlanEffect = Effect.fn("ensforge.executeWritePlan")(function* 
         failure: resumedPartial.failure,
       };
     }
+
     const confirmed = resumedPartial?.calls.filter((call) => call.status === "confirmed") ?? [];
     const remainingCalls = stage.calls.slice(confirmed.length);
+
     const execution = yield* Effect.result(
       submittedBatch !== undefined
         ? resumeCalls.effect(config, {
@@ -181,8 +203,10 @@ const executeWritePlanEffect = Effect.fn("ensforge.executeWritePlan")(function* 
               })),
             ),
     );
+
     if (Result.isFailure(execution)) {
       if (completed.length === 0) return yield* execution.failure;
+
       return {
         planId: parameters.plan.id,
         status: "partial",
@@ -192,10 +216,13 @@ const executeWritePlanEffect = Effect.fn("ensforge.executeWritePlan")(function* 
         failure: execution.failure,
       };
     }
+
     const result = execution.success;
     const stageResult = { id: stage.id, result } satisfies WriteStageResult;
+
     if (previousIndex === -1) completed.push(stageResult);
     else completed[previousIndex] = stageResult;
+
     if (result.mode === "sequential" && result.status === "partial") {
       return {
         planId: parameters.plan.id,
@@ -206,6 +233,7 @@ const executeWritePlanEffect = Effect.fn("ensforge.executeWritePlan")(function* 
         failure: result.failure,
       };
     }
+
     if (result.mode === "batch" && result.status === "submitted") {
       return {
         planId: parameters.plan.id,

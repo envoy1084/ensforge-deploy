@@ -46,7 +46,9 @@ const matchesApprovalFilter = (approval: IndexedResolverApproval, filter: Resolv
 
 const approvalOrder = Order.make<IndexedResolverApproval>((left, right) => {
   if (left.blockNumber !== right.blockNumber) return left.blockNumber > right.blockNumber ? -1 : 1;
+
   if (left.logIndex !== right.logIndex) return left.logIndex > right.logIndex ? -1 : 1;
+
   return left.id < right.id ? -1 : left.id > right.id ? 1 : 0;
 });
 
@@ -60,6 +62,7 @@ const getResolverApprovalsEffect = Effect.fn("ensforge.getResolverApprovals")(fu
       message: "Indexer actions are disabled for this configuration",
     });
   }
+
   const decoded = yield* Schema.decodeUnknownEffect(GetResolverApprovalsParametersSchema)(
     parameters,
   ).pipe(
@@ -71,14 +74,18 @@ const getResolverApprovalsEffect = Effect.fn("ensforge.getResolverApprovals")(fu
         }),
     ),
   );
+
   const unsupported = getV2IndexerUnsupported(config);
+
   if (unsupported !== null) return unsupported;
+
   if (decoded.filter.namehash === undefined && decoded.filter.delegate === undefined) {
     return yield* new IndexerFilterError({
       code: "INVALID_FILTER",
       message: "Filter resolver approvals by namehash or delegate",
     });
   }
+
   const filter: ResolverApprovalFilter = {
     ...decoded.filter,
     ...(decoded.filter.resolver !== undefined && {
@@ -88,20 +95,26 @@ const getResolverApprovalsEffect = Effect.fn("ensforge.getResolverApprovals")(fu
       delegate: getAddress(decoded.filter.delegate),
     }),
   };
+
   const pageSize = decoded.pageSize ?? Math.min(20, config.indexer.maximumPageSize);
+
   if (pageSize > config.indexer.maximumPageSize) {
     return yield* new IndexerFilterError({
       code: "INVALID_FILTER",
       message: `pageSize cannot exceed ${config.indexer.maximumPageSize}`,
     });
   }
+
   const binding = makeIndexerCursorBinding(config, "getResolverApprovals", filter, null);
+
   const positions =
     decoded.cursor === undefined
       ? { v1: { position: null, exhausted: true }, v2: { position: null, exhausted: false } }
       : (yield* decodeIndexerCursor(decoded.cursor, binding)).sources;
+
   const offset = yield* decodeLocalOffset(positions.v2.position, "resolver approval");
   const operationName = "V2GetResolverApprovals";
+
   const response = yield* requestIndexer<
     V2GetResolverApprovalsQuery,
     V2GetResolverApprovalsQueryVariables
@@ -114,13 +127,16 @@ const getResolverApprovalsEffect = Effect.fn("ensforge.getResolverApprovals")(fu
       namehash: filter.namehash?.toLowerCase() ?? null,
     },
   });
+
   const data = yield* requireIndexerData(config, "v2", operationName, response);
+
   const indexedBlock = yield* decodeIndexedBlock(
     config,
     "v2",
     operationName,
     data["_meta"].block.number,
   );
+
   const normalized = yield* Effect.all(
     data.approvals.map((approval) =>
       normalizeV2ResolverApproval(approval, {
@@ -132,19 +148,23 @@ const getResolverApprovalsEffect = Effect.fn("ensforge.getResolverApprovals")(fu
     ),
     { concurrency: "unbounded" },
   );
+
   const filtered = Arr.sort(
     normalized.filter((approval) => matchesApprovalFilter(approval, filter)),
     approvalOrder,
   );
+
   const items = filtered.slice(offset, offset + pageSize);
   const nextOffset = offset + items.length;
   const hasNextPage = nextOffset < filtered.length;
+
   const cursor = hasNextPage
     ? yield* encodeIndexerCursor(binding, {
         v1: { position: null, exhausted: true },
         v2: { position: String(nextOffset), exhausted: false },
       })
     : null;
+
   return {
     status: "supported",
     value: {

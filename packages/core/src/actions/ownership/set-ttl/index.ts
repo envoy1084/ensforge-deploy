@@ -19,14 +19,18 @@ const prepare: EnsWriteIntentPreparer<SetTtlParameters, WriteError> = Effect.fn(
 )(function* (config, parameters, context) {
   const name = yield* normalizeName.effect(parameters.name);
   const target = yield* getWriteTarget.effect(config, { name, operation: { type: "setTtl" } });
+
   if (!target.available || target.protocol !== "v1") {
     return yield* new AuthorizationError({
       code: "WRITE_TARGET_UNAVAILABLE",
       message: `TTL is unavailable for ${name}`,
     });
   }
+
   yield* requireOwnershipAuthorization(config, name, context.account, { type: "setTtl" });
+
   const wrapped = target.kind === "name-wrapper";
+
   const data = yield* Effect.try({
     try: () =>
       wrapped
@@ -47,6 +51,7 @@ const prepare: EnsWriteIntentPreparer<SetTtlParameters, WriteError> = Effect.fn(
         cause,
       }),
   });
+
   return { to: target.address, data, value: 0n, protocol: "v1" as const };
 });
 

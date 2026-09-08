@@ -63,7 +63,9 @@ export const getCompatibleMigrationHelper = Effect.fn("ensforge.migration.getCom
   function* (config: Parameters<typeof getMigrationPlan.effect>[0]) {
     const helper = config.deployments.v2?.migration.migrationHelper;
     const expectedWrapper = config.deployments.v1?.contracts.nameWrapper;
+
     if (helper === undefined || expectedWrapper === undefined) return null;
+
     const wrapper = yield* Effect.tryPromise(() =>
       config.publicClient.readContract({
         address: helper,
@@ -71,6 +73,7 @@ export const getCompatibleMigrationHelper = Effect.fn("ensforge.migration.getCom
         functionName: "NAME_WRAPPER",
       }),
     ).pipe(Effect.catch(() => Effect.succeed(null)));
+
     return wrapper !== null && isAddressEqual(wrapper, expectedWrapper) ? helper : null;
   },
 );
@@ -81,6 +84,7 @@ const requireReadyPlan = Effect.fn("ensforge.migration.requireReadyPlan")(functi
   account: EthereumAddress,
 ) {
   const plan = yield* getMigrationPlan.effect(config, { ...parameters, account });
+
   switch (plan.status) {
     case "ready":
       if (!plan.target.supported) {
@@ -89,6 +93,7 @@ const requireReadyPlan = Effect.fn("ensforge.migration.requireReadyPlan")(functi
           message: `${plan.name} has no transferable migration target`,
         });
       }
+
       return plan as ReadyPlan;
     case "authorization-required":
       return yield* new MigrationError({
@@ -119,30 +124,37 @@ const approvalPreparer: EnsWriteIntentPreparer<ApproveMigrationParameters, Write
   const account = (
     typeof context.account === "string" ? context.account : context.account.address
   ) as EthereumAddress;
+
   const eligibility = yield* getMigrationEligibility.effect(config, {
     name: parameters.name,
     account,
   });
+
   if (!eligibility.target.supported || eligibility.owner === null) {
     return yield* new MigrationError({
       code: "MIGRATION_UNSUPPORTED",
       message: `${eligibility.name} has no migration token to approve`,
     });
   }
+
   const target = eligibility.target;
+
   if (!isAddressEqual(eligibility.owner, account)) {
     return yield* new MigrationError({
       code: "AUTHORIZATION_REQUIRED",
       message: `Only the token owner can approve MigrationHelper for ${eligibility.name}`,
     });
   }
+
   const helper = yield* getCompatibleMigrationHelper(config);
+
   if (helper === null) {
     return yield* new MigrationError({
       code: "MIGRATION_UNSUPPORTED",
       message: "MigrationHelper is unavailable on this deployment",
     });
   }
+
   return {
     to: target.tokenContract,
     data: yield* encode("approveMigration", () =>
@@ -166,6 +178,7 @@ const migrationPreparer: EnsWriteIntentPreparer<MigrateNameCallParameters, Write
   const account = (
     typeof context.account === "string" ? context.account : context.account.address
   ) as EthereumAddress;
+
   const [plan, eligibility] = yield* Effect.all(
     [
       requireReadyPlan(config, parameters, account),
@@ -173,16 +186,20 @@ const migrationPreparer: EnsWriteIntentPreparer<MigrateNameCallParameters, Write
     ] as const,
     { concurrency: "unbounded" },
   );
+
   if (eligibility.owner === null) {
     return yield* new MigrationError({
       code: "MIGRATION_BLOCKED",
       message: `Unable to determine the migration token owner for ${plan.name}`,
     });
   }
+
   const tokenOwner = eligibility.owner;
+
   const payload = yield* encode("migration payload", () =>
     encodeAbiParameters(migrationTuple, [plan.migration]),
   );
+
   return {
     to: plan.target.tokenContract,
     data: yield* encode("migrateName", () =>
@@ -208,10 +225,13 @@ const groupPlans = (
   route: "wrapped-unlocked" | "wrapped-locked" | "locked-child",
 ) => {
   const groups = new Map<EthereumAddress, Array<ReadyPlan["migration"]>>();
+
   for (const entry of plans) {
     if (entry.plan.target.route !== route) continue;
+
     groups.set(entry.tokenOwner, [...(groups.get(entry.tokenOwner) ?? []), entry.plan.migration]);
   }
+
   return [...groups.values()];
 };
 
@@ -221,13 +241,16 @@ const helperPreparer: EnsWriteIntentPreparer<HelperMigrationParameters, WriteErr
   const account = (
     typeof context.account === "string" ? context.account : context.account.address
   ) as EthereumAddress;
+
   const helper = yield* getCompatibleMigrationHelper(config);
+
   if (helper === null) {
     return yield* new MigrationError({
       code: "MIGRATION_UNSUPPORTED",
       message: "MigrationHelper is unavailable on this deployment",
     });
   }
+
   const entries = yield* Effect.forEach(parameters.migrations, (migration) =>
     Effect.all(
       [
@@ -246,13 +269,18 @@ const helperPreparer: EnsWriteIntentPreparer<HelperMigrationParameters, WriteErr
       ),
     ),
   );
+
   const parentNames = new Map<string, Array<(typeof entries)[number]>>();
+
   for (const entry of entries) {
     if (entry.plan.target.route !== "locked-child") continue;
+
     const labels = entry.plan.name.split(".");
     const parent = labels.slice(1).join(".");
+
     parentNames.set(parent, [...(parentNames.get(parent) ?? []), entry]);
   }
+
   const lockedChildrenGroups = yield* Effect.forEach(
     [...parentNames.entries()],
     ([parent, children]) =>
@@ -263,6 +291,7 @@ const helperPreparer: EnsWriteIntentPreparer<HelperMigrationParameters, WriteErr
         })),
       ),
   );
+
   return {
     to: helper,
     data: yield* encode("migrateNames", () =>

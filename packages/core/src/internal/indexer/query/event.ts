@@ -47,30 +47,39 @@ export const selectedEventTypes = (filter: EventFilter): ReadonlyArray<string> |
 
 export const matchesEventFilter = (event: IndexedEvent, filter: EventFilter): boolean => {
   if (filter.name !== undefined && event.name !== filter.name) return false;
+
   if (
     filter.namehash !== undefined &&
     event.namehash?.toLowerCase() !== filter.namehash.toLowerCase()
   )
     return false;
+
   if (filter.protocols !== undefined && !filter.protocols.includes(event.protocol)) return false;
+
   if (filter.kinds !== undefined && !filter.kinds.includes(event.kind)) return false;
+
   if (
     filter.contractAddress !== undefined &&
     event.contractAddress?.toLowerCase() !== filter.contractAddress.toLowerCase()
   )
     return false;
+
   if (filter.blockAfter !== undefined && event.blockNumber <= filter.blockAfter) return false;
+
   if (filter.blockBefore !== undefined && event.blockNumber >= filter.blockBefore) return false;
+
   if (
     filter.timestampAfter !== undefined &&
     (event.timestamp === null || event.timestamp <= filter.timestampAfter)
   )
     return false;
+
   if (
     filter.timestampBefore !== undefined &&
     (event.timestamp === null || event.timestamp >= filter.timestampBefore)
   )
     return false;
+
   return true;
 };
 
@@ -79,7 +88,9 @@ export const compareEvents =
   (left: IndexedEvent, right: IndexedEvent): number => {
     let compared =
       left.blockNumber < right.blockNumber ? -1 : left.blockNumber > right.blockNumber ? 1 : 0;
+
     if (compared === 0) compared = left.id.localeCompare(right.id);
+
     return order.direction === "asc" ? compared : -compared;
   };
 
@@ -90,18 +101,21 @@ export const validateEventFilter = (filter: EventFilter): void => {
       message: "Filter events by name or namehash, not both",
     });
   }
+
   if (filter.protocols?.length === 0) {
     throw new IndexerFilterError({
       code: "INVALID_FILTER",
       message: "At least one event protocol is required",
     });
   }
+
   if (filter.kinds?.length === 0) {
     throw new IndexerFilterError({
       code: "INVALID_FILTER",
       message: "At least one event kind is required",
     });
   }
+
   if (
     filter.name === undefined &&
     filter.namehash === undefined &&

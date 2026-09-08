@@ -37,7 +37,9 @@ const decodeOffset = (position: string | null): Effect.Effect<number, IndexerPag
   Effect.try({
     try: () => {
       const offset = position === null ? 0 : Number(position);
+
       if (!Number.isSafeInteger(offset) || offset < 0) throw new Error("Invalid offset");
+
       return offset;
     },
     catch: (cause) =>
@@ -59,13 +61,16 @@ export const queryV1Registrations = Effect.fn("queryV1Registrations")(function* 
   IndexerPaginationError
 > {
   const initialSkip = yield* decodeOffset(position);
+
   const result = yield* Effect.gen(function* () {
     const candidates: Array<{ readonly item: IndexedRegistration; readonly position: string }> = [];
     let skip = initialSkip;
     let indexedBlock = 0n;
     let hasNextPage = true;
+
     while (candidates.length <= limit && hasNextPage) {
       const batchSize = limit + 1;
+
       const where: V1GetRegistrationsQueryVariables["where"] = {
         ...(filter.registrant === undefined ? {} : { registrant: filter.registrant.toLowerCase() }),
         ...(filter.expiryAfter === undefined
@@ -75,6 +80,7 @@ export const queryV1Registrations = Effect.fn("queryV1Registrations")(function* 
           ? {}
           : { expiryDate_lt: filter.expiryBefore.toString() }),
       };
+
       const response = yield* requestIndexer<
         V1GetRegistrationsQuery,
         V1GetRegistrationsQueryVariables
@@ -90,13 +96,16 @@ export const queryV1Registrations = Effect.fn("queryV1Registrations")(function* 
           orderDirection: order.direction,
         },
       });
+
       const data = yield* requireIndexerData(config, "v1", operationName, response);
+
       indexedBlock = yield* decodeIndexedBlock(
         config,
         "v1",
         operationName,
         data["_meta"]?.block.number,
       );
+
       const normalized = yield* Effect.all(
         data.registrations.map((registration, index) =>
           normalizeV1Registration(registration, { network: config.network, indexedBlock }).pipe(
@@ -105,10 +114,12 @@ export const queryV1Registrations = Effect.fn("queryV1Registrations")(function* 
         ),
         { concurrency: "unbounded" },
       );
+
       candidates.push(...normalized.filter(({ item }) => matchesRegistrationFilter(item, filter)));
       skip += data.registrations.length;
       hasNextPage = data.registrations.length === batchSize;
     }
+
     return { indexedBlock, page: { protocol: "v1" as const, candidates, hasNextPage } };
   }).pipe(Effect.result);
 
@@ -123,6 +134,7 @@ export const queryV1Registrations = Effect.fn("queryV1Registrations")(function* 
       },
     };
   }
+
   return {
     status: "complete",
     page: result.success.page,

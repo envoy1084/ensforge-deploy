@@ -22,6 +22,7 @@ const isWrappedEffect = Effect.fn("ensforge.isWrapped")(function* (
   parameters: GetNameStateParameters,
 ) {
   const name = yield* normalizeName.effect(parameters.name);
+
   return yield* executeRead(
     config,
     parameters,
@@ -31,6 +32,7 @@ const isWrappedEffect = Effect.fn("ensforge.isWrapped")(function* (
 
       if (route.kind === "v1" || route.kind === "reserved") {
         const deployment = route.kind === "reserved" ? route.v1 : route.deployment;
+
         return yield* ethereum.readContract({
           address: deployment.contracts.nameWrapper,
           abi: nameWrapperV1IsWrappedAbi,
@@ -38,6 +40,7 @@ const isWrappedEffect = Effect.fn("ensforge.isWrapped")(function* (
           args: [namehash(name)],
         });
       }
+
       if (route.kind === "available") return false;
 
       const subregistry = yield* ethereum.readContract({
@@ -46,9 +49,11 @@ const isWrappedEffect = Effect.fn("ensforge.isWrapped")(function* (
         functionName: "getSubregistry",
         args: [route.label],
       });
+
       const registries = [route.parentRegistry, subregistry].filter(
         (address) => !isAddressEqual(address, zeroAddress),
       );
+
       const support = yield* Effect.all(
         registries.map((address) =>
           ethereum.readContract({
@@ -60,6 +65,7 @@ const isWrappedEffect = Effect.fn("ensforge.isWrapped")(function* (
         ),
         { concurrency: "unbounded" },
       );
+
       return support.some(Boolean);
     }),
   );

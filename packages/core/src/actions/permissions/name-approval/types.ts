@@ -11,10 +11,15 @@ export interface ClearNameApprovalParameters {
 }
 
 export type ApproveNameResult = CallExecutionResult;
+
 export type ApproveNameError = WriteError;
+
 export type ApproveNameIntent = EnsWriteIntent<ApproveNameResult, ApproveNameError>;
+
 export type ClearNameApprovalResult = CallExecutionResult;
+
 export type ClearNameApprovalError = WriteError;
+
 export type ClearNameApprovalIntent = EnsWriteIntent<
   ClearNameApprovalResult,
   ClearNameApprovalError

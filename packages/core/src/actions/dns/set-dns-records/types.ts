@@ -7,4 +7,5 @@ export interface SetDnsRecordsParameters {
 }
 
 export type SetDnsRecordsResult = CallExecutionResult;
+
 export type SetDnsRecordsError = WriteError;

@@ -19,6 +19,7 @@ const implementation = Effect.fn("ensforge.getOrCreateResolver")(function* (
   parameters: GetOrCreateResolverParameters,
 ) {
   const name = yield* normalizeName.effect(parameters.name);
+
   const [protocol, capabilities] = yield* Effect.all(
     [
       getProtocol.effect(config, { name }),
@@ -26,11 +27,13 @@ const implementation = Effect.fn("ensforge.getOrCreateResolver")(function* (
     ] as const,
     { concurrency: "unbounded" },
   );
+
   const compatible =
     capabilities.address !== null &&
     !capabilities.inherited &&
     capabilities.authorization !== "none" &&
     capabilities.authorization !== "unknown";
+
   if (compatible && capabilities.address !== null) {
     return {
       status: "existing",
@@ -39,8 +42,10 @@ const implementation = Effect.fn("ensforge.getOrCreateResolver")(function* (
       inherited: false,
     } as const satisfies GetOrCreateResolverResult;
   }
+
   if (protocol === "v1") {
     const deployment = config.deployments.v1;
+
     if (deployment === undefined) {
       return yield* new WritePlanError({
         code: "INVALID_CALL_PLAN",
@@ -48,6 +53,7 @@ const implementation = Effect.fn("ensforge.getOrCreateResolver")(function* (
         cause: config.deployments,
       });
     }
+
     return {
       status: "selected",
       protocol: "v1",
@@ -55,6 +61,7 @@ const implementation = Effect.fn("ensforge.getOrCreateResolver")(function* (
       inherited: false,
     } as const satisfies GetOrCreateResolverResult;
   }
+
   const created = yield* createResolver.effect(config, {
     salt: parameters.salt ?? BigInt(namehash(name)),
     ...(parameters.admin === undefined ? {} : { admin: parameters.admin }),
@@ -63,6 +70,7 @@ const implementation = Effect.fn("ensforge.getOrCreateResolver")(function* (
     ...(parameters.account === undefined ? {} : { account: parameters.account }),
     ...(parameters.confirmation === undefined ? {} : { confirmation: parameters.confirmation }),
   });
+
   return {
     ...created,
     protocol: "v2",

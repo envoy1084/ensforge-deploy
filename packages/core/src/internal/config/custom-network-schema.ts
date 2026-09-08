@@ -88,6 +88,7 @@ const v1 = Schema.Struct({
   ...metadata,
   contracts: EnsV1ContractAddresses,
 });
+
 const v2 = Schema.Struct({
   ...metadata,
   contracts: EnsV2PublicContractAddresses,

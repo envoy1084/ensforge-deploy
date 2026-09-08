@@ -18,6 +18,7 @@ interface TestParameters {
 describe("query hooks", () => {
   it("deduplicates structurally equal atom parameters", () => {
     const sdk = makeSdk();
+
     const factory = makeQueryAtom("test", () => ({
       effect: ({ value }: TestParameters) => Effect.succeed(value),
     }));
@@ -29,13 +30,17 @@ describe("query hooks", () => {
 
   it("exposes familiar query state and selectors", async () => {
     const sdk = makeSdk();
+
     const factory = makeQueryAtom("test", () => ({
       effect: ({ value }: TestParameters) => Effect.succeed(value),
     }));
+
     const useTestQuery = makeQueryHook(factory);
+
     const wrapper = ({ children }: { readonly children: ReactNode }) => (
       <EnsforgeProvider sdk={sdk}>{children}</EnsforgeProvider>
     );
+
     const { result } = renderHook(
       () =>
         useTestQuery({
@@ -53,12 +58,15 @@ describe("query hooks", () => {
   it("does not execute disabled queries", async () => {
     const sdk = makeSdk();
     const execute = vi.fn(() => Effect.succeed(1));
+
     const useTestQuery = makeQueryHook(
       makeQueryAtom<TestParameters, number, never>("test", () => ({ effect: execute })),
     );
+
     const wrapper = ({ children }: { readonly children: ReactNode }) => (
       <EnsforgeProvider sdk={sdk}>{children}</EnsforgeProvider>
     );
+
     const { result } = renderHook(() => useTestQuery({ value: 1, enabled: false }), {
       wrapper,
     });
@@ -71,18 +79,22 @@ describe("query hooks", () => {
   it("retries typed query failures when configured", async () => {
     const sdk = makeSdk();
     let attempts = 0;
+
     const useTestQuery = makeQueryHook(
       makeQueryAtom<TestParameters, number, "RETRY">("test", () => ({
         effect: ({ value }) =>
           Effect.suspend(() => {
             attempts += 1;
+
             return attempts === 1 ? Effect.fail("RETRY" as const) : Effect.succeed(value);
           }),
       })),
     );
+
     const wrapper = ({ children }: { readonly children: ReactNode }) => (
       <EnsforgeProvider sdk={sdk}>{children}</EnsforgeProvider>
     );
+
     const { result } = renderHook(
       () => useTestQuery({ value: 3, atom: { retry: Schedule.recurs(1) } }),
       { wrapper },

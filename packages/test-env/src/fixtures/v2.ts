@@ -17,8 +17,11 @@ import type { EnsNameFixture, EnsV1FixtureManifest, EnsV2FixtureManifest } from 
 import { seedMigrationFixtures } from "./migration.js";
 
 const day = 86_400;
+
 const v2GracePeriod = 28 * day;
+
 const activeDuration = BigInt(365 * day);
+
 const v2OwnerRoles = enhancedAccessControlRoles.allRoles & ~registryRoles.wasReserved;
 
 const v2Fixture = (
@@ -65,7 +68,9 @@ export const seedV2Fixtures = Effect.fn("seedV2Fixtures")(function* (
     () => environment.clients.publicClient.getBlock(),
     "Unable to read the ENS v2 fixture baseline block",
   );
+
   const expiredExpiry = initialBlock.timestamp + 60n;
+
   yield* registerV2(environment, "v2-expired", expiredExpiry, zeroAddress);
   yield* environment.state.advanceTime(v2GracePeriod + 61);
 
@@ -73,7 +78,9 @@ export const seedV2Fixtures = Effect.fn("seedV2Fixtures")(function* (
     () => environment.clients.publicClient.getBlock(),
     "Unable to read the ENS v2 grace fixture block",
   );
+
   const graceExpiry = graceBlock.timestamp + 60n;
+
   yield* registerV2(environment, "v2-grace", graceExpiry, zeroAddress);
   yield* environment.state.advanceTime(61);
 
@@ -81,8 +88,10 @@ export const seedV2Fixtures = Effect.fn("seedV2Fixtures")(function* (
     () => environment.clients.publicClient.getBlock(),
     "Unable to read the ENS v2 active fixture block",
   );
+
   const activeExpiry = activeBlock.timestamp + activeDuration;
   const publicResolver = environment.deployments.v2.contracts.publicResolver;
+
   yield* registerV2(environment, "v2-active", activeExpiry, publicResolver);
   yield* registerV2(environment, "v2-no-resolver", activeExpiry, zeroAddress);
   yield* registerV2(
@@ -108,13 +117,16 @@ export const seedV2Fixtures = Effect.fn("seedV2Fixtures")(function* (
       }),
     "Unable to locate the native ENS v2 ens.eth registry",
   );
+
   let ensRegistry = existingEnsRegistry;
+
   if (ensRegistry === zeroAddress) {
     const initialization = encodeFunctionData({
       abi: userRegistryV2InitializeAbi,
       functionName: "initialize",
       args: [environment.accounts.owner, enhancedAccessControlRoles.allRoles],
     });
+
     ensRegistry = yield* seedRead(
       () =>
         environment.clients.publicClient
@@ -162,6 +174,7 @@ export const seedV2Fixtures = Effect.fn("seedV2Fixtures")(function* (
       "owner",
     );
   }
+
   yield* seedTransaction(
     environment,
     {
@@ -256,6 +269,7 @@ export const seedV2Fixtures = Effect.fn("seedV2Fixtures")(function* (
         ]),
       "Unable to verify the native ENS v2 registry and resolver topology",
     );
+
   if (
     nestedStatus !== 2 ||
     activeResolver.toLowerCase() !== publicResolver.toLowerCase() ||
@@ -372,11 +386,13 @@ export const seedV2Fixtures = Effect.fn("seedV2Fixtures")(function* (
       environment.accounts.owner,
     ),
   } satisfies EnsV2FixtureManifest;
+
   const seededAt = (yield* seedRead(
     () => environment.clients.publicClient.getBlock(),
     "Unable to read the completed ENS fixture block",
   )).timestamp;
 
   yield* environment.state.checkpoint;
+
   return { seededAt, v1, v2, migration };
 });

@@ -18,6 +18,7 @@ import type { GetNameStateError } from "../name/get-name-state/types.js";
 import type { NameState } from "../name/get-name-state/types.js";
 
 export type MigrationReadError = GetNameStateError;
+
 export type MigrationNameParameters = { readonly name: string } & BlockParameters;
 
 export const MigrationUnsupportedReason = Schema.Literals([
@@ -250,4 +251,5 @@ export interface MigrateNamesParameters extends MigrationWalletParameters {
 }
 
 export type ApproveMigrationResult = CallExecutionResult;
+
 export type MigrationWriteError = WriteError;

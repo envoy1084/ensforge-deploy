@@ -48,19 +48,23 @@ export const queryV2Names = Effect.fn("queryV2Names")(function* (
         where,
         ...compileV2NameOrder(order),
       } as V2GetNamesQueryVariables;
+
       const response = yield* requestIndexer<V2GetNamesQuery, V2GetNamesQueryVariables>(config, {
         protocol: "v2",
         operationName,
         document: V2GetNamesDocument,
         variables,
       });
+
       const data = yield* requireIndexerData(config, "v2", operationName, response);
+
       indexedBlock = yield* decodeIndexedBlock(
         config,
         "v2",
         operationName,
         data["_meta"].block.number,
       );
+
       const normalized = yield* Effect.all(
         data.domainConnection.edges.map(({ cursor, node }) =>
           normalizeV2IndexerName(node, {
@@ -72,6 +76,7 @@ export const queryV2Names = Effect.fn("queryV2Names")(function* (
         ),
         { concurrency: "unbounded" },
       );
+
       candidates.push(
         ...(requiresPostFilter
           ? normalized.filter(({ item }) => matchesNameFilter(item, filter))
@@ -79,7 +84,9 @@ export const queryV2Names = Effect.fn("queryV2Names")(function* (
       );
 
       const next = data.domainConnection.pageInfo.endCursor;
+
       hasNextPage = data.domainConnection.pageInfo.hasNextPage;
+
       if (hasNextPage && (next === null || next === after)) {
         return yield* new IndexerDecodeError({
           code: "INVALID_RESPONSE",
@@ -90,6 +97,7 @@ export const queryV2Names = Effect.fn("queryV2Names")(function* (
           cause: data.domainConnection.pageInfo,
         });
       }
+
       after = next;
     }
 
@@ -114,6 +122,7 @@ export const queryV2Names = Effect.fn("queryV2Names")(function* (
       },
     };
   }
+
   return {
     status: "complete",
     page: result.success.page,

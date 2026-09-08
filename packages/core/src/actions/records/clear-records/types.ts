@@ -5,4 +5,5 @@ export interface ClearRecordsParameters {
 }
 
 export type ClearRecordsResult = CallExecutionResult;
+
 export type ClearRecordsError = WriteError;

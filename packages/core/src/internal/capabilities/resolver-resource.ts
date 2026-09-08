@@ -84,5 +84,6 @@ export const resolverRecordPart = (record: ResolverRecord): Hex => {
 
 export const resolverResource = (node: Namehash, part: Hex): bigint => {
   if (BigInt(node) === 0n && BigInt(part) === 0n) return 0n;
+
   return BigInt(keccak256(encodePacked(["bytes32", "bytes32"], [node, part])));
 };

@@ -44,11 +44,13 @@ export const encodeFuseMask = Effect.fn("ensforge.encodeFuseMask")(function* (
     typeof input === "number"
       ? input
       : input.reduce((value, name) => value | nameWrapperFuses[name], 0);
+
   if (!Number.isSafeInteger(mask) || mask < 0 || (mask & ~allowedMask) !== 0) {
     return yield* new AuthorizationError({
       code: "WRITE_TARGET_UNAVAILABLE",
       message: "The requested Name Wrapper fuse mask contains unsupported fuse bits",
     });
   }
+
   return mask;
 });

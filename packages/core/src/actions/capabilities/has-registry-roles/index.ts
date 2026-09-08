@@ -23,19 +23,24 @@ const hasRegistryRolesEffect = Effect.fn("ensforge.hasRegistryRoles")(function* 
   parameters: HasRegistryRolesParameters,
 ) {
   const name = yield* normalizeName.effect(parameters.name);
+
   return yield* executeRead(
     config,
     parameters,
     Effect.gen(function* () {
       const target = yield* readRegistryPermissionTarget(name);
+
       if (!target.supported) return target;
+
       const ethereum = yield* EthereumClient;
+
       const authorized = yield* ethereum.readContract({
         address: target.registry,
         abi: permissionedRegistryV2InterfaceHasRolesAbi,
         functionName: "hasRoles",
         args: [target.anyId, parameters.roles, parameters.account],
       });
+
       return {
         ...target,
         account: parameters.account,

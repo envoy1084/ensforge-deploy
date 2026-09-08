@@ -38,44 +38,55 @@ export const createExecutionAdapter = <
     schemas: { ...input.schemas },
     submission: { ...input.submission },
   });
+
   Schema.decodeUnknownSync(Schema.Int.check(Schema.isGreaterThan(0)))(definition.chainId);
   Schema.decodeUnknownSync(Schema.NonEmptyString)(definition.profileId);
+
   const id = Schema.decodeUnknownSync(Schema.NonEmptyString)(definition.id);
   const fingerprint = Schema.decodeUnknownSync(HcaExecutionHash)(
     definition.configurationFingerprint,
   );
+
   Schema.decodeUnknownSync(Schema.Int.check(Schema.isGreaterThan(0)))(
     definition.submission.version,
   );
+
   const capabilities = Object.freeze(
     Schema.decodeUnknownSync(HcaExecutionCapabilities)(definition.capabilities),
   );
+
   const persistence = createSubmissionPersistence(
     id,
     fingerprint,
     definition.submission,
     definition,
   );
+
   // Prepared and authorized envelopes are local capabilities, never restored signed operations.
   const preparedEnvelopes = new WeakMap<object, PreparedHcaCalls>();
   const authorizedEnvelopes = new WeakMap<object, PreparedHcaCalls>();
   const attemptedSubmissions = new WeakSet<object>();
+
   const supports = (plan: PreparedHcaCalls) => {
     if (
       plan.account.chainId !== definition.chainId ||
       plan.account.profileId !== definition.profileId
     )
       return { supported: false, reason: "Adapter is configured for another chain or HCA profile" };
+
     if (
       !capabilities.ownerExecution ||
       !capabilities.atomicBatching ||
       plan.authorization.kind !== "owner"
     )
       return { supported: false, reason: "This route requires atomic HCA owner execution" };
+
     if (plan.requiredCapabilities?.some((key) => capabilities[key] !== true))
       return { supported: false, reason: "A required execution capability is unavailable" };
+
     return definition.supports(plan);
   };
+
   const prepare = defineAction<PreparedHcaCalls, PreparedExecution<P>, HcaError>(
     Effect.fn("hca.adapter.prepare")(function* (config, plan) {
       const support = yield* Effect.try({
@@ -83,11 +94,13 @@ export const createExecutionAdapter = <
         catch: (cause) =>
           new HcaError({ code: "ADAPTER_FAILED", message: "Compatibility check failed", cause }),
       });
+
       if (!support.supported)
         return yield* new HcaError({
           code: "UNSUPPORTED_CAPABILITY",
           message: support.reason ?? "Unsupported execution",
         });
+
       const identity = {
         ...(plan.operationId === undefined ? {} : { operationId: plan.operationId }),
         adapterId: id,
@@ -99,7 +112,9 @@ export const createExecutionAdapter = <
         profileId: plan.account.profileId,
         planFingerprint: plan.fingerprint,
       };
+
       yield* checkContext(config, identity);
+
       const freshPlan = yield* prepareHcaCalls
         .effect(config, {
           hca: plan.account.address,
@@ -117,6 +132,7 @@ export const createExecutionAdapter = <
               }),
           ),
         );
+
       if (
         freshPlan.fingerprint !== plan.fingerprint ||
         freshPlan.data !== plan.data ||
@@ -126,7 +142,9 @@ export const createExecutionAdapter = <
           code: "ADAPTER_MISMATCH",
           message: "HCA plan fingerprint does not match its calls",
         });
+
       yield* checkAccount(config, plan);
+
       const immutablePlan = freezeEnvelope({
         ...freshPlan,
         ...(plan.operationId === undefined ? {} : { operationId: plan.operationId }),
@@ -134,9 +152,12 @@ export const createExecutionAdapter = <
           ? {}
           : { requiredCapabilities: [...plan.requiredCapabilities] }),
       });
+
       const result = yield* definition.prepare.effect(config, immutablePlan);
       const payload = yield* decode(definition.schemas.prepared, result.payload);
+
       yield* checkReview(result.review, identity);
+
       if (
         result.review.authorizations.some(
           (authorization) =>
@@ -147,22 +168,29 @@ export const createExecutionAdapter = <
           code: "OWNER_MISMATCH",
           message: "Owner execution must be authorized by the immutable HCA owner",
         });
+
       const policy = definition.policy;
+
       if (policy?.requireExpiry && result.review.expiresAt === undefined)
         return yield* new HcaError({
           code: "INVALID_EXECUTION",
           message: "Execution policy requires an expiry",
         });
+
       if (policy?.feeLimits !== undefined) {
         for (const fee of result.review.fees) {
           const matches = (entry: Pick<typeof fee, "kind" | "chainId" | "token">) =>
             entry.kind === fee.kind &&
             entry.chainId === fee.chainId &&
             entry.token.toLowerCase() === fee.token.toLowerCase();
+
           const limit = policy.feeLimits.find(matches);
+
+          // Aggregate matching fees so splitting an estimate cannot bypass its limit.
           const maximum = result.review.fees
             .filter(matches)
             .reduce((sum, entry) => sum + entry.maximum, 0n);
+
           if (!limit || maximum > limit.maximum)
             return yield* new HcaError({
               code: "INVALID_EXECUTION",
@@ -170,6 +198,7 @@ export const createExecutionAdapter = <
             });
         }
       }
+
       const prepared = freezeEnvelope({
         ...identity,
         payload,
@@ -177,46 +206,58 @@ export const createExecutionAdapter = <
         simulation: "succeeded" as const,
       });
       preparedEnvelopes.set(prepared, immutablePlan);
+
       return prepared;
     }),
   );
+
   const authorize = defineAction<PreparedExecution<P>, AuthorizedExecution<A>, HcaError>(
     Effect.fn("hca.adapter.authorize")(function* (config, prepared) {
       const plan = preparedEnvelopes.get(prepared);
+
       if (!plan)
         return yield* new HcaError({
           code: "ADAPTER_MISMATCH",
           message: "Prepare this operation with this adapter instance before signing",
         });
+
       yield* checkContext(config, prepared);
       yield* checkAccount(config, plan);
       yield* checkReview(prepared.review, prepared);
+
       const result = yield* definition.authorize.effect(config, prepared);
       const payload = yield* decode(definition.schemas.authorized, result);
       const { simulation: _simulation, ...identity } = prepared;
       const authorized = freezeEnvelope({ ...identity, payload });
       authorizedEnvelopes.set(authorized, plan);
+
       return authorized;
     }),
   );
+
   const submit = defineAction<AuthorizedExecution<A>, ExecutionSubmission<S>, HcaError>(
     Effect.fn("hca.adapter.submit")(function* (config, authorized) {
       const plan = authorizedEnvelopes.get(authorized);
+
       if (!plan || attemptedSubmissions.has(authorized))
         return yield* new HcaError({
           code: "ADAPTER_MISMATCH",
           message: "Invalid or already submitted authorization; reconcile before retrying",
         });
+
       yield* checkContext(config, authorized);
       yield* checkAccount(config, plan);
       yield* checkReview(authorized.review, authorized);
+
       // Claim after asynchronous revalidation so concurrent callers cannot both broadcast.
       if (attemptedSubmissions.has(authorized))
         return yield* new HcaError({
           code: "ADAPTER_MISMATCH",
           message: "This authorization is already being submitted; reconcile it before retrying",
         });
+
       attemptedSubmissions.add(authorized);
+
       const result = yield* definition.submit.effect(config, authorized).pipe(
         Effect.mapError(
           (cause) =>
@@ -227,10 +268,12 @@ export const createExecutionAdapter = <
             }),
         ),
       );
+
       // Failure here can happen after broadcast. Do not report a safe-to-retry validation error.
       return yield* Effect.try({
         try: () => {
           const { review: _review, ...identity } = authorized;
+
           return freezeEnvelope(
             persistence.validate({
               ...identity,
@@ -251,6 +294,7 @@ export const createExecutionAdapter = <
       });
     }),
   );
+
   const getStatus = defineAction<ExecutionSubmission<S>, HcaExecutionStatus<S>, HcaError>(
     Effect.fn("hca.adapter.getStatus")(function* (config, tracking) {
       const submission = yield* Effect.try({
@@ -258,8 +302,11 @@ export const createExecutionAdapter = <
         catch: (cause) =>
           new HcaError({ code: "INVALID_SUBMISSION", message: "Invalid tracking envelope", cause }),
       });
+
       yield* checkContext(config, submission);
+
       const outcome = yield* definition.getStatus.effect(config, submission);
+
       if (
         !Schema.is(HcaExecutionOutcome)(outcome) ||
         (outcome.status === "succeeded" &&
@@ -270,9 +317,11 @@ export const createExecutionAdapter = <
           code: "INVALID_EXECUTION",
           message: "Provider status needs a valid destination outcome",
         });
+
       return { ...outcome, submission };
     }),
   );
+
   return Object.freeze({
     id,
     instanceId: fingerprint,

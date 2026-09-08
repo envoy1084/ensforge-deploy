@@ -22,4 +22,5 @@ export type GetSubnamesParameters = typeof GetSubnamesParameters.Type;
 
 export const GetSubnamesResult = IndexerPage(IndexedName);
 export type GetSubnamesResult = IndexerPageType<typeof IndexedName.Type>;
+
 export type GetSubnamesError = GetNamesError;

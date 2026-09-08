@@ -30,4 +30,5 @@ export interface SetResolverAndRecordsParameters {
 }
 
 export type SetResolverAndRecordsResult = SetResolverAndRecordsProgress;
+
 export type SetResolverAndRecordsError = WriteError;

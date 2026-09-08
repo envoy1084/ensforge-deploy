@@ -20,8 +20,10 @@ export const withHcaSnapshot = <A>(
     Effect.gen(function* () {
       const profile = yield* resolveHcaProfile(config);
       const context = yield* ReadContext;
+
       const blockNumber =
         context.block.blockNumber ?? (yield* hcaRpc(() => config.publicClient.getBlockNumber()));
+
       return yield* read(profile, blockNumber);
     }),
   );

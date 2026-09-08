@@ -25,10 +25,12 @@ export const seedFixtures = Effect.fn("seedFixtures")(function* (environment: De
   const dns = createDnsFixtures(environment, records);
   const events = yield* Effect.promise(() => createEventFixtures(environment, fromBlock));
   const manifest = { ...fixtures, hca, dns, events, permissions, records, registration, reverse };
+
   yield* seedRead(
     () => verifyFixtureManifest(environment, manifest),
     "The completed ENS fixture manifest failed verification",
   );
   yield* environment.state.checkpoint;
+
   return manifest;
 });

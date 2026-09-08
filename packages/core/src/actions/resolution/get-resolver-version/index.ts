@@ -19,11 +19,13 @@ const getResolverVersionEffect = Effect.fn("ensforge.getResolverVersion")(functi
   parameters: GetResolverVersionParameters,
 ) {
   const name = yield* normalizeName.effect(parameters.name);
+
   return yield* executeRead(
     config,
     parameters,
     Effect.gen(function* () {
       const discovery = yield* findResolver(name);
+
       if (discovery === null) {
         return {
           supported: false,
@@ -32,7 +34,9 @@ const getResolverVersionEffect = Effect.fn("ensforge.getResolverVersion")(functi
           reason: "RESOLVER_NOT_FOUND",
         } as const satisfies ResolverVersionResult;
       }
+
       const ethereum = yield* EthereumClient;
+
       const version = yield* ethereum
         .readContract({
           address: discovery.address,
@@ -41,6 +45,7 @@ const getResolverVersionEffect = Effect.fn("ensforge.getResolverVersion")(functi
           args: [discovery.node],
         })
         .pipe(Effect.catchTag("ContractError", () => Effect.succeed(null)));
+
       if (version === null) {
         return {
           supported: false,
@@ -49,6 +54,7 @@ const getResolverVersionEffect = Effect.fn("ensforge.getResolverVersion")(functi
           reason: "VERSIONING_UNSUPPORTED",
         } as const satisfies ResolverVersionResult;
       }
+
       return {
         supported: true,
         name,

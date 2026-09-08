@@ -28,6 +28,7 @@ describe("Sepolia V1 and V2 records", () => {
   it.effect("reads every seeded Permissioned Resolver profile", () =>
     Effect.gen(function* () {
       const name = sepoliaNames.v2.profile;
+
       const [
         address,
         addresses,
@@ -61,9 +62,11 @@ describe("Sepolia V1 and V2 records", () => {
       assert.strictEqual(text.value, "ensforge ENSv2 Sepolia smoke-test profile");
       assert.isNotNull(avatar);
       assert.strictEqual(avatar?.status, "resolved");
+
       if (avatar?.status === "resolved") {
         assert.strictEqual(avatar.uri, "https://ensforge.envoy1084.xyz/og.png");
       }
+
       assert.strictEqual(contentHash.protocol, "ipfs");
       assert.isNotNull(contentHash.value);
       assert.strictEqual(abi.contentType, "json");
@@ -80,6 +83,7 @@ describe("Sepolia V1 and V2 records", () => {
   it.effect("composes the same profile through getRecords", () =>
     Effect.gen(function* () {
       const name = sepoliaNames.v2.profile;
+
       const records = yield* getRecords.effect(sepoliaConfig, {
         name,
         records: {
@@ -127,6 +131,7 @@ describe("Sepolia V1 and V2 records", () => {
       assert.isNotNull(profileResolver);
       assert.strictEqual(inheritedResolver, profileResolver);
       assert.isTrue(version.supported);
+
       if (version.supported) assert.strictEqual(version.version, 0n);
     }),
   );

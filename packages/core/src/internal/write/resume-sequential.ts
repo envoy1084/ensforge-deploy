@@ -17,14 +17,17 @@ export const resumeSequentialConfirmations = Effect.fn("resumeSequentialConfirma
   confirmation: ConfirmationPolicy,
 ) {
   if (confirmation.type === "submitted") return previous;
+
   const client = yield* provideConfig(config, WriteClient);
   const calls: Array<CallExecutionResult> = [];
 
   for (const call of previous.calls) {
     if (call.status !== "submitted") {
       calls.push(call);
+
       continue;
     }
+
     if (call.hash === null) {
       return {
         ...previous,
@@ -52,6 +55,7 @@ export const resumeSequentialConfirmations = Effect.fn("resumeSequentialConfirma
           }),
         ),
     );
+
     if (Result.isFailure(receipt)) {
       return {
         ...previous,
@@ -59,6 +63,7 @@ export const resumeSequentialConfirmations = Effect.fn("resumeSequentialConfirma
         failure: receipt.failure,
       } satisfies SequentialCallsResult;
     }
+
     calls.push({
       ...call,
       status: "confirmed",

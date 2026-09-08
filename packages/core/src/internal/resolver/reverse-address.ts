@@ -21,6 +21,7 @@ export const reverseAddress = Effect.fn("reverseAddress")(function* (
   const context = yield* ReadContext;
   const deployment = yield* DeploymentService;
   const protocol = deployment.profile.protocol;
+
   const universalResolver =
     protocol === "v1"
       ? deployment.profile.v1.contracts.universalResolver

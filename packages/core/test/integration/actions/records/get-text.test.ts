@@ -11,6 +11,7 @@ describe("text resolution integration", () => {
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
       const fixture = devnet.fixtures.records.v1;
+
       const result = yield* getText.effect(devnet.configs.v1, {
         name: fixture.name,
         key: "email",
@@ -23,6 +24,7 @@ describe("text resolution integration", () => {
   it.effect("resolves migrated v2 and RESERVED v1 text records through the v2 resolver", () =>
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
+
       const [migrated, reserved] = yield* Effect.all([
         getText.effect(devnet.configs.v2, {
           name: devnet.fixtures.records.v2.name,
@@ -51,6 +53,7 @@ describe("text resolution integration", () => {
       Effect.gen(function* () {
         const devnet = getIntegrationDevnet();
         const fixture = devnet.fixtures.records.v2;
+
         const results = yield* getTexts.effect(devnet.configs.v2, {
           name: fixture.name,
           keys: ["email", "missing", "avatar", "email"],
@@ -68,10 +71,12 @@ describe("text resolution integration", () => {
   it.effect("returns structured unset records for names without a resolver", () =>
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
+
       const single = yield* getText.effect(devnet.configs.v2, {
         name: devnet.fixtures.v2.noResolver.name,
         key: "email",
       });
+
       const multiple = yield* getTexts.effect(devnet.configs.v2, {
         name: devnet.fixtures.v2.noResolver.name,
         keys: ["email", "url"],
@@ -89,6 +94,7 @@ describe("text resolution integration", () => {
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
       const fixture = devnet.fixtures.records.v2;
+
       const result = yield* readBatch.effect(devnet.configs.v2, {
         text: getText.request({ name: fixture.name, key: "email" }),
         texts: getTexts.request({ name: fixture.name, keys: ["avatar", "url"] }),
@@ -107,6 +113,7 @@ describe("text resolution integration", () => {
   it.effect("returns an empty result when no text keys are requested", () =>
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
+
       const result = yield* getTexts.effect(devnet.configs.v2, {
         name: devnet.fixtures.records.v2.name,
         keys: [],

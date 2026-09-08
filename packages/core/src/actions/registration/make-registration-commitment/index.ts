@@ -21,14 +21,17 @@ const makeRegistrationCommitmentEffect = Effect.fn("ensforge.makeRegistrationCom
   function* (config: EnsforgeConfig, parameters: RegistrationCommitmentParameters) {
     const name = yield* normalizeName.effect(parameters.name);
     const label = yield* getSecondLevelEthLabel(name);
+
     return yield* executeRead(
       config,
       parameters,
       Effect.gen(function* () {
         const { profile } = yield* DeploymentService;
         const ethereum = yield* EthereumClient;
+
         if (profile.protocol === "v1") {
           const registrar = profile.v1.contracts.ethRegistrarController;
+
           const commitment = yield* ethereum.readContract({
             address: registrar,
             abi: ethRegistrarControllerV1MakeCommitmentAbi,
@@ -46,10 +49,12 @@ const makeRegistrationCommitmentEffect = Effect.fn("ensforge.makeRegistrationCom
               },
             ],
           });
+
           return { name, protocol: "v1", registrar, commitment } satisfies RegistrationCommitment;
         }
 
         const registrar = profile.v2.contracts.ethRegistrar;
+
         const commitment = yield* ethereum.readContract({
           address: registrar,
           abi: ethRegistrarV2MakeCommitmentAbi,
@@ -64,6 +69,7 @@ const makeRegistrationCommitmentEffect = Effect.fn("ensforge.makeRegistrationCom
             parameters.referrer ?? zeroHash,
           ],
         });
+
         return { name, protocol: "v2", registrar, commitment } satisfies RegistrationCommitment;
       }),
     );

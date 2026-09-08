@@ -11,4 +11,5 @@ export interface SetTextsParameters {
 }
 
 export type SetTextsResult = CallExecutionResult;
+
 export type SetTextsError = WriteError;

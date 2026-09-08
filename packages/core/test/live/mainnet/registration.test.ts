@@ -7,7 +7,9 @@ import { getRegistrationPlan, getRegistrationPrice, getRenewalPrice } from "../.
 import { mainnetConfig, mainnetNames, missingMainnetName } from "../setup/mainnet.js";
 
 const duration = 365n * 86_400n;
+
 const smokeOwner = "0x000000000000000000000000000000000000dEaD";
+
 const smokeSecret = `0x${"11".repeat(32)}` as const;
 
 describe("Mainnet registration reads", () => {
@@ -19,7 +21,9 @@ describe("Mainnet registration reads", () => {
       });
 
       assert.strictEqual(price.status, "available");
+
       if (price.status !== "available") return;
+
       assert.strictEqual(price.protocol, "v1");
       assert.strictEqual(price.registrar, mainnetV1Deployment.contracts.ethRegistrarController);
       assert.strictEqual(price.currency.kind, "native");
@@ -39,7 +43,9 @@ describe("Mainnet registration reads", () => {
       });
 
       assert.strictEqual(plan.status, "commitment-required");
+
       if (plan.status !== "commitment-required") return;
+
       assert.strictEqual(plan.parameters.protocol, "v1");
       assert.strictEqual(
         plan.parameters.registrar,
@@ -57,7 +63,9 @@ describe("Mainnet registration reads", () => {
       });
 
       assert.strictEqual(renewal.status, "renewable");
+
       if (renewal.status !== "renewable") return;
+
       assert.strictEqual(renewal.protocol, "v1");
       assert.strictEqual(renewal.route, "v1-controller");
       assert.strictEqual(renewal.renewer, mainnetV1Deployment.contracts.ethRegistrarController);

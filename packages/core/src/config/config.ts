@@ -46,6 +46,7 @@ export interface CreateViemConfigParameters extends SharedCreateConfigParameters
 export type CreateConfigParameters = CreateViemConfigParameters;
 
 export type EnsRuntimeNetwork = EnsNetworkId;
+
 export type EnsRuntimeChainId = number;
 
 /** Immutable, single-network configuration consumed by every ensforge action. */

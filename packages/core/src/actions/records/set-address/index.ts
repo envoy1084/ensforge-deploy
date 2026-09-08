@@ -53,6 +53,7 @@ export const setAddresses = makeResolverWriteAction<SetAddressesParameters>({
     Effect.try({
       try: () => {
         const calls = parameters.addresses.map((record) => encodeAddressCall(context.node, record));
+
         return encodeFunctionData({
           abi: publicResolverV1MulticallAbi,
           functionName: "multicall",

@@ -12,6 +12,7 @@ import { requestIndexer } from "../../../../src/internal/indexer/client.js";
 import { makeMainnetPublicClient } from "../../fixtures/client-fixtures.js";
 
 const query = "query Status { _meta { block { number } } }";
+
 const offlineFetch: typeof globalThis.fetch = () => Promise.reject(new TypeError("offline"));
 
 const response = (body: unknown, init: ResponseInit = {}): Response =>
@@ -48,8 +49,10 @@ describe("indexer client", () => {
       const fetch: typeof globalThis.fetch = (_input, init) => {
         assert.instanceOf(init?.signal, AbortSignal);
         assert.deepStrictEqual(JSON.parse(String(init?.body)), { query });
+
         return Promise.resolve(response({ data: { _meta: { block: { number: 42 } } } }));
       };
+
       const result = yield* request(makeConfig(fetch));
 
       assert.deepStrictEqual(result, {
@@ -76,6 +79,7 @@ describe("indexer client", () => {
             ],
           }),
         );
+
       const result = yield* request(makeConfig(fetch));
 
       assert.deepStrictEqual(result.data, { _meta: { block: { number: 42 } } });
@@ -94,10 +98,13 @@ describe("indexer client", () => {
     Effect.gen(function* () {
       let resolutions = 0;
       const received: Array<string | null> = [];
+
       const fetch: typeof globalThis.fetch = (_input, init) => {
         received.push(new Headers(init?.headers).get("authorization"));
+
         return Promise.resolve(response({ data: { _meta: { block: { number: 1 } } } }));
       };
+
       const config = createConfig({
         network: "mainnet",
         publicClient: makeMainnetPublicClient(),
@@ -106,6 +113,7 @@ describe("indexer client", () => {
           retry: { attempts: 0 },
           headers: ({ network, protocol }) => {
             resolutions += 1;
+
             return { authorization: `${network}:${protocol}:${resolutions}` };
           },
         },
@@ -120,8 +128,10 @@ describe("indexer client", () => {
   it.effect("retries transient HTTP failures and honors Retry-After", () =>
     Effect.gen(function* () {
       let calls = 0;
+
       const fetch: typeof globalThis.fetch = () => {
         calls += 1;
+
         return Promise.resolve(
           calls === 1
             ? response(
@@ -134,6 +144,7 @@ describe("indexer client", () => {
             : response({ data: { _meta: { block: { number: 2 } } } }),
         );
       };
+
       const result = yield* request(makeConfig(fetch, { attempts: 1 }));
 
       assert.strictEqual(calls, 2);
@@ -144,14 +155,19 @@ describe("indexer client", () => {
   it.effect("does not retry ordinary HTTP client errors", () =>
     Effect.gen(function* () {
       let calls = 0;
+
       const fetch: typeof globalThis.fetch = () => {
         calls += 1;
+
         return Promise.resolve(response({ errors: [{ message: "bad request" }] }, { status: 400 }));
       };
+
       const error = yield* request(makeConfig(fetch, { attempts: 2 })).pipe(Effect.flip);
 
       assert.instanceOf(error, IndexerRequestError);
+
       if (!(error instanceof IndexerRequestError)) return;
+
       assert.strictEqual(error.code, "HTTP_FAILED");
       assert.strictEqual(error.status, 400);
       assert.isFalse(error.retryable);
@@ -163,12 +179,17 @@ describe("indexer client", () => {
   it.effect("classifies malformed JSON separately from transport failures", () =>
     Effect.gen(function* () {
       const malformed: typeof globalThis.fetch = () => Promise.resolve(response("{"));
+
       const malformedError = yield* request(makeConfig(malformed)).pipe(Effect.flip);
+
       assert.instanceOf(malformedError, IndexerDecodeError);
 
       const offlineError = yield* request(makeConfig(offlineFetch)).pipe(Effect.flip);
+
       assert.instanceOf(offlineError, IndexerRequestError);
+
       if (!(offlineError instanceof IndexerRequestError)) return;
+
       assert.strictEqual(offlineError.code, "TRANSPORT_FAILED");
       assert.isTrue(offlineError.retryable);
     }),
@@ -177,26 +198,35 @@ describe("indexer client", () => {
   it.effect("times out requests and aborts the active fetch", () =>
     Effect.gen(function* () {
       let resolveSignal: (signal: AbortSignal) => void;
+
       const signalReady = new Promise<AbortSignal>((resolve) => {
         resolveSignal = resolve;
       });
+
       const fetch: typeof globalThis.fetch = (_input, init) => {
         const signal = init?.signal as AbortSignal;
+
         resolveSignal(signal);
+
         return new Promise((_resolve, reject) =>
           signal.addEventListener("abort", () => reject(new DOMException("aborted", "AbortError"))),
         );
       };
+
       const fiber = yield* Effect.forkChild(
         request(makeConfig(fetch, { timeout: 10 })).pipe(Effect.flip),
       );
+
       const signal = yield* Effect.promise(() => signalReady);
 
       yield* TestClock.adjust(10);
+
       const error = yield* Fiber.join(fiber);
 
       assert.instanceOf(error, IndexerRequestError);
+
       if (!(error instanceof IndexerRequestError)) return;
+
       assert.strictEqual(error.code, "REQUEST_TIMEOUT");
       assert.isTrue(signal.aborted);
     }),
@@ -205,18 +235,23 @@ describe("indexer client", () => {
   it.effect("propagates Effect interruption to the active fetch", () =>
     Effect.gen(function* () {
       let resolveSignal: (signal: AbortSignal) => void;
+
       const signalReady = new Promise<AbortSignal>((resolve) => {
         resolveSignal = resolve;
       });
+
       const fetch: typeof globalThis.fetch = (_input, init) => {
         const signal = init?.signal as AbortSignal;
+
         resolveSignal(signal);
+
         return new Promise((_resolve, reject) =>
           signal?.addEventListener("abort", () =>
             reject(new DOMException("aborted", "AbortError")),
           ),
         );
       };
+
       const fiber = yield* Effect.forkChild(request(makeConfig(fetch, { timeout: 5_000 })));
       const signal = yield* Effect.promise(() => signalReady);
 
@@ -231,6 +266,7 @@ describe("indexer client", () => {
         network: "mainnet",
         publicClient: makeMainnetPublicClient(),
       });
+
       const error = yield* requestIndexer(config, {
         protocol: "v2",
         operationName: "Status",

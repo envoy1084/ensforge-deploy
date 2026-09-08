@@ -17,11 +17,15 @@ export const decodeIndexerNameIdentity = Effect.fn("decodeIndexerNameIdentity")(
     try: () => {
       const hasName = typeof input.name === "string";
       const hasNamehash = typeof input.namehash === "string";
+
       if (hasName === hasNamehash) throw new Error("Provide exactly one name identity");
+
       if (hasName) {
         const name = normalize(input.name as string);
+
         return { name, namehash: Schema.decodeUnknownSync(Namehash)(makeNamehash(name)) };
       }
+
       return { name: null, namehash: Schema.decodeUnknownSync(Namehash)(input.namehash) };
     },
     catch: () =>

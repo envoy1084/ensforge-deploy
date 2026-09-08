@@ -36,7 +36,9 @@ export interface ReclaimNameParameters {
 }
 
 export type OwnershipWriteResult = CallExecutionResult;
+
 export type OwnershipWriteError = WriteError;
+
 export type TransferNameStrategy =
   | "registry"
   | "registrar-and-manager"
@@ -64,4 +66,5 @@ export interface TransferNameParameters {
 }
 
 export type TransferNameResult = TransferNameProgress;
+
 export type TransferNameError = WriteError;

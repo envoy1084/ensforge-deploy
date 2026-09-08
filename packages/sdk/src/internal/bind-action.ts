@@ -143,6 +143,7 @@ export interface BoundExecuteHcaCalls {
     parameters: ExecuteHcaCallsParameters,
     options?: Effect.RunOptions,
   ): Promise<HcaExecutionSubmission>;
+
   readonly effect: {
     <Adapter extends ExecutionAdapter>(
       parameters: PrepareHcaCallsParameters & { readonly execution: Adapter },
@@ -153,6 +154,7 @@ export interface BoundExecuteHcaCalls {
     (parameters: ExecuteHcaCallsParameters): Effect.Effect<HcaExecutionSubmission, WriteError>;
   };
 }
+
 export interface BoundWatchHcaExecution {
   (
     parameters: WaitForHcaExecutionParameters,
@@ -160,10 +162,12 @@ export interface BoundWatchHcaExecution {
     onError: (error: WriteError) => void,
     options?: Effect.RunOptions,
   ): Promise<() => void>;
+
   readonly stream: (
     parameters: WaitForHcaExecutionParameters,
   ) => Stream.Stream<HcaExecutionStatus, WriteError>;
 }
+
 export function bindAction(
   config: EnsforgeConfig,
   action: ExecuteHcaCallsAction,
@@ -187,6 +191,7 @@ export function bindAction(config: EnsforgeConfig, action: Callable): Callable {
 
   for (const property of ["effect", "stream"] as const) {
     const extension = Reflect.get(action, property);
+
     if (typeof extension === "function") {
       Object.defineProperty(bound, property, {
         value: (...arguments_: ReadonlyArray<unknown>) =>
@@ -198,8 +203,10 @@ export function bindAction(config: EnsforgeConfig, action: Callable): Callable {
     }
   }
 
+  // Descriptors stay unbound so batches can prepare them with their own execution context.
   for (const property of ["request", "call"] as const) {
     const extension = Reflect.get(action, property);
+
     if (typeof extension === "function") {
       Object.defineProperty(bound, property, {
         value: extension,

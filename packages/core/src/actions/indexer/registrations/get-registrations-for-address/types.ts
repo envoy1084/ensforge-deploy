@@ -6,7 +6,9 @@ import { RegistrationOrder } from "../../models/registration.js";
 import type { GetRegistrationsError, GetRegistrationsResult } from "../get-registrations/types.js";
 
 const PositivePageSize = Schema.Int.pipe(Schema.check(Schema.isGreaterThan(0)));
+
 const NonNegativeBigInt = Schema.BigInt.pipe(Schema.check(Schema.isGreaterThanOrEqualToBigInt(0n)));
+
 const AddressRegistrationFilter = Schema.Struct({
   name: Schema.optional(Schema.Never),
   namehash: Schema.optional(Schema.Never),
@@ -27,4 +29,5 @@ export const GetRegistrationsForAddressParameters = Schema.Struct({
 export type GetRegistrationsForAddressParameters = typeof GetRegistrationsForAddressParameters.Type;
 
 export type GetRegistrationsForAddressResult = GetRegistrationsResult;
+
 export type GetRegistrationsForAddressError = GetRegistrationsError;

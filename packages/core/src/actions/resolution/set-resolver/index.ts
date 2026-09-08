@@ -34,25 +34,31 @@ const preparer: EnsWriteIntentPreparer<SetResolverParameters, WriteError> = Effe
         message: `Invalid resolver address for ${parameters.name}`,
       }),
   });
+
   const account = typeof context.account === "string" ? context.account : context.account.address;
+
   const authorization = yield* getRequiredAuthorization.effect(config, {
     name: parameters.name,
     account,
     operation: { type: "setResolver" },
   });
+
   if (!authorization.target.available) {
     return yield* new AuthorizationError({
       code: "WRITE_TARGET_UNAVAILABLE",
       message: `No resolver-management target is available for ${parameters.name}`,
     });
   }
+
   if (authorization.authorization.status !== "authorized") {
     return yield* new AuthorizationError({
       code: "UNAUTHORIZED",
       message: `${account} is not authorized to set the resolver for ${parameters.name}`,
     });
   }
+
   const target = authorization.target;
+
   const data = yield* Effect.try({
     try: () => {
       if (target.kind === "name-wrapper") {
@@ -62,6 +68,7 @@ const preparer: EnsWriteIntentPreparer<SetResolverParameters, WriteError> = Effe
           args: [target.node, resolver],
         });
       }
+
       if (target.kind === "registry" && target.protocol === "v1") {
         return encodeFunctionData({
           abi: ensRegistryV1SetResolverAbi,
@@ -69,7 +76,9 @@ const preparer: EnsWriteIntentPreparer<SetResolverParameters, WriteError> = Effe
           args: [target.node, resolver],
         });
       }
+
       if (target.tokenId === null) throw new Error("Missing ENSv2 resolver token ID");
+
       return encodeFunctionData({
         abi:
           target.kind === "wrapper-registry"
@@ -86,6 +95,7 @@ const preparer: EnsWriteIntentPreparer<SetResolverParameters, WriteError> = Effe
         cause,
       }),
   });
+
   return { to: target.address, data, value: 0n, protocol: target.protocol };
 });
 
@@ -98,8 +108,10 @@ const implementation = Effect.fn("ensforge.setResolver")(function* (
     parameters,
     preparer,
   );
+
   const result = yield* executeSequential(config, { calls: [intent] });
   const call = result.calls[0];
+
   if (call === undefined) {
     return yield* new WritePlanError({
       code: "INVALID_CALL_PLAN",
@@ -107,6 +119,7 @@ const implementation = Effect.fn("ensforge.setResolver")(function* (
       cause: result,
     });
   }
+
   return call;
 });
 

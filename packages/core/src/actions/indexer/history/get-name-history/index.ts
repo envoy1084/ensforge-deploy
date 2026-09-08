@@ -27,7 +27,9 @@ const getNameHistoryEffect = Effect.fn("ensforge.getNameHistory")(function* (
         }),
     ),
   );
+
   const identity = yield* decodeIndexerNameIdentity(decoded);
+
   return yield* getEventsPageEffect(
     config,
     {

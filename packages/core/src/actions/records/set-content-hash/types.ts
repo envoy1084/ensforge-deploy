@@ -8,4 +8,5 @@ export interface SetContentHashParameters {
 }
 
 export type SetContentHashResult = CallExecutionResult;
+
 export type SetContentHashError = WriteError;

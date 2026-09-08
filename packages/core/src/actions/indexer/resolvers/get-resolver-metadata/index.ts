@@ -32,6 +32,7 @@ const getResolverMetadataEffect = Effect.fn("ensforge.getResolverMetadata")(func
       message: "Indexer actions are disabled for this configuration",
     });
   }
+
   const decoded = yield* Schema.decodeUnknownEffect(GetResolverMetadataParametersSchema)(
     parameters,
   ).pipe(
@@ -43,10 +44,14 @@ const getResolverMetadataEffect = Effect.fn("ensforge.getResolverMetadata")(func
         }),
     ),
   );
+
   const unsupported = getV2IndexerUnsupported(config);
+
   if (unsupported !== null) return unsupported;
+
   const resolver = getAddress(decoded.resolver);
   const operationName = "V2GetResolverMetadata";
+
   const response = yield* requestIndexer<
     V2GetResolverMetadataQuery,
     V2GetResolverMetadataQueryVariables
@@ -56,14 +61,18 @@ const getResolverMetadataEffect = Effect.fn("ensforge.getResolverMetadata")(func
     document: V2GetResolverMetadataDocument,
     variables: { resolver: resolver.toLowerCase() },
   });
+
   const data = yield* requireIndexerData(config, "v2", operationName, response);
+
   if (data.metadata === null) return { status: "supported", value: null };
+
   const indexedBlock = yield* decodeIndexedBlock(
     config,
     "v2",
     operationName,
     data["_meta"].block.number,
   );
+
   return {
     status: "supported",
     value: yield* normalizeV2ResolverMetadata(data.metadata, {

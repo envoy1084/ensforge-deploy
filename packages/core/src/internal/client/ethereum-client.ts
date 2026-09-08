@@ -73,16 +73,19 @@ export const makeEthereumClient = ({
     ReadContext
   > {
     const context = yield* ReadContext;
+
     const block =
       parameters.blockNumber !== undefined
         ? { blockNumber: parameters.blockNumber }
         : parameters.blockTag !== undefined
           ? { blockTag: parameters.blockTag }
           : context.block;
+
     const request = yield* makeContractReadRequest<abi, functionName, args>({
       ...parameters,
       ...block,
     } as ContractReadParameters<abi, functionName, args>);
+
     return yield* executeContractRead(request, context.contractReadResolver);
   });
 

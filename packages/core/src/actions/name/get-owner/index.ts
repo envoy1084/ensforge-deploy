@@ -25,6 +25,7 @@ const getOwnerWithServices = Effect.fn("getOwnerWithServices")(function* (
       return yield* getOwnerV1(name, deployment.profile.v1);
     case "v2": {
       const v1 = deployment.profile.v1;
+
       return v1 === undefined
         ? yield* getOwnerV2(name, deployment.profile.v2)
         : yield* routeOwner(name, v1, deployment.profile.v2);

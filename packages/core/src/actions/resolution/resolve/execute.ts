@@ -20,6 +20,7 @@ export const executeResolveCall = Effect.fn("executeResolveCall")(function* (
   gatewayPolicy?: ResolvedGatewayOptions,
 ) {
   const name = yield* normalizeName.effect(call.name);
+
   const data = yield* Effect.try({
     try: () => Schema.decodeUnknownSync(Hex)(call.data),
     catch: () =>
@@ -28,9 +29,11 @@ export const executeResolveCall = Effect.fn("executeResolveCall")(function* (
         message: "Resolver calldata must be byte-aligned hexadecimal data",
       }),
   });
+
   const dnsName = yield* dnsEncodeName.effect(name);
   const deployment = yield* DeploymentService;
   const protocol = deployment.profile.protocol;
+
   const universalResolver =
     protocol === "v1"
       ? deployment.profile.v1.contracts.universalResolver

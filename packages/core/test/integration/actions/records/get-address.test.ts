@@ -17,6 +17,7 @@ describe("address resolution integration", () => {
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
       const fixture = devnet.fixtures.records.v1;
+
       const [eth, bitcoin] = yield* Effect.all([
         getAddress.effect(devnet.configs.v1, { name: fixture.name }),
         getAddress.effect(devnet.configs.v1, {
@@ -44,6 +45,7 @@ describe("address resolution integration", () => {
   it.effect("resolves migrated v2 and RESERVED v1 records through the v2 Universal Resolver", () =>
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
+
       const [migrated, reservedV1, reserved] = yield* Effect.all([
         getAddress.effect(devnet.configs.v2, { name: devnet.fixtures.records.v2.name }),
         getAddress.effect(devnet.configs.v1, { name: devnet.fixtures.records.reserved.name }),
@@ -72,6 +74,7 @@ describe("address resolution integration", () => {
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
       const fixture = devnet.fixtures.records.v2;
+
       const results = yield* getAddresses.effect(devnet.configs.v2, {
         name: fixture.name,
         coinTypes: [60n, fixture.addresses.bitcoin.coinType, 2n, 60n],
@@ -96,9 +99,11 @@ describe("address resolution integration", () => {
   it.effect("returns structured unset records for names without a resolver", () =>
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
+
       const single = yield* getAddress.effect(devnet.configs.v2, {
         name: devnet.fixtures.v2.noResolver.name,
       });
+
       const multiple = yield* getAddresses.effect(devnet.configs.v2, {
         name: devnet.fixtures.v2.noResolver.name,
         coinTypes: [60n, 0n],
@@ -116,6 +121,7 @@ describe("address resolution integration", () => {
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
       const fixture = devnet.fixtures.records.v2;
+
       const result = yield* readBatch.effect(devnet.configs.v2, {
         address: getAddress.request({ name: fixture.name }),
         addresses: getAddresses.request({ name: fixture.name, coinTypes: [60n, 0n] }),
@@ -134,6 +140,7 @@ describe("address resolution integration", () => {
   it.effect("returns an empty result without resolving when no coin types are requested", () =>
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
+
       const result = yield* getAddresses.effect(devnet.configs.v2, {
         name: devnet.fixtures.records.v2.name,
         coinTypes: [],

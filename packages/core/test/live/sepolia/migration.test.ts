@@ -26,11 +26,14 @@ describe("Sepolia V1 to V2 migration reads", () => {
       assert.isTrue(reserved.status.startsWith("reserved-"));
       assert.isTrue(migrated.status.startsWith("migrated-"));
       assert.strictEqual(native.status, "not-required");
+
       if (native.status === "not-required") {
         assert.strictEqual(String(native.name), sepoliaNames.v2.root);
         assert.strictEqual(native.reason, "V2_NATIVE");
       }
+
       assert.strictEqual(available.status, "not-required");
+
       if (available.status === "not-required") {
         assert.strictEqual(String(available.name), sepoliaNames.v2.available);
         assert.strictEqual(available.reason, "AVAILABLE");
@@ -45,6 +48,7 @@ describe("Sepolia V1 to V2 migration reads", () => {
       });
 
       assert.isTrue(target.supported);
+
       if (target.supported) {
         assert.isTrue(["unwrapped", "wrapped-unlocked", "wrapped-locked"].includes(target.route));
         assert.isTrue(target.tokenId > 0n);
@@ -55,6 +59,7 @@ describe("Sepolia V1 to V2 migration reads", () => {
   it.effect("checks owner eligibility and produces semantic migration plans", () =>
     Effect.gen(function* () {
       const owner = yield* getOwner.effect(sepoliaConfig, { name: sepoliaNames.v1.reserved });
+
       if (owner?.owner === null || owner === null) {
         return yield* Effect.die(new Error("Reserved Sepolia name has no owner"));
       }

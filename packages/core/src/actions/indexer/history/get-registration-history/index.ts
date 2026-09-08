@@ -29,7 +29,9 @@ const getRegistrationHistoryEffect = Effect.fn("ensforge.getRegistrationHistory"
         }),
     ),
   );
+
   const identity = yield* decodeIndexerNameIdentity(decoded);
+
   return yield* getEventsPageEffect(
     config,
     {

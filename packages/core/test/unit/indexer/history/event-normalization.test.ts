@@ -9,6 +9,7 @@ import { normalizeV2Event } from "../../../../src/internal/indexer/normalize/eve
 type V2Event = V2GetEventsQuery["eventConnection"]["edges"][number]["node"];
 
 const address = "0x0000000000000000000000000000000000001000";
+
 const transactionHash = `0x${"ab".repeat(32)}`;
 
 const event = (type: string, data: Readonly<Record<string, unknown>>): V2Event => ({
@@ -59,6 +60,7 @@ describe("indexed event normalization", () => {
           network: "sepolia",
           indexedBlock: 200n,
         });
+
         assert.strictEqual(normalized.kind, expectedKind);
         assert.strictEqual(normalized.raw.type, type);
       }

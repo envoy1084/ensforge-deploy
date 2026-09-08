@@ -19,15 +19,18 @@ const isAvailableEffect = Effect.fn("ensforge.isAvailable")(function* (
   parameters: GetNameStateParameters,
 ) {
   const name = yield* normalizeName.effect(parameters.name);
+
   return yield* executeRead(
     config,
     parameters,
     Effect.gen(function* () {
       const route = yield* readNameRoute(name);
+
       if (route.kind === "reserved") return false;
 
       const analysis = analyzeName(name);
       const ethereum = yield* EthereumClient;
+
       if (route.kind === "v2" || route.kind === "available") {
         return analysis.ethSecondLevelLabel === undefined
           ? route.kind === "available" || route.state.status === 0
@@ -54,6 +57,7 @@ const isAvailableEffect = Effect.fn("ensforge.isAvailable")(function* (
         functionName: "owner",
         args: [namehash(name)],
       });
+
       return isAddressEqual(owner, zeroAddress);
     }),
   );

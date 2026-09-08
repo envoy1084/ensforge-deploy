@@ -19,7 +19,9 @@ const prepare: EnsWriteIntentPreparer<ReclaimNameParameters, WriteError> = Effec
   const name = yield* normalizeName.effect(parameters.name);
   const manager = yield* decodeOwnershipAddress(parameters.manager, "manager");
   const target = yield* getRegistrarTarget(config, name);
+
   yield* requireOwnershipAuthorization(config, name, context.account, { type: "transfer" });
+
   const data = yield* Effect.try({
     try: () =>
       encodeFunctionData({
@@ -34,6 +36,7 @@ const prepare: EnsWriteIntentPreparer<ReclaimNameParameters, WriteError> = Effec
         cause,
       }),
   });
+
   return { to: target.address, data, value: 0n, protocol: "v1" as const };
 });
 

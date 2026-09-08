@@ -15,4 +15,5 @@ export const GetRegistrationHistoryParameters = Schema.Struct({
 export type GetRegistrationHistoryParameters = typeof GetRegistrationHistoryParameters.Type;
 
 export type GetRegistrationHistoryResult = GetEventsResult;
+
 export type GetRegistrationHistoryError = GetEventsError;

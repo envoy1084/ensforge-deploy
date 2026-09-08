@@ -14,6 +14,7 @@ import {
 } from "./scalars.js";
 
 type V1Registration = V1GetRegistrationsQuery["registrations"][number];
+
 type V2Registration = V2GetRegistrationsQuery["registrationConnection"]["edges"][number]["node"];
 
 const normalizeCost = (
@@ -34,6 +35,7 @@ export const normalizeV1Registration = Effect.fn("normalizeV1Registration")(func
   return yield* Effect.try({
     try: () => {
       const namehash = decodeDomainNamehash(wire.domain.id, wire.domain.name);
+
       return Schema.decodeUnknownSync(IndexedRegistration)({
         id: wire.id,
         protocol: "v1",
@@ -69,6 +71,7 @@ export const normalizeV2Registration = Effect.fn("normalizeV2Registration")(func
     try: () => {
       const protocol = Schema.decodeUnknownSync(Schema.Literals(["v1", "v2"]))(wire.protocol);
       const namehash = decodeDomainNamehash(wire.domain.id, wire.name);
+
       return Schema.decodeUnknownSync(IndexedRegistration)({
         id: wire.id,
         protocol,

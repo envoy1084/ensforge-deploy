@@ -14,6 +14,7 @@ export interface IntegrationDevnet extends IntegrationDevnetContext {
 
 export const getIntegrationDevnet = (): IntegrationDevnet => {
   const context = inject("ensDevnet");
+
   const chain = defineChain({
     id: 31_337,
     name: "ensforge integration devnet",
@@ -26,11 +27,14 @@ export const getIntegrationDevnet = (): IntegrationDevnet => {
       },
     },
   });
+
   const transport = http(context.rpcUrl, { retryCount: 0, timeout: 10_000 });
+
   const publicClient = createPublicClient({
     chain,
     transport,
   });
+
   const walletClient = createWalletClient({
     account: context.accounts.owner,
     chain,

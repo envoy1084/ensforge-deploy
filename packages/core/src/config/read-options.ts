@@ -3,6 +3,7 @@ import { Schema } from "effect";
 import { ConfigError } from "../errors/config-error.js";
 
 const PositiveInteger = Schema.Int.pipe(Schema.check(Schema.isGreaterThan(0)));
+
 const ReadOptionsSchema = Schema.Struct({
   concurrency: Schema.optional(PositiveInteger),
   multicallBatchSize: Schema.optional(PositiveInteger),

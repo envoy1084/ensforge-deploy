@@ -63,6 +63,7 @@ export const resolveSubnameRoute = Effect.fn("ensforge.resolveSubnameRoute")(fun
 ): Effect.fn.Return<SubnameRoute, WriteError> {
   const name = yield* normalizeName.effect(input);
   const analysis = analyzeName(name);
+
   if (
     analysis.kind !== "subname" ||
     analysis.parent === undefined ||
@@ -73,14 +74,17 @@ export const resolveSubnameRoute = Effect.fn("ensforge.resolveSubnameRoute")(fun
       message: `${name} is not a subname`,
     });
   }
+
   const parent = analysis.parent;
   const label = analysis.label;
+
   return yield* executeRead(
     config,
     {},
     Effect.gen(function* () {
       const ethereum = yield* EthereumClient;
       const parentRoute = yield* readNameRoute(parent);
+
       const shared = {
         name,
         parent,
@@ -89,9 +93,11 @@ export const resolveSubnameRoute = Effect.fn("ensforge.resolveSubnameRoute")(fun
         parentNode: namehash(parent),
         labelhash: labelhash(label),
       } as const;
+
       if (parentRoute.kind === "v1" || parentRoute.kind === "reserved") {
         const deployment =
           parentRoute.kind === "reserved" ? parentRoute.v1 : parentRoute.deployment;
+
         const [parentWrapped, childWrapped, parentData, childData] = yield* Effect.all(
           [
             ethereum.readContract({
@@ -121,6 +127,7 @@ export const resolveSubnameRoute = Effect.fn("ensforge.resolveSubnameRoute")(fun
           ] as const,
           { concurrency: "unbounded" },
         );
+
         return {
           ...shared,
           protocol: "v1",
@@ -132,19 +139,23 @@ export const resolveSubnameRoute = Effect.fn("ensforge.resolveSubnameRoute")(fun
           childExpiry: childData[2],
         } as const;
       }
+
       if (parentRoute.kind === "available") {
         return yield* new NameError({
           code: "INVALID_NAME",
           message: `Parent ${parent} is not registered`,
         });
       }
+
       const subregistryAddress = yield* ethereum.readContract({
         address: parentRoute.parentRegistry,
         abi: permissionedRegistryV2InterfaceGetSubregistryAbi,
         functionName: "getSubregistry",
         args: [parentRoute.label],
       });
+
       const subregistry = subregistryAddress === zeroAddress ? null : subregistryAddress;
+
       const childState =
         subregistry === null
           ? null
@@ -154,6 +165,7 @@ export const resolveSubnameRoute = Effect.fn("ensforge.resolveSubnameRoute")(fun
               functionName: "getState",
               args: [BigInt(shared.labelhash)],
             });
+
       return {
         ...shared,
         protocol: "v2",

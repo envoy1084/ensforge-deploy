@@ -27,7 +27,9 @@ const configFor = (devnet: IntegrationDevnet, protocol: "v1" | "v2", account: `0
     rpcUrls: { default: { http: [devnet.rpcUrl] } },
     contracts: { multicall3: { address: devnet.deployments.multicall3, blockCreated: 0 } },
   });
+
   const transport = http(devnet.rpcUrl, { retryCount: 0, timeout: 10_000 });
+
   return createTestConfig({
     deployments:
       protocol === "v1"
@@ -51,6 +53,7 @@ describe("ownership writes integration", () => {
 
       yield* setTtl.effect(devnet.configs.v1, { name: unwrapped, ttl: 120n });
       yield* setTtl.effect(devnet.configs.v1, { name: wrapped, ttl: 240n });
+
       const [unwrappedTtl, wrappedTtl, v2Ttl] = yield* Effect.all(
         [
           getTtl.effect(devnet.configs.v1, { name: unwrapped }),
@@ -59,6 +62,7 @@ describe("ownership writes integration", () => {
         ] as const,
         { concurrency: "unbounded" },
       );
+
       yield* setTtl.effect(devnet.configs.v1, { name: unwrapped, ttl: 0n });
       yield* setTtl.effect(devnet.configs.v1, { name: wrapped, ttl: 0n });
 
@@ -79,16 +83,20 @@ describe("ownership writes integration", () => {
       const owner2Config = configFor(devnet, "v1", devnet.accounts.owner2);
 
       yield* setManager.effect(devnet.configs.v1, { name, manager: devnet.accounts.owner2 });
+
       const afterManager = yield* Effect.all({
         manager: getManager.effect(devnet.configs.v1, { name }),
         registrant: getRegistrant.effect(devnet.configs.v1, { name }),
       });
+
       yield* reclaimName.effect(devnet.configs.v1, { name, manager: devnet.accounts.owner });
       yield* transferRegistrant.effect(devnet.configs.v1, { name, to: devnet.accounts.owner2 });
+
       const afterRegistrant = yield* Effect.all({
         manager: getManager.effect(devnet.configs.v1, { name }),
         registrant: getRegistrant.effect(devnet.configs.v1, { name }),
       });
+
       yield* reclaimName.effect(owner2Config, { name, manager: devnet.accounts.owner });
       yield* transferRegistrant.effect(owner2Config, { name, to: devnet.accounts.owner });
 
@@ -111,10 +119,12 @@ describe("ownership writes integration", () => {
         to: devnet.accounts.owner2,
         mode: "sequential",
       });
+
       const wrappedTransfer = yield* transferName.effect(devnet.configs.v1, {
         name: wrapped,
         to: devnet.accounts.owner2,
       });
+
       yield* transferName.effect(owner2Config, { name: unwrapped, to: devnet.accounts.owner });
       yield* transferName.effect(owner2Config, { name: wrapped, to: devnet.accounts.owner });
 
@@ -140,18 +150,22 @@ describe("ownership writes integration", () => {
         account: devnet.accounts.owner,
         operation: { type: "transfer" },
       });
+
       const nativeTransfer = yield* transferName.effect(devnet.configs.v2, {
         name: native,
         to: devnet.accounts.owner2,
       });
+
       const migratedTransfer = yield* transferName.effect(devnet.configs.v2, {
         name: migrated,
         to: devnet.accounts.owner2,
       });
+
       const migratedWrappedTransfer = yield* transferName.effect(devnet.configs.v2, {
         name: migratedWrapped,
         to: devnet.accounts.owner2,
       });
+
       yield* transferName.effect(owner2Config, { name: native, to: devnet.accounts.owner });
       yield* transferName.effect(owner2Config, { name: migrated, to: devnet.accounts.owner });
       yield* transferName.effect(owner2Config, {
@@ -184,10 +198,12 @@ describe("ownership writes integration", () => {
         to: devnet.accounts.owner2,
         mode: "sequential",
       });
+
       const second = yield* transferName.effect(devnet.configs.v2, {
         name: wrapped,
         to: devnet.accounts.owner2,
       });
+
       yield* transferName.effect(owner2Config, { name: unwrapped, to: devnet.accounts.owner });
       yield* transferName.effect(owner2Config, { name: wrapped, to: devnet.accounts.owner });
 
@@ -203,6 +219,7 @@ describe("ownership writes integration", () => {
   it.effect("rejects unavailable ownership targets and unsafe recipients", () =>
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
+
       const [registrarOperator, wrapperOperator, v2Operator] = yield* Effect.all(
         [
           getRequiredAuthorization.effect(devnet.configs.v1, {
@@ -223,23 +240,27 @@ describe("ownership writes integration", () => {
         ] as const,
         { concurrency: "unbounded" },
       );
+
       const wrappedManager = yield* setManager
         .effect(devnet.configs.v1, {
           name: devnet.fixtures.v1.activeWrapped.name,
           manager: devnet.accounts.owner2,
         })
         .pipe(Effect.flip);
+
       const zeroRecipient = yield* transferName
         .effect(devnet.configs.v1, {
           name: devnet.fixtures.v1.activeUnwrapped.name,
           to: "0x0000000000000000000000000000000000000000",
         })
         .pipe(Effect.flip);
+
       const partial = yield* transferName.effect(devnet.configs.v1, {
         name: devnet.fixtures.v1.recordWrites.name,
         to: devnet.deployments.v1.contracts.registry,
         mode: "sequential",
       });
+
       yield* reclaimName.effect(devnet.configs.v1, {
         name: devnet.fixtures.v1.recordWrites.name,
         manager: devnet.accounts.owner,

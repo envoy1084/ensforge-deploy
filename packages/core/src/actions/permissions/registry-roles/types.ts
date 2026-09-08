@@ -8,15 +8,22 @@ export interface RegistryRolesMutationParameters {
 }
 
 export type GrantRegistryRolesParameters = RegistryRolesMutationParameters;
+
 export type RevokeRegistryRolesParameters = RegistryRolesMutationParameters;
+
 export type GrantRegistryRolesResult = CallExecutionResult;
+
 export type RevokeRegistryRolesResult = CallExecutionResult;
+
 export type GrantRegistryRolesError = WriteError;
+
 export type RevokeRegistryRolesError = WriteError;
+
 export type GrantRegistryRolesIntent = EnsWriteIntent<
   GrantRegistryRolesResult,
   GrantRegistryRolesError
 >;
+
 export type RevokeRegistryRolesIntent = EnsWriteIntent<
   RevokeRegistryRolesResult,
   RevokeRegistryRolesError

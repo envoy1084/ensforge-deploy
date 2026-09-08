@@ -12,6 +12,7 @@ import { makeReadExecution, ReadContext } from "../../../../src/internal/read/ex
 import { resolveName } from "../../../../src/internal/resolver/resolve-name.js";
 
 const universalResolver = "0x0000000000000000000000000000000000000001" as const;
+
 const resolver = "0x0000000000000000000000000000000000000002" as const;
 
 describe("resolveName", () => {
@@ -21,6 +22,7 @@ describe("resolveName", () => {
       const multicall = vi.fn();
       const publicClient = { readContract, multicall } as unknown as PublicClient;
       const ethereum = makeEthereumClient({ publicClient });
+
       const context = yield* makeReadExecution({ publicClient }).makeContext({
         consistency: "best-effort",
         blockNumber: 123n,

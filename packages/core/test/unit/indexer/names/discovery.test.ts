@@ -17,10 +17,12 @@ import {
 } from "../../fixtures/client-fixtures.js";
 
 const owner = "0x000000000000000000000000000000000000bEEF" as const;
+
 const response = (data: unknown) =>
   new Response(JSON.stringify(data), {
     headers: { "content-type": "application/json" },
   });
+
 const operation = (init: RequestInit | undefined) =>
   JSON.parse(String(init?.body)) as {
     readonly query: string;
@@ -29,6 +31,7 @@ const operation = (init: RequestInit | undefined) =>
 
 const v1Name = (name: string, createdAt: number) => {
   const [label = ""] = name.split(".");
+
   return {
     id: namehash(name),
     name,
@@ -56,6 +59,7 @@ const v1Name = (name: string, createdAt: number) => {
 
 const v2Name = (name: string, createdAt: number) => {
   const [label = ""] = name.split(".");
+
   return {
     id: name,
     protocol: "v2",
@@ -105,6 +109,7 @@ describe("indexed discovery actions", () => {
             },
           }),
         );
+
       const config = createConfig({
         network: "mainnet",
         publicClient: makeMainnetPublicClient(),
@@ -112,8 +117,11 @@ describe("indexed discovery actions", () => {
       });
 
       const first = yield* getNamesForAddress.effect(config, { address: owner, pageSize: 1 });
+
       assert.deepStrictEqual(first.items[0]?.relations, ["owner"]);
+
       if (first.pageInfo.cursor === null) return assert.fail("expected another relation page");
+
       const second = yield* getNamesForAddress.effect(config, {
         address: owner,
         pageSize: 1,
@@ -131,9 +139,12 @@ describe("indexed discovery actions", () => {
       const bob = v2Name("bob.eth", 20);
       const carol = v2Name("carol.eth", 10);
       const operations: Array<string> = [];
+
       const fetch: typeof globalThis.fetch = (_input, init) => {
         const request = operation(init);
+
         operations.push(request.query);
+
         return Promise.resolve(
           request.query.includes("V2GetRelatedNames")
             ? response({ data: { _meta: { block: { number: 200 } }, domains: [carol] } })
@@ -154,6 +165,7 @@ describe("indexed discovery actions", () => {
               }),
         );
       };
+
       const config = createConfig({
         network: "sepolia",
         publicClient: makeSepoliaPublicClient(),
@@ -184,6 +196,7 @@ describe("indexed discovery actions", () => {
   it.effect("marks resolved-address discovery as indexed and unverified", () =>
     Effect.gen(function* () {
       const resolved = { ...v1Name("alice.eth", 10), resolvedAddress: { id: owner.toLowerCase() } };
+
       const config = createConfig({
         network: "mainnet",
         publicClient: makeMainnetPublicClient(),
@@ -207,11 +220,14 @@ describe("indexed discovery actions", () => {
     Effect.gen(function* () {
       const fetch: typeof globalThis.fetch = (_input, init) => {
         const request = operation(init);
+
         assert.deepInclude(request.variables.where, { labelName_starts_with_nocase: "ali" });
+
         return Promise.resolve(
           response({ data: { _meta: { block: { number: 100 } }, domains: [] } }),
         );
       };
+
       const config = createConfig({
         network: "mainnet",
         publicClient: makeMainnetPublicClient(),
@@ -222,6 +238,7 @@ describe("indexed discovery actions", () => {
         query: "ali",
         mode: "starts-with",
       });
+
       assert.isEmpty(page.items);
     }),
   );
@@ -229,6 +246,7 @@ describe("indexed discovery actions", () => {
   it.effect("reads direct V2 children through the parent subregistry", () =>
     Effect.gen(function* () {
       const child = v2Name("child.parent.eth", 10);
+
       const config = createConfig({
         network: "sepolia",
         publicClient: makeSepoliaPublicClient(),
@@ -262,8 +280,10 @@ describe("indexed discovery actions", () => {
     Effect.gen(function* () {
       const legacy = { ...v1Name("child.parent.eth", 10), isMigrated: true };
       const migrated = { ...v2Name("child.parent.eth", 10), isMigrated: true };
+
       const fetch: typeof globalThis.fetch = (_input, init) => {
         const request = operation(init);
+
         return Promise.resolve(
           request.query.includes("V1GetSubnames")
             ? response({
@@ -284,6 +304,7 @@ describe("indexed discovery actions", () => {
               }),
         );
       };
+
       const config = createConfig({
         network: "sepolia",
         publicClient: makeSepoliaPublicClient(),
@@ -305,6 +326,7 @@ describe("indexed discovery actions", () => {
         v2Name("three.parent.eth", 20),
         v2Name("four.parent.eth", 10),
       ];
+
       const config = createConfig({
         network: "sepolia",
         publicClient: makeSepoliaPublicClient(),
@@ -324,8 +346,11 @@ describe("indexed discovery actions", () => {
       });
 
       const first = yield* getSubnames.effect(config, { name: "parent.eth", pageSize: 2 });
+
       assert.isNotNull(first.pageInfo.cursor);
+
       if (first.pageInfo.cursor === null) return;
+
       const second = yield* getSubnames.effect(config, {
         name: "parent.eth",
         pageSize: 2,
@@ -348,8 +373,10 @@ describe("indexed discovery actions", () => {
     Effect.gen(function* () {
       const hash = labelhash("known");
       const encoded = `[${hash.slice(2)}].eth`;
+
       const fetch: typeof globalThis.fetch = (_input, init) => {
         const request = operation(init);
+
         return Promise.resolve(
           request.query.includes("V1GetLabel")
             ? response({
@@ -361,6 +388,7 @@ describe("indexed discovery actions", () => {
             : response({ data: { _meta: { block: { number: 100 } }, domain: null } }),
         );
       };
+
       const config = createConfig({
         network: "mainnet",
         publicClient: makeMainnetPublicClient(),
@@ -377,14 +405,17 @@ describe("indexed discovery actions", () => {
     Effect.gen(function* () {
       const hash = labelhash("missing");
       const encoded = `[${hash.slice(2)}].eth`;
+
       const fetch: typeof globalThis.fetch = (_input, init) => {
         const request = operation(init);
+
         return Promise.resolve(
           request.query.includes("V1GetLabel")
             ? response({ data: { _meta: { block: { number: 100 } }, domains: [] } })
             : response({ data: { _meta: { block: { number: 100 } }, domain: null } }),
         );
       };
+
       const config = createConfig({
         network: "mainnet",
         publicClient: makeMainnetPublicClient(),
@@ -392,6 +423,7 @@ describe("indexed discovery actions", () => {
       });
 
       const completeOnly = yield* getDecodedName.effect(config, { name: encoded });
+
       const incomplete = yield* getDecodedName.effect(config, {
         name: encoded,
         allowIncomplete: true,

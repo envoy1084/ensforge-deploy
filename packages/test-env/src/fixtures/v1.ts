@@ -16,7 +16,9 @@ import { seedRead, seedTransaction } from "./contract.js";
 import type { EnsNameFixture, EnsV1FixtureManifest } from "./manifest.js";
 
 const day = 86_400;
+
 const v1GracePeriod = 90 * day;
+
 const activeDuration = BigInt(365 * day);
 
 const registrarSecurityControllerAbi = [
@@ -68,6 +70,7 @@ const registerV1 = Effect.fn("registerV1")(function* (
     },
     `Unable to register ${label}.eth in ENS v1`,
   );
+
   return yield* seedRead(
     () =>
       environment.clients.publicClient.readContract({
@@ -89,6 +92,7 @@ const activeV1Fixture = Effect.fn("activeV1Fixture")(function* (
   const owner = environment.accounts[ownerRole];
   const expiry = yield* registerV1(environment, label, activeDuration, owner);
   const node = namehash(`${label}.eth`);
+
   if (resolver !== zeroAddress) {
     yield* seedTransaction(
       environment,
@@ -113,6 +117,7 @@ const activeV1Fixture = Effect.fn("activeV1Fixture")(function* (
       ownerRole,
     );
   }
+
   return { expiry, node };
 });
 
@@ -128,6 +133,7 @@ export const seedV1Fixtures = Effect.fn("seedV1Fixtures")(function* (
       }),
     "Unable to discover the ENS v1 registrar security controller",
   );
+
   yield* seedTransaction(
     environment,
     {
@@ -163,26 +169,33 @@ export const seedV1Fixtures = Effect.fn("seedV1Fixtures")(function* (
   );
 
   const expiredExpiry = yield* registerV1(environment, "v1-expired", 1n);
+
   yield* environment.state.advanceTime(v1GracePeriod + 2);
+
   const graceExpiry = yield* registerV1(environment, "v1-grace", 1n);
   const renewalGraceExpiry = yield* registerV1(environment, "v1-renewal-grace", 1n);
+
   yield* environment.state.advanceTime(2);
 
   const activeUnwrapped = yield* activeV1Fixture(environment, "v1-unwrapped");
   const noResolver = yield* activeV1Fixture(environment, "v1-no-resolver", zeroAddress);
   const wrapped = yield* activeV1Fixture(environment, "v1-wrapped");
+
   const differentOwner = yield* activeV1Fixture(
     environment,
     "v1-owner2",
     environment.deployments.v1.contracts.publicResolver,
     "owner2",
   );
+
   const recordWrites = yield* activeV1Fixture(environment, "v1-record-writes");
+
   const resolverLifecycle = yield* activeV1Fixture(
     environment,
     "v1-resolver-lifecycle",
     zeroAddress,
   );
+
   const renewal = yield* activeV1Fixture(environment, "v1-renewal", zeroAddress);
   const renewalBatchOne = yield* activeV1Fixture(environment, "v1-renewal-batch-one", zeroAddress);
   const renewalBatchTwo = yield* activeV1Fixture(environment, "v1-renewal-batch-two", zeroAddress);
@@ -270,6 +283,7 @@ export const seedV1Fixtures = Effect.fn("seedV1Fixtures")(function* (
 
   const publicResolver = environment.deployments.v1.contracts.publicResolver;
   const owner = environment.accounts.owner;
+
   const manifest = {
     seededAt: (yield* seedRead(
       () => environment.clients.publicClient.getBlock(),
@@ -397,6 +411,7 @@ export const seedV1Fixtures = Effect.fn("seedV1Fixtures")(function* (
       ]),
     "Unable to verify the seeded ENS v1 fixtures",
   );
+
   if (
     activeOwner.toLowerCase() !== environment.accounts.owner.toLowerCase() ||
     wrappedOwner.toLowerCase() !== environment.accounts.owner.toLowerCase() ||
@@ -411,5 +426,6 @@ export const seedV1Fixtures = Effect.fn("seedV1Fixtures")(function* (
   }
 
   yield* environment.state.checkpoint;
+
   return manifest;
 });

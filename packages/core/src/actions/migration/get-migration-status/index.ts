@@ -26,20 +26,24 @@ const getMigrationStatusEffect = Effect.fn("ensforge.getMigrationStatus")(functi
 ) {
   const name = yield* normalizeName.effect(parameters.name);
   const analysis = analyzeName(name);
+
   return yield* executeRead(
     config,
     parameters,
     Effect.gen(function* () {
       const { profile } = yield* DeploymentService;
+
       if (profile.protocol === "v1") {
         return { status: "unsupported", name, reason: "ENSV2_NOT_ACTIVE" } as const;
       }
+
       if (!analysis.isEth || analysis.depth < 2) {
         return { status: "unsupported", name, reason: "NOT_ETH_NAME" } as const;
       }
 
       const ethereum = yield* EthereumClient;
       const v1 = profile.v1;
+
       if (v1 !== undefined && analysis.parent !== undefined && analysis.depth > 2) {
         const wrapped = yield* ethereum.readContract({
           address: v1.contracts.nameWrapper,
@@ -47,6 +51,7 @@ const getMigrationStatusEffect = Effect.fn("ensforge.getMigrationStatus")(functi
           functionName: "isWrapped",
           args: [namehash(name)],
         });
+
         if (wrapped) {
           const [, fuses] = yield* ethereum.readContract({
             address: v1.contracts.nameWrapper,
@@ -54,15 +59,18 @@ const getMigrationStatusEffect = Effect.fn("ensforge.getMigrationStatus")(functi
             functionName: "getData",
             args: [BigInt(namehash(name))],
           });
+
           const parentRegistry = yield* ethereum.readContract({
             address: profile.v2.contracts.universalResolver,
             abi: universalResolverV2FindExactRegistryAbi,
             functionName: "findExactRegistry",
             args: [yield* dnsEncodeName.effect(analysis.parent)],
           });
+
           if (!isAddressEqual(parentRegistry, zeroAddress)) {
             return { status: "mirrored-child", name, parentRegistry, fuses } as const;
           }
+
           return {
             status: "locked-child-pending-parent",
             name,
@@ -73,9 +81,11 @@ const getMigrationStatusEffect = Effect.fn("ensforge.getMigrationStatus")(functi
       }
 
       const state = yield* getNameState.effect(config, parameters);
+
       if (state.kind === "v2-native") {
         return { status: "not-required", name, reason: "V2_NATIVE" } as const;
       }
+
       if (state.kind === "v2-migrated") {
         return state.wrapped
           ? ({ status: "migrated-locked", name, registry: state.registry } as const)
@@ -87,12 +97,15 @@ const getMigrationStatusEffect = Effect.fn("ensforge.getMigrationStatus")(functi
           ? ({ status: "not-required", name, reason: "AVAILABLE" } as const)
           : ({ status: "unsupported", name, reason: "NAME_NOT_RESERVED" } as const);
       }
+
       if (state.kind === "available") {
         return { status: "not-required", name, reason: "AVAILABLE" } as const;
       }
+
       if (state.kind !== "v2-reserved") {
         return { status: "unsupported", name, reason: "NAME_NOT_RESERVED" } as const;
       }
+
       if (!state.wrapped) return { status: "reserved-unwrapped", name } as const;
 
       const [, fuses] = yield* ethereum.readContract({
@@ -101,6 +114,7 @@ const getMigrationStatusEffect = Effect.fn("ensforge.getMigrationStatus")(functi
         functionName: "getData",
         args: [BigInt(namehash(name))],
       });
+
       return (fuses & nameWrapperFuses.cannotUnwrap) === nameWrapperFuses.cannotUnwrap
         ? ({ status: "reserved-wrapped-locked", name, fuses } as const)
         : ({ status: "reserved-wrapped-unlocked", name, fuses } as const);

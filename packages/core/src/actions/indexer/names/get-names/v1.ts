@@ -38,6 +38,7 @@ export const queryV1Names = Effect.fn("queryV1Names")(function* (
 ): Effect.fn.Return<IndexerSourcePageResult<IndexedName, GetNamesError>, IndexerPaginationError> {
   const decodedPosition =
     position === null ? undefined : yield* decodeV1NamePosition(position, order);
+
   const result = yield* Effect.gen(function* () {
     const variables = {
       first: limit + 1,
@@ -47,19 +48,23 @@ export const queryV1Names = Effect.fn("queryV1Names")(function* (
       ),
       ...compileV1NameOrder(order),
     } as V1GetNamesQueryVariables;
+
     const response = yield* requestIndexer<V1GetNamesQuery, V1GetNamesQueryVariables>(config, {
       protocol: "v1",
       operationName,
       document: V1GetNamesDocument,
       variables,
     });
+
     const data = yield* requireIndexerData(config, "v1", operationName, response);
+
     const indexedBlock = yield* decodeIndexedBlock(
       config,
       "v1",
       operationName,
       data["_meta"].block.number,
     );
+
     const names = yield* Effect.all(
       data.domains.map((domain) =>
         normalizeV1IndexedName(domain, {
@@ -93,6 +98,7 @@ export const queryV1Names = Effect.fn("queryV1Names")(function* (
       },
     };
   }
+
   return {
     status: "complete",
     page: result.success.page,

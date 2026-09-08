@@ -26,18 +26,21 @@ export const createSubmissionPersistence = <S>(
   context: { readonly chainId: number; readonly profileId: string },
 ) => {
   const schema = Schema.Struct({ ...executionSubmissionSchema.fields, payload: codec.schema });
+
   const json = Schema.fromJsonString(
     Schema.Struct({
       codecVersion: Schema.Literal(codec.version),
       submission: Schema.toCodecJson(schema),
     }),
   );
+
   const validate = (input: unknown): ExecutionSubmission<S> => {
     try {
       // Validate the decoded side without applying codec transformations twice.
       const value = Schema.decodeUnknownSync(Schema.toType(schema), { onExcessProperty: "error" })(
         input,
       );
+
       if (
         value.chainId !== context.chainId ||
         value.profileId !== context.profileId ||
@@ -46,8 +49,10 @@ export const createSubmissionPersistence = <S>(
         value.configurationFingerprint !== fingerprint
       )
         throw new Error("Adapter configuration mismatch");
+
       if (value.locator.kind !== "intent" && value.locator.chainId !== value.chainId)
         throw new Error("Locator chain mismatch");
+
       return value;
     } catch (cause) {
       throw new HcaError({
@@ -57,6 +62,7 @@ export const createSubmissionPersistence = <S>(
       });
     }
   };
+
   return {
     validate,
     serializeSubmission: (input: ExecutionSubmission<S>): string => {
@@ -81,7 +87,9 @@ export const createSubmissionPersistence = <S>(
         const { submission } = Schema.decodeUnknownSync(json, { onExcessProperty: "error" })(
           serialized,
         );
+
         const value = validate(submission);
+
         if (
           value.chainId !== expected.chainId ||
           value.hca.toLowerCase() !== expected.hca.toLowerCase() ||
@@ -89,6 +97,7 @@ export const createSubmissionPersistence = <S>(
           value.planFingerprint !== expected.planFingerprint
         )
           throw new Error("Restored submission does not match the expected operation");
+
         return value;
       } catch (cause) {
         throw new HcaError({

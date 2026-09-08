@@ -33,6 +33,7 @@ describe("avatar gateway policy", () => {
         allowedHosts: null,
         deniedHosts: ["blocked.example"],
       }).pipe(Effect.flip);
+
       const unlisted = yield* validateGatewayUrl("https://other.example/value", {
         ...defaultGatewayOptions,
         allowedHosts: ["gateway.example"],

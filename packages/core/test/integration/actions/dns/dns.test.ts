@@ -18,6 +18,7 @@ describe("DNS reads integration", () => {
       const devnet = getIntegrationDevnet();
       const v1 = devnet.fixtures.records.v1;
       const v2 = devnet.fixtures.records.v2;
+
       const result = yield* Effect.all(
         {
           v1Record: getDnsRecord.effect(devnet.configs.v1, {
@@ -47,6 +48,7 @@ describe("DNS reads integration", () => {
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
       const fixture = devnet.fixtures.records.v1;
+
       const result = yield* readBatch.effect(devnet.configs.v1, {
         exists: hasDnsRecords.request({
           name: fixture.name,
@@ -75,6 +77,7 @@ describe("DNS reads integration", () => {
   it.effect("keeps external DNSSEC proof acquisition outside core reads", () =>
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
+
       const [claimed, claimRequired, importPlan] = yield* Effect.all(
         [
           getDnsClaimStatus.effect(devnet.configs.v1, {
@@ -89,6 +92,7 @@ describe("DNS reads integration", () => {
       assert.strictEqual(claimed.status, "claimed");
       assert.strictEqual(claimRequired.status, "proof-required");
       assert.strictEqual(importPlan.status, "proof-required");
+
       if (importPlan.status === "proof-required") {
         assert.strictEqual(importPlan.registrar, devnet.deployments.v1.contracts.dnsRegistrar);
         assert.strictEqual(importPlan.oracle, devnet.deployments.v1.contracts.dnssecOracle);

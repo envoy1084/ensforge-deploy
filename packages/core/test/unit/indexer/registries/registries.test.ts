@@ -16,13 +16,18 @@ import {
 } from "../../fixtures/client-fixtures.js";
 
 const registry = "0x0000000000000000000000000000000000001000" as const;
+
 const parentRegistry = "0x0000000000000000000000000000000000002000" as const;
+
 const owner = "0x0000000000000000000000000000000000003000" as const;
+
 const account = "0x0000000000000000000000000000000000004000" as const;
+
 const transactionHash = `0x${"ab".repeat(32)}` as const;
 
 const response = (data: unknown) =>
   new Response(JSON.stringify({ data }), { headers: { "content-type": "application/json" } });
+
 const request = (init: RequestInit | undefined) =>
   JSON.parse(String(init?.body)) as {
     readonly query: string;
@@ -45,6 +50,7 @@ const registryWire = (name = "alice.eth") => ({
 
 const nameWire = (name: string) => {
   const [label = ""] = name.split(".");
+
   return {
     id: name,
     protocol: "v2",
@@ -82,8 +88,10 @@ describe("indexed registries", () => {
     Effect.gen(function* () {
       const fetch: typeof globalThis.fetch = (_input, init) => {
         const operation = request(init);
+
         assert.include(operation.query, "V2GetRegistryByName");
         assert.strictEqual(operation.variables.name, "alice.eth");
+
         return Promise.resolve(
           response({
             _meta: { block: { number: 500 } },
@@ -91,6 +99,7 @@ describe("indexed registries", () => {
           }),
         );
       };
+
       const config = createConfig({
         network: "sepolia",
         publicClient: makeSepoliaPublicClient(),
@@ -98,8 +107,11 @@ describe("indexed registries", () => {
       });
 
       const result = yield* getRegistry.effect(config, { name: "ALICE.eth" });
+
       assert.strictEqual(result.status, "supported");
+
       if (result.status !== "supported") return;
+
       assert.strictEqual(result.value?.address, registry);
       assert.strictEqual(result.value?.labelCount, 2);
       assert.strictEqual(result.value?.source.indexedBlock, 500n);
@@ -115,6 +127,7 @@ describe("indexed registries", () => {
             registries: [registryWire("alice.eth"), registryWire("bob.eth")],
           }),
         );
+
       const config = createConfig({
         network: "sepolia",
         publicClient: makeSepoliaPublicClient(),
@@ -122,17 +135,23 @@ describe("indexed registries", () => {
       });
 
       const first = yield* getRegistriesForAddress.effect(config, { address: owner, pageSize: 1 });
+
       assert.strictEqual(first.status, "supported");
+
       if (first.status !== "supported" || first.value.pageInfo.cursor === null) {
         return assert.fail("expected a registry cursor");
       }
+
       const second = yield* getRegistriesForAddress.effect(config, {
         address: owner,
         pageSize: 1,
         cursor: first.value.pageInfo.cursor,
       });
+
       assert.strictEqual(second.status, "supported");
+
       if (second.status !== "supported") return;
+
       assert.strictEqual(second.value.items[0]?.managedName.value, "bob.eth");
       assert.isFalse(second.value.pageInfo.hasNextPage);
     }),
@@ -142,7 +161,9 @@ describe("indexed registries", () => {
     Effect.gen(function* () {
       const fetch: typeof globalThis.fetch = (_input, init) => {
         const operation = request(init);
+
         assert.include(operation.query, "V2GetRegistryReferences");
+
         return Promise.resolve(
           response({
             _meta: { block: { number: 500 } },
@@ -155,6 +176,7 @@ describe("indexed registries", () => {
           }),
         );
       };
+
       const config = createConfig({
         network: "sepolia",
         publicClient: makeSepoliaPublicClient(),
@@ -165,8 +187,11 @@ describe("indexed registries", () => {
         address: registry,
         relationship: "referenced-by",
       });
+
       assert.strictEqual(result.status, "supported");
+
       if (result.status !== "supported") return;
+
       assert.deepInclude(result.value.items[0], { relationship: "referenced-by" });
     }),
   );
@@ -175,8 +200,10 @@ describe("indexed registries", () => {
     Effect.gen(function* () {
       const fetch: typeof globalThis.fetch = (_input, init) => {
         const operation = request(init);
+
         assert.strictEqual(operation.variables.registry, registry.toLowerCase());
         assert.strictEqual(operation.variables.resource, "1");
+
         return Promise.resolve(
           response({
             _meta: { block: { number: 500 } },
@@ -216,6 +243,7 @@ describe("indexed registries", () => {
           }),
         );
       };
+
       const config = createConfig({
         network: "sepolia",
         publicClient: makeSepoliaPublicClient(),
@@ -226,8 +254,11 @@ describe("indexed registries", () => {
         registry,
         filter: { resource: "1", active: true, permission: "SET_RESOLVER" },
       });
+
       assert.strictEqual(result.status, "supported");
+
       if (result.status !== "supported") return;
+
       assert.lengthOf(result.value.items, 1);
       assert.strictEqual(result.value.items[0]?.bitmap, "0x01");
       assert.deepStrictEqual(result.value.items[0]?.permissions, ["SET_RESOLVER"]);
@@ -240,7 +271,9 @@ describe("indexed registries", () => {
         network: "mainnet",
         publicClient: makeMainnetPublicClient(),
       });
+
       const result = yield* getRegistry.effect(config, { address: registry });
+
       assert.deepStrictEqual(result, {
         status: "unsupported",
         network: "mainnet",

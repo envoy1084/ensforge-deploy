@@ -46,6 +46,7 @@ export const runProcess = (
       });
     } catch (cause) {
       resume(Effect.fail(cause instanceof Error ? cause : new Error(String(cause))));
+
       return;
     }
 
@@ -57,11 +58,13 @@ export const runProcess = (
     });
     child.once("error", (cause) => {
       if (settled) return;
+
       settled = true;
       resume(Effect.fail(cause));
     });
     child.once("close", (exitCode) => {
       if (settled) return;
+
       settled = true;
       resume(Effect.succeed({ exitCode, stdout, stderr }));
     });

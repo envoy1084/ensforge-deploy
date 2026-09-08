@@ -30,7 +30,9 @@ export const resolveDnsRecords = Effect.fn("resolveDnsRecords")(function* (
         }),
     }),
   );
+
   const encoded = yield* resolveRecords(name, calls);
+
   if (encoded === null) return null;
 
   return yield* Effect.forEach(encoded, (value, index) =>

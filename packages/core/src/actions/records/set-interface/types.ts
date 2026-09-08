@@ -7,4 +7,5 @@ export interface SetInterfaceParameters {
 }
 
 export type SetInterfaceResult = CallExecutionResult;
+
 export type SetInterfaceError = WriteError;

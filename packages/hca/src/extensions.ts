@@ -8,10 +8,12 @@ export const requireExecutionExtension = <E extends ExecutionExtensions, K exten
   name: K,
 ): NonNullable<E[K]> => {
   const extension = adapter.extensions[name];
+
   if (extension === undefined || extension === null)
     throw new HcaError({
       code: "UNSUPPORTED_CAPABILITY",
       message: `Execution extension ${String(name)} is unavailable`,
     });
+
   return extension;
 };

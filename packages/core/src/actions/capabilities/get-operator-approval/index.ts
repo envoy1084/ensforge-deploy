@@ -40,6 +40,7 @@ const getOperatorApprovalEffect = Effect.fn("ensforge.getOperatorApproval")(func
   parameters: GetOperatorApprovalParameters,
 ) {
   const name = yield* normalizeName.effect(parameters.name);
+
   return yield* executeRead(
     config,
     parameters,
@@ -47,14 +48,17 @@ const getOperatorApprovalEffect = Effect.fn("ensforge.getOperatorApproval")(func
       const route = yield* readNameRoute(name);
       const ethereum = yield* EthereumClient;
       const targets: Array<OperatorApprovalTarget> = [];
+
       if (route.kind === "v1" || route.kind === "reserved") {
         const deployment = route.kind === "reserved" ? route.v1 : route.deployment;
+
         const registryApproved = yield* ethereum.readContract({
           address: deployment.contracts.registry,
           abi: ensRegistryV1IsApprovedForAllAbi,
           functionName: "isApprovedForAll",
           args: [parameters.owner, parameters.operator],
         });
+
         targets.push({
           kind: "registry",
           address: deployment.contracts.registry,
@@ -69,6 +73,7 @@ const getOperatorApprovalEffect = Effect.fn("ensforge.getOperatorApproval")(func
             functionName: "isApprovedForAll",
             args: [parameters.owner, parameters.operator],
           });
+
           targets.push({
             kind: "registrar",
             address: deployment.contracts.baseRegistrar,
@@ -83,6 +88,7 @@ const getOperatorApprovalEffect = Effect.fn("ensforge.getOperatorApproval")(func
           functionName: "isWrapped",
           args: [namehash(name)],
         });
+
         if (wrapped) {
           const wrapperApproved = yield* ethereum.readContract({
             address: deployment.contracts.nameWrapper,
@@ -90,6 +96,7 @@ const getOperatorApprovalEffect = Effect.fn("ensforge.getOperatorApproval")(func
             functionName: "isApprovedForAll",
             args: [parameters.owner, parameters.operator],
           });
+
           targets.push({
             kind: "wrapper",
             address: deployment.contracts.nameWrapper,
@@ -102,6 +109,7 @@ const getOperatorApprovalEffect = Effect.fn("ensforge.getOperatorApproval")(func
           route.parentRegistry,
           registryInterfaceIds.tokenizedRegistry,
         );
+
         if (tokenized) {
           const approved = yield* ethereum.readContract({
             address: route.parentRegistry,
@@ -109,6 +117,7 @@ const getOperatorApprovalEffect = Effect.fn("ensforge.getOperatorApproval")(func
             functionName: "isApprovedForAll",
             args: [parameters.owner, parameters.operator],
           });
+
           targets.push({
             kind: "registry",
             address: route.parentRegistry,
@@ -119,6 +128,7 @@ const getOperatorApprovalEffect = Effect.fn("ensforge.getOperatorApproval")(func
       }
 
       const resolver = yield* findResolver(name);
+
       if (resolver !== null) {
         const resolverApproved = yield* ethereum
           .readContract({
@@ -128,6 +138,7 @@ const getOperatorApprovalEffect = Effect.fn("ensforge.getOperatorApproval")(func
             args: [parameters.owner, parameters.operator],
           })
           .pipe(Effect.catchTag("ContractError", () => Effect.succeed(null)));
+
         targets.push({
           kind: "resolver",
           address: resolver.address,
@@ -135,6 +146,7 @@ const getOperatorApprovalEffect = Effect.fn("ensforge.getOperatorApproval")(func
           approved: resolverApproved ?? false,
         });
       }
+
       return {
         owner: parameters.owner,
         operator: parameters.operator,

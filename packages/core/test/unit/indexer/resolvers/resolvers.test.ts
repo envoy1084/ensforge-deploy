@@ -17,14 +17,20 @@ import {
 } from "../../fixtures/client-fixtures.js";
 
 const resolver = "0x0000000000000000000000000000000000001000" as const;
+
 const secondResolver = "0x0000000000000000000000000000000000002000" as const;
+
 const owner = "0x0000000000000000000000000000000000003000" as const;
+
 const delegate = "0x0000000000000000000000000000000000004000" as const;
+
 const aliceNamehash = Schema.decodeUnknownSync(Namehash)(namehash("alice.eth"));
+
 const transactionHash = `0x${"ab".repeat(32)}` as const;
 
 const response = (data: unknown) =>
   new Response(JSON.stringify({ data }), { headers: { "content-type": "application/json" } });
+
 const request = (init: RequestInit | undefined) =>
   JSON.parse(String(init?.body)) as {
     readonly query: string;
@@ -54,10 +60,12 @@ describe("indexed resolvers", () => {
     Effect.gen(function* () {
       const fetch: typeof globalThis.fetch = (_input, init) => {
         assert.include(request(init).query, "V1GetIndexedResolver");
+
         return Promise.resolve(
           response({ _meta: { block: { number: 100 } }, resolvers: [binding("v1")] }),
         );
       };
+
       const config = createConfig({
         network: "mainnet",
         publicClient: makeMainnetPublicClient(),
@@ -65,6 +73,7 @@ describe("indexed resolvers", () => {
       });
 
       const result = yield* getIndexedResolver.effect(config, { address: resolver });
+
       assert.strictEqual(result?.protocol, "v1");
       assert.strictEqual(result?.bindings[0]?.coinTypes[0], 60n);
       assert.strictEqual(result?.bindings[0]?.coinTypes[1], 2_147_488_453n);
@@ -77,8 +86,10 @@ describe("indexed resolvers", () => {
     Effect.gen(function* () {
       const fetch: typeof globalThis.fetch = (_input, init) => {
         const operation = request(init);
+
         assert.include(operation.query, "V2GetIndexedResolver");
         assert.strictEqual(operation.variables.protocol, null);
+
         return Promise.resolve(
           response({
             _meta: { block: { number: 200 } },
@@ -110,6 +121,7 @@ describe("indexed resolvers", () => {
           }),
         );
       };
+
       const config = createConfig({
         network: "sepolia",
         publicClient: makeSepoliaPublicClient(),
@@ -117,8 +129,11 @@ describe("indexed resolvers", () => {
       });
 
       const result = yield* getIndexedResolver.effect(config, { address: resolver });
+
       assert.strictEqual(result?.protocol, "v2");
+
       if (result?.protocol !== "v2") return;
+
       assert.deepStrictEqual(result.aliases, [{ from: "alias.eth", to: "alice.eth" }]);
       assert.strictEqual(result.owner, owner);
       assert.deepStrictEqual(result.bindings[0]?.abiContentTypes, [1]);
@@ -144,6 +159,7 @@ describe("indexed resolvers", () => {
             })),
           }),
         );
+
       const config = createConfig({
         network: "sepolia",
         publicClient: makeSepoliaPublicClient(),
@@ -151,16 +167,21 @@ describe("indexed resolvers", () => {
       });
 
       const first = yield* getResolversForAddress.effect(config, { address: owner, pageSize: 1 });
+
       if (first.status !== "supported" || first.value.pageInfo.cursor === null) {
         return assert.fail("expected a resolver cursor");
       }
+
       const second = yield* getResolversForAddress.effect(config, {
         address: owner,
         pageSize: 1,
         cursor: first.value.pageInfo.cursor,
       });
+
       assert.strictEqual(second.status, "supported");
+
       if (second.status !== "supported") return;
+
       assert.strictEqual(second.value.items[0]?.address, secondResolver);
     }),
   );
@@ -181,6 +202,7 @@ describe("indexed resolvers", () => {
             },
           }),
         );
+
       const config = createConfig({
         network: "sepolia",
         publicClient: makeSepoliaPublicClient(),
@@ -188,8 +210,11 @@ describe("indexed resolvers", () => {
       });
 
       const result = yield* getResolverMetadata.effect(config, { resolver });
+
       assert.strictEqual(result.status, "supported");
+
       if (result.status !== "supported") return;
+
       assert.strictEqual(result.value?.blockNumber, 150n);
       assert.strictEqual(result.value?.source.indexedBlock, 200n);
     }),
@@ -209,13 +234,18 @@ describe("indexed resolvers", () => {
         timestamp: blockNumber * 10,
         transactionHash,
       });
+
       const approvals = [approval("revoked", false, 20, 2), approval("approved", true, 10, 1)];
       const requestedDelegates: Array<unknown> = [];
+
       const fetch: typeof globalThis.fetch = (_input, init) => {
         const operation = request(init);
+
         requestedDelegates.push(operation.variables.delegate);
+
         return Promise.resolve(response({ _meta: { block: { number: 200 } }, approvals }));
       };
+
       const config = createConfig({
         network: "sepolia",
         publicClient: makeSepoliaPublicClient(),
@@ -226,10 +256,13 @@ describe("indexed resolvers", () => {
         filter: { namehash: aliceNamehash },
         pageSize: 1,
       });
+
       assert.strictEqual(first.status, "supported");
+
       if (first.status !== "supported" || first.value.pageInfo.cursor === null) {
         return assert.fail("expected an approval cursor");
       }
+
       assert.deepStrictEqual(
         first.value.items.map(({ id }) => id),
         ["revoked"],
@@ -241,8 +274,11 @@ describe("indexed resolvers", () => {
         pageSize: 1,
         cursor: first.value.pageInfo.cursor,
       });
+
       assert.strictEqual(second.status, "supported");
+
       if (second.status !== "supported") return;
+
       assert.deepStrictEqual(
         second.value.items.map(({ id }) => id),
         ["approved"],
@@ -252,8 +288,11 @@ describe("indexed resolvers", () => {
         filter: { delegate, approved: false },
         pageSize: 1,
       });
+
       assert.strictEqual(filtered.status, "supported");
+
       if (filtered.status !== "supported") return;
+
       assert.deepStrictEqual(
         filtered.value.items.map(({ id }) => id),
         ["revoked"],
@@ -270,6 +309,7 @@ describe("indexed resolvers", () => {
         publicClient: makeSepoliaPublicClient(),
         indexer: { endpoints: { v1: null }, retry: { attempts: 0 } },
       });
+
       const result = yield* Effect.exit(
         getResolverApprovals.effect(config, { filter: {}, pageSize: 1 }),
       );
@@ -284,7 +324,9 @@ describe("indexed resolvers", () => {
         network: "mainnet",
         publicClient: makeMainnetPublicClient(),
       });
+
       const result = yield* getResolverMetadata.effect(config, { resolver });
+
       assert.deepStrictEqual(result, {
         status: "unsupported",
         network: "mainnet",

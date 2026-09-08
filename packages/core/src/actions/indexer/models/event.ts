@@ -7,7 +7,9 @@ import { IndexedRecordKind } from "./record.js";
 import { IndexedEntitySource } from "./source.js";
 
 const NonNegativeBigInt = Schema.BigInt.pipe(Schema.check(Schema.isGreaterThanOrEqualToBigInt(0n)));
+
 const NullableAddress = Schema.NullOr(EthereumAddress);
+
 const NullableBigInt = Schema.NullOr(NonNegativeBigInt);
 
 const eventFields = {

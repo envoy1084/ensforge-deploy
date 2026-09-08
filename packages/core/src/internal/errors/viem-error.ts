@@ -73,6 +73,7 @@ export const isContractRevertWithData = (
 ): boolean => {
   const revert = findViemErrorCause(cause, ContractFunctionRevertedError)?.data;
   const nestedData = revert?.args?.at(0);
+
   return (
     revert?.errorName === errorName &&
     Predicate.isString(nestedData) &&
@@ -169,6 +170,7 @@ export function viemErrorToEffectError(cause: unknown, operation: ViemOperation)
 
   const raw = findViemErrorCause(cause, RawContractError)?.data;
   const rawData = typeof raw === "string" ? raw : raw?.data;
+
   if (rawData !== undefined) {
     return new ContractError({
       code: "REVERTED",

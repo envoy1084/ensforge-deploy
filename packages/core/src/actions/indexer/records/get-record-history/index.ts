@@ -47,8 +47,11 @@ const sourceExhausted = (
   previouslyExhausted: boolean,
 ): boolean => {
   if (previouslyExhausted) return true;
+
   if (page === undefined) return false;
+
   const last = page.candidates.at(-1)?.position;
+
   return !page.hasNextPage && (last === undefined || last === consumedPosition);
 };
 
@@ -57,9 +60,13 @@ const compareEvents =
   (left: IndexedRecordEvent, right: IndexedRecordEvent): number => {
     const block =
       left.blockNumber < right.blockNumber ? -1 : left.blockNumber > right.blockNumber ? 1 : 0;
+
     const orderedBlock = direction === "asc" ? block : -block;
+
     if (orderedBlock !== 0) return orderedBlock;
+
     const id = left.id.localeCompare(right.id);
+
     return direction === "asc" ? id : -id;
   };
 
@@ -73,6 +80,7 @@ const getRecordHistoryEffect = Effect.fn("ensforge.getRecordHistory")(function* 
       message: "Indexer actions are disabled for this configuration",
     });
   }
+
   const decoded = yield* Schema.decodeUnknownEffect(GetRecordHistoryParametersSchema)(
     parameters,
   ).pipe(
@@ -84,22 +92,26 @@ const getRecordHistoryEffect = Effect.fn("ensforge.getRecordHistory")(function* 
         }),
     ),
   );
+
   const lookup = yield* decodeIndexerNameIdentity(decoded);
   const filter = decoded.filter ?? {};
   const order = decoded.order ?? defaultRecordHistoryOrder;
   const pageSize = decoded.pageSize ?? Math.min(20, config.indexer.maximumPageSize);
+
   if (pageSize > config.indexer.maximumPageSize) {
     return yield* new IndexerFilterError({
       code: "INVALID_FILTER",
       message: `pageSize cannot exceed ${config.indexer.maximumPageSize}`,
     });
   }
+
   const graphNumbers = [
     filter.blockAfter,
     filter.blockBefore,
     filter.timestampAfter,
     filter.timestampBefore,
   ].filter((value): value is bigint => value !== undefined);
+
   if (graphNumbers.some((value) => value > 2_147_483_647n)) {
     return yield* new IndexerFilterError({
       code: "INVALID_FILTER",
@@ -109,20 +121,24 @@ const getRecordHistoryEffect = Effect.fn("ensforge.getRecordHistory")(function* 
 
   const states = getIndexerRuntimeConfig(config.indexer).sourceStates;
   const v1Excluded = filter.timestampAfter !== undefined || filter.timestampBefore !== undefined;
+
   const binding = makeIndexerCursorBinding(
     config,
     "getRecordHistory",
     { ...filter, namehash: lookup.namehash },
     order,
   );
+
   const initialPositions: IndexerCursorPositions = {
     v1: { position: null, exhausted: states.v1 !== "enabled" || v1Excluded },
     v2: { position: null, exhausted: states.v2 !== "enabled" },
   };
+
   const positions =
     decoded.cursor === undefined
       ? initialPositions
       : (yield* decodeIndexerCursor(decoded.cursor, binding)).sources;
+
   const [v1Result, v2Result] = yield* Effect.all(
     [
       states.v1 !== "enabled"
@@ -153,18 +169,23 @@ const getRecordHistoryEffect = Effect.fn("ensforge.getRecordHistory")(function* 
     ] as const,
     { concurrency: "unbounded" },
   );
+
   const results = [v1Result, v2Result].filter(
     (result): result is IndexerSourcePageResult<IndexedRecordEvent, GetRecordHistoryError> =>
       result !== null,
   );
+
   const collected = yield* collectIndexerSourcePages(results, config.indexer.failureMode);
+
   const merged = mergeIndexerPages({
     sources: collected.pages,
     limit: pageSize,
     compare: compareEvents(order.direction),
     identity: (event) => `${event.source.protocol}:${event.id}`,
   });
+
   const pageByProtocol = new Map(collected.pages.map((page) => [page.protocol, page]));
+
   const nextPositions: IndexerCursorPositions = {
     v1: {
       position: merged.positions.v1 ?? positions.v1.position,
@@ -183,8 +204,10 @@ const getRecordHistoryEffect = Effect.fn("ensforge.getRecordHistory")(function* 
       ),
     },
   };
+
   const hasNextPage = collected.pages.some((page) => !nextPositions[page.protocol].exhausted);
   const cursor = hasNextPage ? yield* encodeIndexerCursor(binding, nextPositions) : null;
+
   const sources = collected.sources.map((source) =>
     source.status === "complete"
       ? {
@@ -195,6 +218,7 @@ const getRecordHistoryEffect = Effect.fn("ensforge.getRecordHistory")(function* 
         }
       : source,
   );
+
   return { items: merged.items, pageInfo: { cursor, hasNextPage }, sources };
 });
 

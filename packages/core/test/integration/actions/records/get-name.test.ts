@@ -20,6 +20,7 @@ describe("name record resolution integration", () => {
   it.effect("resolves migrated v2 and RESERVED v1 name records through the v2 resolver", () =>
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
+
       const [migrated, reserved] = yield* Effect.all(
         [
           getName.effect(devnet.configs.v2, { name: devnet.fixtures.records.v2.name }),
@@ -36,6 +37,7 @@ describe("name record resolution integration", () => {
   it.effect("returns null for unset records and names without a resolver", () =>
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
+
       const [unset, noResolver] = yield* Effect.all(
         [
           getName.effect(devnet.configs.v2, { name: devnet.fixtures.v2.active.name }),
@@ -53,6 +55,7 @@ describe("name record resolution integration", () => {
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
       const fixture = devnet.fixtures.records.v2;
+
       const result = yield* readBatch.effect(devnet.configs.v2, {
         name: getName.request({ name: fixture.name }),
         owner: getOwner.request({ name: fixture.name }),

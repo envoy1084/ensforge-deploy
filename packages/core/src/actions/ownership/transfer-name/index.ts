@@ -45,19 +45,23 @@ const resolveTransferRoute = Effect.fn("ensforge.transferName.resolveRoute")(fun
     ] as const,
     { concurrency: "unbounded" },
   );
+
   if (!target.available || owner === null) {
     return yield* new AuthorizationError({
       code: "WRITE_TARGET_UNAVAILABLE",
       message: `Ownership is unavailable for ${name}`,
     });
   }
+
   const from = target.kind === "registrar" ? owner.registrant : owner.owner;
+
   if (from === null) {
     return yield* new AuthorizationError({
       code: "WRITE_TARGET_UNAVAILABLE",
       message: `The current transferable owner is unavailable for ${name}`,
     });
   }
+
   const strategy: TransferNameStrategy =
     target.protocol === "v2"
       ? "v2-registry"
@@ -66,6 +70,7 @@ const resolveTransferRoute = Effect.fn("ensforge.transferName.resolveRoute")(fun
         : target.kind === "name-wrapper"
           ? "name-wrapper"
           : "registry";
+
   return {
     protocol: target.protocol,
     strategy,
@@ -99,6 +104,7 @@ const makePlan = (
               to,
             }),
           ];
+
   return {
     id: makePlanId(name, to, route.strategy),
     stages: [
@@ -127,8 +133,10 @@ const implementation = Effect.fn("ensforge.transferName")(function* (
   const name = yield* normalizeName.effect(parameters.name);
   const to = yield* decodeTransferRecipient(parameters.to);
   const current = yield* resolveTransferRoute(config, name);
+
   const route: TransferRoute =
     parameters.resume === undefined ? current : { ...current, from: parameters.resume.from };
+
   if (
     parameters.resume !== undefined &&
     (parameters.resume.name !== name ||
@@ -142,13 +150,16 @@ const implementation = Effect.fn("ensforge.transferName")(function* (
       cause: parameters.resume,
     });
   }
+
   const write = yield* executeWritePlan.effect(config, {
     plan: makePlan(name, to, route, parameters),
     ...(parameters.resume === undefined ? {} : { resume: parameters.resume.write }),
     ...(parameters.walletClient === undefined ? {} : { walletClient: parameters.walletClient }),
     ...(parameters.account === undefined ? {} : { account: parameters.account }),
   });
+
   const finalState = isConfirmed(write) ? yield* getNameState.effect(config, { name }) : null;
+
   return {
     name,
     protocol: route.protocol,

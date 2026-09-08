@@ -52,6 +52,7 @@ export const resolveWalletContext = Effect.fn("ensforge.resolveWalletContext")(f
 ): Effect.fn.Return<ResolvedWalletContext, ConfigError, WalletClientService | EnsNetworkService> {
   const walletService = yield* WalletClientService;
   const networkService = yield* EnsNetworkService;
+
   const walletClient =
     parameters.walletClient === undefined
       ? yield* walletService.resolve()

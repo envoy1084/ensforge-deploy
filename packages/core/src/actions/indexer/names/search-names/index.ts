@@ -20,7 +20,9 @@ export const SearchNamesParameters = Schema.Struct({
   cursor: Schema.optional(IndexerCursor),
 });
 export type SearchNamesParameters = typeof SearchNamesParameters.Type;
+
 export type SearchNamesResult = GetNamesResult;
+
 export type SearchNamesError = GetNamesError;
 
 const searchNamesEffect = Effect.fn("ensforge.searchNames")(function* (
@@ -36,12 +38,14 @@ const searchNamesEffect = Effect.fn("ensforge.searchNames")(function* (
         }),
     ),
   );
+
   if (decoded.query.length === 0) {
     return yield* new IndexerFilterError({
       code: "INVALID_FILTER",
       message: "A non-empty search query is required",
     });
   }
+
   return yield* getNames.effect(config, {
     filter: {
       ...decoded.filter,

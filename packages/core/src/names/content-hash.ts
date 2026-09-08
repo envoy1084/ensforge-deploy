@@ -72,6 +72,7 @@ export const decodeContentHash = (
     return Object.freeze({ protocol, value: decode(unprefixed) });
   } catch (error) {
     if (error instanceof CodecError) throw error;
+
     throw new CodecError({
       code: "INVALID_CONTENT_HASH",
       message: "Invalid encoded content hash",

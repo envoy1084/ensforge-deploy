@@ -54,8 +54,11 @@ const sourceExhausted = (
   previouslyExhausted: boolean,
 ): boolean => {
   if (previouslyExhausted) return true;
+
   if (page === undefined) return false;
+
   const last = page.candidates.at(-1)?.position;
+
   return !page.hasNextPage && (last === undefined || last === consumedPosition);
 };
 
@@ -69,6 +72,7 @@ export const getRegistrationsEffect = Effect.fn("ensforge.getRegistrations")(fun
       message: "Indexer actions are disabled for this configuration",
     });
   }
+
   const decoded = yield* Schema.decodeUnknownEffect(GetRegistrationsParametersSchema)(
     parameters,
   ).pipe(
@@ -80,9 +84,11 @@ export const getRegistrationsEffect = Effect.fn("ensforge.getRegistrations")(fun
         }),
     ),
   );
+
   const filter = yield* Effect.try({
     try: (): RegistrationFilter => {
       validateRegistrationFilter(decoded.filter ?? {});
+
       return decoded.filter ?? {};
     },
     catch: (cause) =>
@@ -93,17 +99,21 @@ export const getRegistrationsEffect = Effect.fn("ensforge.getRegistrations")(fun
             message: "The registration filter is invalid",
           }),
   });
+
   const order: RegistrationOrder = decoded.order ?? defaultRegistrationOrder;
   const pageSize = decoded.pageSize ?? Math.min(20, config.indexer.maximumPageSize);
+
   if (pageSize > config.indexer.maximumPageSize) {
     return yield* new IndexerFilterError({
       code: "INVALID_FILTER",
       message: `pageSize cannot exceed ${config.indexer.maximumPageSize}`,
     });
   }
+
   const graphNumbers = [filter.expiryAfter, filter.expiryBefore].filter(
     (value): value is bigint => value !== undefined,
   );
+
   if (graphNumbers.some((value) => value > 2_147_483_647n)) {
     return yield* new IndexerFilterError({
       code: "INVALID_FILTER",
@@ -116,6 +126,7 @@ export const getRegistrationsEffect = Effect.fn("ensforge.getRegistrations")(fun
   const includesV2 = filter.protocols?.includes("v2") ?? true;
   const v2CanServeV1 = states.v1 !== "enabled";
   const binding = makeIndexerCursorBinding(config, "getRegistrations", filter, order);
+
   const initialPositions: IndexerCursorPositions = {
     v1: { position: null, exhausted: states.v1 !== "enabled" || !includesV1 },
     v2: {
@@ -123,6 +134,7 @@ export const getRegistrationsEffect = Effect.fn("ensforge.getRegistrations")(fun
       exhausted: states.v2 !== "enabled" || (!includesV2 && !(v2CanServeV1 && includesV1)),
     },
   };
+
   const positions =
     decoded.cursor === undefined
       ? initialPositions
@@ -143,18 +155,23 @@ export const getRegistrationsEffect = Effect.fn("ensforge.getRegistrations")(fun
     ] as const,
     { concurrency: "unbounded" },
   );
+
   const results = [v1Result, v2Result].filter(
     (result): result is IndexerSourcePageResult<IndexedRegistration, GetRegistrationsError> =>
       result !== null,
   );
+
   const collected = yield* collectIndexerSourcePages(results, config.indexer.failureMode);
+
   const merged = mergeIndexerPages({
     sources: collected.pages,
     limit: pageSize,
     compare: compareRegistrations(order),
     identity: (registration) => `${registration.protocol}:${registration.id}`,
   });
+
   const pageByProtocol = new Map(collected.pages.map((page) => [page.protocol, page]));
+
   const nextPositions: IndexerCursorPositions = {
     v1: {
       position: merged.positions.v1 ?? positions.v1.position,
@@ -173,8 +190,10 @@ export const getRegistrationsEffect = Effect.fn("ensforge.getRegistrations")(fun
       ),
     },
   };
+
   const hasNextPage = collected.pages.some((page) => !nextPositions[page.protocol].exhausted);
   const cursor = hasNextPage ? yield* encodeIndexerCursor(binding, nextPositions) : null;
+
   const sources = collected.sources.map((source) =>
     source.status === "complete"
       ? {
@@ -185,6 +204,7 @@ export const getRegistrationsEffect = Effect.fn("ensforge.getRegistrations")(fun
         }
       : source,
   );
+
   return { items: merged.items, pageInfo: { cursor, hasNextPage }, sources };
 });
 

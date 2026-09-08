@@ -20,7 +20,9 @@ const preparer: EnsWriteIntentPreparer<SetOperatorApprovalParameters, WriteError
     typeof context.account === "string" ? context.account : context.account.address,
     "owner",
   );
+
   const operator = yield* decodePermissionAddress(parameters.operator, "operator");
+
   const [approval, protocol] = yield* Effect.all(
     [
       getOperatorApproval.effect(config, { name: parameters.name, owner, operator }),
@@ -28,13 +30,16 @@ const preparer: EnsWriteIntentPreparer<SetOperatorApprovalParameters, WriteError
     ] as const,
     { concurrency: "unbounded" },
   );
+
   const target = approval.targets.find((candidate) => candidate.kind === parameters.target);
+
   if (target === undefined || !target.supported) {
     return yield* new AuthorizationError({
       code: "WRITE_TARGET_UNAVAILABLE",
       message: `${parameters.target} operator approvals are unavailable for ${parameters.name}`,
     });
   }
+
   const data = yield* Effect.try({
     try: () =>
       encodeFunctionData({
@@ -49,6 +54,7 @@ const preparer: EnsWriteIntentPreparer<SetOperatorApprovalParameters, WriteError
         cause,
       }),
   });
+
   return { to: target.address, data, value: 0n, protocol };
 });
 

@@ -27,6 +27,8 @@ export type GetResolversForAddressParameters = typeof GetResolversForAddressPara
 
 export const GetResolversForAddressPage = IndexerPage(IndexedOwnedResolver);
 export type GetResolversForAddressPage = IndexerPageType<IndexedOwnedResolverType>;
+
 export const GetResolversForAddressResult = V2IndexerResult(GetResolversForAddressPage);
 export type GetResolversForAddressResult = V2IndexerResultType<GetResolversForAddressPage>;
+
 export type GetResolversForAddressError = ResolverIndexerError;

@@ -48,7 +48,9 @@ export interface ClaimDnsNameParameters {
 }
 
 export type ClaimDnsNameResult = CallExecutionResult;
+
 export type ClaimDnsNameError = WriteError;
+
 export type ClaimDnsNameIntent = EnsWriteIntent<ClaimDnsNameResult, ClaimDnsNameError>;
 
 export type ImportDnsNameParameters = ClaimDnsNameParameters &

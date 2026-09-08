@@ -31,18 +31,24 @@ const hasResolverRolesEffect = Effect.fn("ensforge.hasResolverRoles")(function* 
   parameters: HasResolverRolesParameters,
 ) {
   const name = yield* normalizeName.effect(parameters.name);
+
   return yield* executeRead(
     config,
     parameters,
     Effect.gen(function* () {
       const target = yield* readResolverPermissionTarget(name);
+
       if (!target.supported) return target;
+
       const ethereum = yield* EthereumClient;
+
       const part =
         parameters.record === undefined
           ? toHex(0n, { size: 32 })
           : resolverRecordPart(parameters.record);
+
       const resource = resolverResource(target.node, part);
+
       const resources =
         BigInt(part) === 0n
           ? [resource]
@@ -51,6 +57,7 @@ const hasResolverRolesEffect = Effect.fn("ensforge.hasResolverRoles")(function* 
               resolverResource(namehash(""), part),
               resolverResource(target.node, toHex(0n, { size: 32 })),
             ];
+
       const checks = yield* Effect.all(
         resources.map((candidate) =>
           ethereum.readContract({
@@ -62,6 +69,7 @@ const hasResolverRolesEffect = Effect.fn("ensforge.hasResolverRoles")(function* 
         ),
         { concurrency: "unbounded" },
       );
+
       return {
         ...target,
         resource,

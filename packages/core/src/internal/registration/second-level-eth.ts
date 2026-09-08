@@ -9,11 +9,13 @@ export const getSecondLevelEthLabel = Effect.fn("getSecondLevelEthLabel")(functi
 ) {
   const analysis = analyzeName(name);
   const label = analysis.isSecondLevelEth ? analysis.label : undefined;
+
   if (label === undefined) {
     return yield* new NameError({
       code: "INVALID_NAME",
       message: "Registration and renewal require a second-level .eth name",
     });
   }
+
   return label;
 });

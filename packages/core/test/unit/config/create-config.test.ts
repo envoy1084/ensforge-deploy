@@ -22,10 +22,13 @@ import {
 const expectConfigError = (operation: () => unknown, code: ConfigErrorCode) => {
   try {
     operation();
+
     throw new Error("Expected config creation to fail");
   } catch (error) {
     expect(error).toBeInstanceOf(ConfigError);
+
     if (!(error instanceof ConfigError)) throw error;
+
     expect(error.code).toBe(code);
     expect(error.message.length).toBeGreaterThan(0);
   }

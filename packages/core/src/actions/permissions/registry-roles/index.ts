@@ -25,12 +25,14 @@ const makePreparer = (
       const account = yield* decodePermissionAddress(parameters.account, "role account");
       const roles = yield* validateRoleBitmap(parameters.roles);
       const target = yield* executeRead(config, {}, readRegistryPermissionTarget(name));
+
       if (!target.supported) {
         return yield* new AuthorizationError({
           code: "WRITE_TARGET_UNAVAILABLE",
           message: `Registry roles are unavailable for ${name}`,
         });
       }
+
       const data = yield* Effect.try({
         try: () =>
           encodeFunctionData({
@@ -45,6 +47,7 @@ const makePreparer = (
             cause,
           }),
       });
+
       return { to: target.registry, data, value: 0n, protocol: "v2" as const };
     },
   );
@@ -53,6 +56,7 @@ export const grantRegistryRoles = makeSingleWriteAction(
   "grantRegistryRoles",
   makePreparer("grantRoles"),
 );
+
 export const revokeRegistryRoles = makeSingleWriteAction(
   "revokeRegistryRoles",
   makePreparer("revokeRoles"),

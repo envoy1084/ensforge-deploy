@@ -28,6 +28,7 @@ const splitAtomParameters = <Parameters extends object, Success, Failure, Mapped
   input: UseEnsAtomParameters<Parameters, Success, Failure, Mapped>,
 ): SplitAtomParameters<Parameters, Success, Failure, Mapped> => {
   const { atom, enabled = true, map, ...parameters } = input;
+
   return { atom, enabled, map, parameters: parameters as Parameters };
 };
 
@@ -40,10 +41,13 @@ export const useQueryAtom = <Parameters extends object, Success, Failure, Mapped
   const { atom: atomOptions, enabled, map, parameters } = splitAtomParameters(input);
   const options = resolveEnsAtomOptions(defaults.atoms, atomOptions);
   const atom = factory(sdk, parameters, options);
+
   const activeAtom = (enabled ? atom : disabledAtom) as Atom.Atom<
     AsyncResult.AsyncResult<Success, Failure>
   >;
+
   const rawResult = useAtomValue(activeAtom);
+
   const result: AsyncResult.AsyncResult<Mapped, Failure> =
     map === undefined
       ? (rawResult as unknown as AsyncResult.AsyncResult<Mapped, Failure>)
@@ -57,6 +61,7 @@ export const useQueryAtom = <Parameters extends object, Success, Failure, Mapped
         }),
       ),
     );
+
     return map === undefined
       ? (effect as unknown as Effect.Effect<Mapped, Failure>)
       : effect.pipe(Effect.map(map));

@@ -9,9 +9,11 @@ import { makePublicClient, makeSdk } from "../fixtures/sdk.js";
 describe("EnsforgeProvider", () => {
   it("provides an existing SDK", () => {
     const sdk = makeSdk();
+
     const wrapper = ({ children }: { readonly children: ReactNode }) => (
       <EnsforgeProvider sdk={sdk}>{children}</EnsforgeProvider>
     );
+
     const { result } = renderHook(useEnsforge, { wrapper });
 
     expect(result.current).toBe(sdk);
@@ -19,9 +21,11 @@ describe("EnsforgeProvider", () => {
 
   it("creates one stable SDK from config", () => {
     const publicClient = makePublicClient();
+
     const wrapper = ({ children }: { readonly children: ReactNode }) => (
       <EnsforgeProvider config={{ network: "mainnet", publicClient }}>{children}</EnsforgeProvider>
     );
+
     const { result, rerender } = renderHook(useEnsforge, { wrapper });
     const sdk = result.current;
 

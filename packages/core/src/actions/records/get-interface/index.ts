@@ -12,6 +12,7 @@ const getInterfaceEffect = Effect.fn("ensforge.getInterface")(function* (
   parameters: GetInterfaceParameters,
 ) {
   const name = yield* normalizeName.effect(parameters.name);
+
   return yield* executeRead(config, parameters, resolveInterface(name, parameters.interfaceId));
 });
 

@@ -18,6 +18,7 @@ const transport = custom({
 
 const getFailure = <Success, Failure>(exit: Exit.Exit<Success, Failure>): Failure => {
   if (!Exit.isFailure(exit)) throw new Error("Expected wallet resolution to fail");
+
   return Option.getOrThrow(Cause.findErrorOption(exit.cause));
 };
 
@@ -59,9 +60,12 @@ describe("createConfig with Wagmi", () => {
         connectors: [mock({ accounts: [testAccount] })],
         transports: { [sepolia.id]: transport },
       });
+
       const config = createEnsforgeConfig({ network: "sepolia", wagmiConfig });
       const connector = wagmiConfig.connectors[0];
+
       if (!connector) throw new Error("Expected the mock Wagmi connector to be configured");
+
       const beforeConnection = yield* Effect.exit(
         Effect.provide(resolveWalletContext(), getConfigLayer(config)),
       );

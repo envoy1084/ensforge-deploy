@@ -20,10 +20,12 @@ const preparer: EnsWriteIntentPreparer<SetResolverDelegateApprovalParameters, Wr
     function* (config, parameters, context) {
       const name = yield* normalizeName.effect(parameters.name);
       const delegate = yield* decodePermissionAddress(parameters.delegate, "resolver delegate");
+
       const account = yield* decodePermissionAddress(
         typeof context.account === "string" ? context.account : context.account.address,
         "owner",
       );
+
       const [capabilities, manager] = yield* Effect.all(
         [
           getResolverCapabilities.effect(config, { name }),
@@ -31,6 +33,7 @@ const preparer: EnsWriteIntentPreparer<SetResolverDelegateApprovalParameters, Wr
         ] as const,
         { concurrency: "unbounded" },
       );
+
       if (
         capabilities.address === null ||
         capabilities.inherited ||
@@ -41,12 +44,14 @@ const preparer: EnsWriteIntentPreparer<SetResolverDelegateApprovalParameters, Wr
           message: `A directly attached Public Resolver is required for ${name}`,
         });
       }
+
       if (manager === null || !isAddressEqual(manager, account)) {
         return yield* new AuthorizationError({
           code: "UNAUTHORIZED",
           message: `${account} cannot administer resolver delegates for ${name}`,
         });
       }
+
       const data = yield* Effect.try({
         try: () =>
           encodeFunctionData({
@@ -61,6 +66,7 @@ const preparer: EnsWriteIntentPreparer<SetResolverDelegateApprovalParameters, Wr
             cause,
           }),
       });
+
       return { to: capabilities.address, data, value: 0n };
     },
   );

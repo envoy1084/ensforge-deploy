@@ -12,7 +12,9 @@ const resumeCallsEffect = Effect.fn("ensforge.resumeCalls")(function* (
   parameters: ResumeCallsParameters,
 ) {
   if (parameters.batch.status === "confirmed") return parameters.batch;
+
   const { walletClient } = yield* provideConfig(config, resolveWalletContext(parameters));
+
   return yield* provideConfig(
     config,
     confirmNativeBatch(

@@ -32,12 +32,14 @@ import type {
 import type { GetEventsError } from "./types.js";
 
 const operationName = "V1GetEvents";
+
 const Position = Schema.Struct({
   domain: Schema.Int.pipe(Schema.check(Schema.isGreaterThanOrEqualTo(0))),
   registration: Schema.Int.pipe(Schema.check(Schema.isGreaterThanOrEqualTo(0))),
   resolver: Schema.Int.pipe(Schema.check(Schema.isGreaterThanOrEqualTo(0))),
 });
 type Position = typeof Position.Type;
+
 type Category = keyof Position;
 
 const domainKinds = new Set<IndexedEventKind>([
@@ -49,7 +51,9 @@ const domainKinds = new Set<IndexedEventKind>([
   "fuses",
   "expiry",
 ]);
+
 const registrationKinds = new Set<IndexedEventKind>(["registration", "renewal", "transfer"]);
+
 const resolverKinds = new Set<IndexedEventKind>(["record"]);
 
 const includesCategory = (filter: EventFilter, kinds: ReadonlySet<IndexedEventKind>) =>
@@ -88,6 +92,7 @@ export const queryV1Events = Effect.fn("queryV1Events")(function* (
   position: string | null,
 ): Effect.fn.Return<IndexerSourcePageResult<IndexedEvent, GetEventsError>, IndexerPaginationError> {
   let offsets = yield* decodePosition(position);
+
   const result = yield* Effect.gen(function* () {
     const candidates: Array<{ readonly item: IndexedEvent; readonly position: string }> = [];
     let indexedBlock = 0n;
@@ -98,12 +103,15 @@ export const queryV1Events = Effect.fn("queryV1Events")(function* (
 
     while (candidates.length <= limit && hasNextPage) {
       const batchSize = limit + 1;
+
       const namehash =
         filter.namehash ?? (filter.name === undefined ? undefined : makeNamehash(filter.name));
+
       const blockWhere = {
         ...(filter.blockAfter === undefined ? {} : { blockNumber_gt: Number(filter.blockAfter) }),
         ...(filter.blockBefore === undefined ? {} : { blockNumber_lt: Number(filter.blockBefore) }),
       };
+
       const variables: V1GetEventsQueryVariables = {
         domainFirst: domainEnabled ? batchSize : 1,
         registrationFirst: registrationEnabled ? batchSize : 1,
@@ -125,19 +133,23 @@ export const queryV1Events = Effect.fn("queryV1Events")(function* (
         },
         orderDirection: order.direction,
       };
+
       const response = yield* requestIndexer<V1GetEventsQuery, V1GetEventsQueryVariables>(config, {
         protocol: "v1",
         operationName,
         document: V1GetEventsDocument,
         variables,
       });
+
       const data = yield* requireIndexerData(config, "v1", operationName, response);
+
       indexedBlock = yield* decodeIndexedBlock(
         config,
         "v1",
         operationName,
         data["_meta"]?.block.number,
       );
+
       const normalized = yield* Effect.try({
         try: () => {
           const entries: Array<{ readonly category: Category; readonly item: IndexedEvent }> = [
@@ -163,11 +175,13 @@ export const queryV1Events = Effect.fn("queryV1Events")(function* (
                 }))
               : []),
           ];
+
           return Arr.sort(
             entries,
             Order.make<{ readonly category: Category; readonly item: IndexedEvent }>(
               (left, right) => {
                 const compared = compareEvents(order)(left.item, right.item);
+
                 return compared < 0 ? -1 : compared > 0 ? 1 : 0;
               },
             ),
@@ -183,24 +197,30 @@ export const queryV1Events = Effect.fn("queryV1Events")(function* (
             cause,
           }),
       });
+
       const nextOffsets: { domain: number; registration: number; resolver: number } = {
         domain: offsets.domain,
         registration: offsets.registration,
         resolver: offsets.resolver,
       };
+
       for (const entry of normalized) {
         const category: Category = entry.category;
+
         nextOffsets[category] += 1;
+
         if (matchesEventFilter(entry.item, filter)) {
           candidates.push({ item: entry.item, position: encodePosition(nextOffsets) });
         }
       }
+
       offsets = nextOffsets;
       hasNextPage =
         (domainEnabled && data.domainEvents.length === batchSize) ||
         (registrationEnabled && data.registrationEvents.length === batchSize) ||
         (resolverEnabled && data.resolverEvents.length === batchSize);
     }
+
     return {
       indexedBlock,
       page: {
@@ -222,6 +242,7 @@ export const queryV1Events = Effect.fn("queryV1Events")(function* (
       },
     };
   }
+
   return {
     status: "complete",
     page: result.success.page,

@@ -42,6 +42,7 @@ describe("indexer cursors", () => {
   it.effect("rejects reuse with another query", () =>
     Effect.gen(function* () {
       const cursor = yield* encodeIndexerCursor(binding, positions);
+
       const error = yield* decodeIndexerCursor(cursor, {
         ...binding,
         filter: { migrated: true },
@@ -54,6 +55,7 @@ describe("indexer cursors", () => {
   it.effect("rejects corrupted cursor data", () =>
     Effect.gen(function* () {
       const error = yield* decodeIndexerCursor("v1.not-valid-base64", binding).pipe(Effect.flip);
+
       assert.strictEqual(error.code, "INVALID_CURSOR");
     }),
   );
@@ -68,6 +70,7 @@ describe("indexer cursors", () => {
   it.effect("compiles equal-value V1 keyset progress with an identity tie-breaker", () =>
     Effect.gen(function* () {
       const order = { field: "createdAt", direction: "desc" } as const;
+
       const position = yield* decodeV1NamePosition(
         JSON.stringify({
           field: "createdAt",
@@ -76,6 +79,7 @@ describe("indexer cursors", () => {
         }),
         order,
       );
+
       const where = combineV1NameWhere(
         { isMigrated: false },
         compileV1NamePosition(position, order),

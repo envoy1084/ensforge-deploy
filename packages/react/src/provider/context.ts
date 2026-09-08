@@ -21,8 +21,10 @@ export const EnsforgeReactContext = createContext<EnsforgeReactContextValue | un
 
 export const useEnsforgeContext = (): EnsforgeReactContextValue => {
   const value = useContext(EnsforgeReactContext);
+
   if (value === undefined) {
     throw new Error("Ensforge React hooks must be used inside an EnsforgeProvider");
   }
+
   return value;
 };

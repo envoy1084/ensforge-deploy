@@ -33,12 +33,14 @@ const readTarget = Effect.fn("ensforge.resolverRoles.target")(function* (
 ) {
   const normalized = yield* normalizeName.effect(name);
   const target = yield* executeRead(config, {}, readResolverPermissionTarget(normalized));
+
   if (!target.supported || target.inherited) {
     return yield* new AuthorizationError({
       code: "WRITE_TARGET_UNAVAILABLE",
       message: `A directly attached Permissioned Resolver is required for ${normalized}`,
     });
   }
+
   return { normalized, target } as const;
 });
 
@@ -49,10 +51,13 @@ const makeScopedPreparer = (
     function* (config: EnsforgeConfig, parameters) {
       const { normalized, target } = yield* readTarget(config, parameters.name);
       const account = yield* decodePermissionAddress(parameters.account, "role account");
+
       const roles = yield* validateRoleBitmap(
         parameters.roles ?? resolverRecordRole(parameters.record),
       );
+
       const expectedRole = resolverRecordRole(parameters.record);
+
       if (
         (parameters.record.type === "address" ||
           parameters.record.type === "text" ||
@@ -64,10 +69,13 @@ const makeScopedPreparer = (
           message: `${parameters.record.type} authorization requires its exact resolver role`,
         });
       }
+
       const encodedName = yield* dnsEncodeName.effect(normalized);
+
       const data = yield* Effect.try({
         try: () => {
           const grant = mutation === "grantRoles";
+
           if (parameters.record.type === "address") {
             return encodeFunctionData({
               abi: permissionedResolverV2AuthorizeAddrRolesAbi,
@@ -75,6 +83,7 @@ const makeScopedPreparer = (
               args: [encodedName, parameters.record.coinType, account, grant],
             });
           }
+
           if (parameters.record.type === "text") {
             return encodeFunctionData({
               abi: permissionedResolverV2AuthorizeTextRolesAbi,
@@ -82,6 +91,7 @@ const makeScopedPreparer = (
               args: [encodedName, parameters.record.key, account, grant],
             });
           }
+
           if (parameters.record.type === "data") {
             return encodeFunctionData({
               abi: permissionedResolverV2AuthorizeDataRolesAbi,
@@ -89,6 +99,7 @@ const makeScopedPreparer = (
               args: [encodedName, parameters.record.key, account, grant],
             });
           }
+
           return encodeFunctionData({
             abi: permissionedResolverV2AuthorizeNameRolesAbi,
             functionName: "authorizeNameRoles",
@@ -102,6 +113,7 @@ const makeScopedPreparer = (
             cause,
           }),
       });
+
       return { to: target.resolver, data, value: 0n, protocol: "v2" as const };
     },
   );
@@ -115,6 +127,7 @@ const makeRootPreparer = (
     const { normalized, target } = yield* readTarget(config, parameters.name);
     const account = yield* decodePermissionAddress(parameters.account, "root role account");
     const roles = yield* validateRoleBitmap(parameters.roles);
+
     const data = yield* Effect.try({
       try: () =>
         encodeFunctionData({
@@ -129,6 +142,7 @@ const makeRootPreparer = (
           cause,
         }),
     });
+
     return { to: target.resolver, data, value: 0n, protocol: "v2" as const };
   });
 
@@ -136,14 +150,17 @@ export const grantResolverRoles = makeSingleWriteAction(
   "grantResolverRoles",
   makeScopedPreparer("grantRoles"),
 );
+
 export const revokeResolverRoles = makeSingleWriteAction(
   "revokeResolverRoles",
   makeScopedPreparer("revokeRoles"),
 );
+
 export const grantResolverRootRoles = makeSingleWriteAction(
   "grantResolverRootRoles",
   makeRootPreparer("grantRootRoles"),
 );
+
 export const revokeResolverRootRoles = makeSingleWriteAction(
   "revokeResolverRootRoles",
   makeRootPreparer("revokeRootRoles"),

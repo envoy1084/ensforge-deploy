@@ -15,6 +15,7 @@ export const setName = makeResolverWriteAction<SetNameParameters>({
     Effect.gen(function* () {
       const value =
         parameters.value.length === 0 ? "" : yield* normalizeName.effect(parameters.value);
+
       return yield* Effect.try({
         try: () =>
           encodeFunctionData({

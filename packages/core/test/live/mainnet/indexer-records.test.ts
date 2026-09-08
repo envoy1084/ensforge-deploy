@@ -8,9 +8,11 @@ describe("Mainnet indexed records", () => {
   it.effect("reads V1 resolver inventory", () =>
     Effect.gen(function* () {
       const inventory = yield* getIndexedRecords.effect(mainnetConfig, { name: "vitalik.eth" });
+
       const current = inventory.bindings.find(
         ({ current: isCurrent, source }) => isCurrent && source.protocol === "v1",
       );
+
       assert.isDefined(current);
       assert.isFalse(inventory.authoritative);
       assert.include(current?.records.coinTypes ?? [], 60n);
@@ -24,6 +26,7 @@ describe("Mainnet indexed records", () => {
         name: "vitalik.eth",
         pageSize: 5,
       });
+
       assert.isAbove(history.items.length, 0);
       assert.isTrue(history.items.every(({ source }) => source.protocol === "v1"));
       assert.isTrue(history.items.every(({ raw }) => raw.data === null));

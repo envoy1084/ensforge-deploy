@@ -38,6 +38,7 @@ const getResolversForAddressEffect = Effect.fn("ensforge.getResolversForAddress"
       message: "Indexer actions are disabled for this configuration",
     });
   }
+
   const decoded = yield* Schema.decodeUnknownEffect(GetResolversForAddressParametersSchema)(
     parameters,
   ).pipe(
@@ -49,23 +50,31 @@ const getResolversForAddressEffect = Effect.fn("ensforge.getResolversForAddress"
         }),
     ),
   );
+
   const unsupported = getV2IndexerUnsupported(config);
+
   if (unsupported !== null) return unsupported;
+
   const owner = getAddress(decoded.address);
   const pageSize = decoded.pageSize ?? Math.min(20, config.indexer.maximumPageSize);
+
   if (pageSize > config.indexer.maximumPageSize) {
     return yield* new IndexerFilterError({
       code: "INVALID_FILTER",
       message: `pageSize cannot exceed ${config.indexer.maximumPageSize}`,
     });
   }
+
   const binding = makeIndexerCursorBinding(config, "getResolversForAddress", { owner }, null);
+
   const positions =
     decoded.cursor === undefined
       ? { v1: { position: null, exhausted: true }, v2: { position: null, exhausted: false } }
       : (yield* decodeIndexerCursor(decoded.cursor, binding)).sources;
+
   const offset = yield* decodeLocalOffset(positions.v2.position, "resolver owner");
   const operationName = "V2GetResolversForAddress";
+
   const response = yield* requestIndexer<
     V2GetResolversForAddressQuery,
     V2GetResolversForAddressQueryVariables
@@ -75,14 +84,18 @@ const getResolversForAddressEffect = Effect.fn("ensforge.getResolversForAddress"
     document: V2GetResolversForAddressDocument,
     variables: { owner: owner.toLowerCase(), protocol: "v2" },
   });
+
   const data = yield* requireIndexerData(config, "v2", operationName, response);
+
   const indexedBlock = yield* decodeIndexedBlock(
     config,
     "v2",
     operationName,
     data["_meta"].block.number,
   );
+
   const window = data.resolversByOwner.slice(offset, offset + pageSize);
+
   const items = yield* Effect.all(
     window.map((resolver) =>
       normalizeV2OwnedResolver(owner, resolver, {
@@ -94,14 +107,17 @@ const getResolversForAddressEffect = Effect.fn("ensforge.getResolversForAddress"
     ),
     { concurrency: "unbounded" },
   );
+
   const nextOffset = offset + window.length;
   const hasNextPage = nextOffset < data.resolversByOwner.length;
+
   const cursor = hasNextPage
     ? yield* encodeIndexerCursor(binding, {
         v1: { position: null, exhausted: true },
         v2: { position: String(nextOffset), exhausted: false },
       })
     : null;
+
   return {
     status: "supported",
     value: {

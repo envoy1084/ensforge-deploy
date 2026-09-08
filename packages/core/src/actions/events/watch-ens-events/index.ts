@@ -19,6 +19,7 @@ export interface WatchEnsEvents {
     onEvent: (event: EnsEvent) => void,
     onError: (error: EnsEventError) => void,
   ): Promise<() => void>;
+
   readonly stream: (
     config: EnsforgeConfig,
     parameters: WatchEnsEventsParameters,
@@ -35,10 +36,12 @@ const stream = (
       : normalizeName
           .effect(parameters.name)
           .pipe(Effect.map((name): NormalizedName | undefined => name));
+
   return Stream.unwrap(
     normalizedNameEffect.pipe(
       Effect.map((normalizedName) => {
         const contracts = getEnsEventContracts(config.deployments);
+
         return Stream.callback<EnsEvent, EnsEventError>(
           Effect.fn("ensforge.watchEnsEvents.stream")(function* (queue) {
             yield* Effect.acquireRelease(
@@ -54,6 +57,7 @@ const stream = (
                   onLogs: (logs) => {
                     for (const log of logs) {
                       const event = normalizeEnsLog(log, contracts);
+
                       if (
                         event !== null &&
                         matchesEnsEventFilters(
@@ -92,7 +96,9 @@ const watch = async (
     parameters.name === undefined
       ? undefined
       : await Effect.runPromise(normalizeName.effect(parameters.name));
+
   const contracts = getEnsEventContracts(config.deployments);
+
   return config.publicClient.watchEvent({
     address: contracts.map((contract) => contract.address),
     ...(parameters.fromBlock === undefined ? {} : { fromBlock: parameters.fromBlock }),
@@ -102,6 +108,7 @@ const watch = async (
     onLogs: (logs) => {
       for (const log of logs) {
         const event = normalizeEnsLog(log, contracts);
+
         if (
           event !== null &&
           matchesEnsEventFilters(

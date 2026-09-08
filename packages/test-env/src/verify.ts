@@ -23,18 +23,25 @@ if (devnet.fixtures.migration.migratedLocked.name !== "v2-migrated-locked.eth") 
 }
 
 const hca = devnet.fixtures.hca.address;
+
 await verifyHca(devnet.configs.v2, { hca, expectedOwner: devnet.accounts.owner });
+
 const submission = await executeHcaCalls(devnet.configs.v2, {
   hca,
   authorization: { kind: "owner" },
   calls: [{ to: devnet.accounts.owner }],
 });
+
 const execution = await waitForHcaExecution(devnet.configs.v2, { submission });
+
 if (execution.status !== "succeeded") throw new Error("HCA owner execution did not succeed");
+
 const revocation = await revokeHcaSessions(devnet.configs.v2, { hca });
+
 if (revocation.sessionNonce !== 1n) throw new Error("HCA sessions were not revoked");
 
 await devnet.reset();
+
 if ((await getHcaSessionNonce(devnet.configs.v2, { hca })) !== 0n) {
   throw new Error("HCA checkpoint was not restored");
 }

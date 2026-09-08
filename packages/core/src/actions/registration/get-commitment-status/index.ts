@@ -36,6 +36,7 @@ const getCommitmentStatusEffect = Effect.fn("ensforge.getCommitmentStatus")(func
     Effect.gen(function* () {
       const { profile } = yield* DeploymentService;
       const ethereum = yield* EthereumClient;
+
       const [submittedAt, minimumAge, maximumAge, currentTime] =
         profile.protocol === "v1"
           ? yield* Effect.all(

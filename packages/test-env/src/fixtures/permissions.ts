@@ -37,6 +37,7 @@ export const seedPermissionFixtures = Effect.fn("seedPermissionFixtures")(functi
   const permissionedName = "v2-write-ready.eth";
   const permissionedNode = namehash(permissionedName);
   const permissionedTextKey = "avatar";
+
   const permissionedResource = BigInt(
     keccak256(
       encodePacked(
@@ -63,6 +64,7 @@ export const seedPermissionFixtures = Effect.fn("seedPermissionFixtures")(functi
     functionName: "initialize",
     args: [environment.accounts.owner, enhancedAccessControlRoles.allRoles, []],
   });
+
   const permissionedResolver = yield* seedRead(
     () =>
       environment.clients.publicClient
@@ -80,6 +82,7 @@ export const seedPermissionFixtures = Effect.fn("seedPermissionFixtures")(functi
         .then(({ result }) => result),
     "Unable to predict the permissioned resolver fixture",
   );
+
   yield* seedTransaction(
     environment,
     {

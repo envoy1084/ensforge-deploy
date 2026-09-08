@@ -14,4 +14,5 @@ export type SetAbiParameters =
     };
 
 export type SetAbiResult = CallExecutionResult;
+
 export type SetAbiError = WriteError;

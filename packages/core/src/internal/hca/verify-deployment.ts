@@ -47,7 +47,9 @@ export const verifyHcaDeployment: (
   return yield* Effect.tryPromise({
     try: async () => {
       const { contracts: hca, deployment, infrastructure } = profile;
+
       if ((await client.getChainId()) !== deployment.chainId) throw new Error("HCA chain mismatch");
+
       if (
         !(
           (profile.environment === "sepolia" && deployment.chainId === 11155111) ||
@@ -56,7 +58,9 @@ export const verifyHcaDeployment: (
       ) {
         throw new Error("Unsupported HCA environment");
       }
+
       const blockNumber = atBlock ?? (await client.getBlockNumber());
+
       await Promise.all(
         [
           ...Object.values(hca),
@@ -66,19 +70,23 @@ export const verifyHcaDeployment: (
           deployment.implementations.permissionedResolver,
         ].map(async (address) => {
           const code = await client.getCode({ address, blockNumber });
+
           if (!code || code === "0x") throw new Error(`HCA dependency has no code: ${address}`);
         }),
       );
+
       const factory = {
         address: hca.standaloneFactory,
         abi: standaloneHcaFactoryV2DeploymentAbi,
         blockNumber,
       } as const;
+
       expectAddress(
         "factory",
         await client.readContract({ ...factory, functionName: "VERIFIABLE_FACTORY" }),
         deployment.contracts.verifiableFactory,
       );
+
       if (
         !(await client.readContract({
           ...factory,
@@ -87,42 +95,53 @@ export const verifyHcaDeployment: (
         }))
       )
         throw new Error("Initial HCA implementation is not approved");
+
       const implementationCode = await client.getCode({
         address: hca.standaloneImplementation,
         blockNumber,
       });
+
       if (!implementationCode) throw new Error("HCA implementation has no code");
+
       const validatorWord = padHex(hca.ownerAndSessionValidator.toLowerCase() as Address, {
         size: 32,
       }).slice(2);
+
       for (const offset of hcaImplementationRuntime.defaultValidatorWordOffsets) {
         if (implementationCode.slice(2 + offset * 2, 2 + (offset + 32) * 2) !== validatorWord)
           throw new Error("HCA default validator immutable mismatch");
       }
+
       if (
         (implementationCode.length - 2) / 2 !== hcaImplementationRuntime.runtimeBytes ||
         implementationCode.slice(-4) !== "0033"
       )
         throw new Error("HCA runtime layout mismatch");
+
       let template: Hex = implementationCode;
+
       for (const offset of hcaImplementationRuntime.immutableWordOffsets) {
         template = `0x${template.slice(2, 2 + offset * 2)}${"0".repeat(64)}${template.slice(2 + (offset + 32) * 2)}`;
       }
+
       if (
         keccak256(template.slice(0, -hcaImplementationRuntime.metadataBytes * 2) as Hex) !==
         hcaImplementationRuntime.templateHash
       )
         throw new Error("HCA runtime does not match the pinned artifact template");
+
       const account = {
         address: hca.standaloneImplementation,
         abi: standaloneHcaV2InspectionAbi,
         blockNumber,
       } as const;
+
       if (
         (await client.readContract({ ...account, functionName: "accountId" })) !==
         profile.generation.accountId
       )
         throw new Error("HCA account generation mismatch");
+
       expectAddress(
         "EntryPoint",
         await client.readContract({ ...account, functionName: "entryPoint" }),
@@ -138,6 +157,7 @@ export const verifyHcaDeployment: (
         await client.readContract({ ...account, functionName: "PREDECESSOR_UPGRADE_GATE" }),
         zeroAddress,
       );
+
       if (
         !(await client.readContract({
           ...account,
@@ -146,14 +166,18 @@ export const verifyHcaDeployment: (
         }))
       )
         throw new Error("HCA default executor is missing");
+
       const proxyLogic = await client.readContract({
         address: deployment.contracts.verifiableFactory,
         abi: verifiableFactoryV2ProxyLogicAbi,
         functionName: "proxyLogic",
         blockNumber,
       });
+
       const proxyCode = await client.getCode({ address: proxyLogic, blockNumber });
+
       if (!proxyCode || proxyCode === "0x") throw new Error("Verifiable proxy logic has no code");
+
       const wiring = {
         DEFAULT_REVERSE_REGISTRAR_HCA_ADAPTER: deployment.contracts.defaultReverseRegistrarAdapter,
         PERMITTED_RESOLVER_IMPL: deployment.implementations.permissionedResolver,
@@ -165,6 +189,7 @@ export const verifyHcaDeployment: (
         INTENT_EXECUTOR: infrastructure.intentExecutor,
         GAS_REFUND_PAYMASTER: infrastructure.gasRefundPaymaster,
       } as const;
+
       await Promise.all(
         (Object.keys(wiring) as (keyof typeof wiring)[]).map(async (functionName) => {
           expectAddress(
@@ -196,14 +221,18 @@ export const verifyHcaDeployment: (
           );
         }),
       );
+
       const entryPointCode = await client.getCode({
         address: infrastructure.entryPoint,
         blockNumber,
       });
+
       const entryPointDeployed = Boolean(entryPointCode) && entryPointCode !== "0x";
+
       if (profile.environment === "sepolia" && !entryPointDeployed) {
         throw new Error("Recorded Sepolia EntryPoint has no code");
       }
+
       return {
         blockNumber,
         proxyLogic,

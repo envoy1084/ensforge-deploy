@@ -296,7 +296,9 @@ export interface RegisterNamesResult {
 }
 
 export type RegistrationWriteError = WriteError;
+
 export type RegistrationWriteResult = CallExecutionResult;
+
 export type RegistrationWriteIntent = EnsWriteIntent<
   RegistrationWriteResult,
   RegistrationWriteError

@@ -24,6 +24,7 @@ describe("avatar resolution integration", () => {
   it.effect("resolves migrated v2 and RESERVED v1 avatar records through the v2 resolver", () =>
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
+
       const [migrated, reserved] = yield* Effect.all([
         getAvatar.effect(devnet.configs.v2, {
           name: devnet.fixtures.records.v2.name,
@@ -49,6 +50,7 @@ describe("avatar resolution integration", () => {
   it.effect("returns null when the avatar text record is unset", () =>
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
+
       const result = yield* getAvatar.effect(devnet.configs.v2, {
         name: devnet.fixtures.v2.active.name,
       });
@@ -61,6 +63,7 @@ describe("avatar resolution integration", () => {
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
       const fixture = devnet.fixtures.records.v2;
+
       const result = yield* readBatch.effect(devnet.configs.v2, {
         avatar: getAvatar.request({ name: fixture.name }),
         owner: getOwner.request({ name: fixture.name }),

@@ -5,6 +5,7 @@ import { createConfig } from "../../../src/index.js";
 
 const readSepoliaRpcUrl = (): string => {
   const value = process.env.ENSFORGE_SEPOLIA_RPC_URL;
+
   if (value === undefined || value.length === 0) {
     throw new Error(
       "ENSFORGE_SEPOLIA_RPC_URL is required. Run the suite with `ENSFORGE_SEPOLIA_RPC_URL=https://… pnpm test:live:sepolia`.",
@@ -12,9 +13,11 @@ const readSepoliaRpcUrl = (): string => {
   }
 
   const url = new URL(value);
+
   if (url.protocol !== "http:" && url.protocol !== "https:") {
     throw new Error("ENSFORGE_SEPOLIA_RPC_URL must use HTTP or HTTPS");
   }
+
   return value;
 };
 
@@ -51,7 +54,9 @@ export const sepoliaConfig = createConfig({
 });
 
 const configuredRoot = (process.env.ENSFORGE_SEPOLIA_V2_NAME ?? "ensforge-smoke.eth").toLowerCase();
+
 const root = configuredRoot.endsWith(".eth") ? configuredRoot : `${configuredRoot}.eth`;
+
 const rootLabel = root.slice(0, -4);
 
 export const sepoliaNames = {

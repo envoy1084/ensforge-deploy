@@ -21,9 +21,12 @@ export const makeMutationHook =
     const registry = useContext(RegistryContext);
     const atomRef = useRef<ReturnType<typeof factory> | undefined>(undefined);
     const [parameters, setParameters] = useState<Parameters | undefined>(undefined);
+
     if (atomRef.current === undefined) atomRef.current = factory(sdk);
+
     const atom = atomRef.current;
     const result = useAtomValue(atom);
+
     const retry =
       options.retry ??
       (defaults.mutations?.retry as false | Schedule.Schedule<unknown, Failure> | undefined) ??
@@ -35,11 +38,13 @@ export const makeMutationHook =
         registry.set(atom, nextParameters);
       }).pipe(
         Effect.andThen(
+          // Wait for this mutation instead of returning the previous atom result.
           AtomRegistry.getResult(registry, atom, {
             suspendOnWaiting: true,
           }),
         ),
       );
+
       return retry === false ? effect : effect.pipe(Effect.retry(retry));
     };
 
@@ -54,8 +59,11 @@ export const makeMutationHook =
 
     const mutateAsync = async (nextParameters: Parameters): Promise<Success> => {
       const exit = await Effect.runPromiseExit(mutateEffect(nextParameters));
+
       notifyExit(exit, nextParameters, undefined);
+
       if (Exit.isSuccess(exit)) return exit.value;
+
       throw Cause.squash(exit.cause);
     };
 

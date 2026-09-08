@@ -8,7 +8,9 @@ export interface SetResolverDelegateApprovalParameters {
 }
 
 export type SetResolverDelegateApprovalResult = CallExecutionResult;
+
 export type SetResolverDelegateApprovalError = WriteError;
+
 export type SetResolverDelegateApprovalIntent = EnsWriteIntent<
   SetResolverDelegateApprovalResult,
   SetResolverDelegateApprovalError

@@ -26,11 +26,13 @@ export const resolveContentHash = Effect.fn("resolveContentHash")(function* (nam
         cause,
       }),
   });
+
   const results = yield* resolveRecords(name, [call]);
 
   if (results === null) return { protocol: null, value: null, raw: null } as const;
 
   const encodedResult = results[0];
+
   if (encodedResult === undefined) {
     return yield* new ContractError({
       code: "DECODE_FAILED",
@@ -55,6 +57,7 @@ export const resolveContentHash = Effect.fn("resolveContentHash")(function* (nam
         cause,
       }),
   });
+
   const decoded = yield* Effect.try({
     try: () => decodeContentHash(raw),
     catch: (cause) =>

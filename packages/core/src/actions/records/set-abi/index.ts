@@ -22,9 +22,11 @@ const encodeAbiValue = (parameters: SetAbiParameters) => {
   if (parameters.contentType === "uri") return stringToHex(parameters.value);
 
   const abi = parameters.value;
+
   if (parameters.contentType === "cbor") return bytesToHex(encodeCbor(abi));
 
   const json = JSON.stringify(abi);
+
   return parameters.contentType === "json"
     ? stringToHex(json)
     : bytesToHex(zlibSync(stringToBytes(json)));
@@ -41,6 +43,7 @@ export const setAbi = makeResolverWriteAction<SetAbiParameters>({
           message: "Invalid ENS ABI record",
         });
       }
+
       return yield* Effect.try({
         try: () =>
           encodeFunctionData({

@@ -20,18 +20,22 @@ const getRegistrantEffect = Effect.fn("ensforge.getRegistrant")(function* (
   parameters: GetNameStateParameters,
 ) {
   const name = yield* normalizeName.effect(parameters.name);
+
   return yield* executeRead(
     config,
     parameters,
     Effect.gen(function* () {
       const route = yield* readNameRoute(name);
+
       if (route.kind === "v2" || route.kind === "available") return null;
 
       const analysis = analyzeName(name);
+
       if (!analysis.isSecondLevelEth || analysis.label === undefined) return null;
 
       const ethereum = yield* EthereumClient;
       const deployment = route.kind === "reserved" ? route.v1 : route.deployment;
+
       const result = yield* Effect.result(
         ethereum.readContract({
           address: deployment.contracts.baseRegistrar,
@@ -46,6 +50,7 @@ const getRegistrantEffect = Effect.fn("ensforge.getRegistrant")(function* (
           ? null
           : yield* result.failure;
       }
+
       return isAddressEqual(result.success, zeroAddress) ? null : result.success;
     }),
   );
@@ -61,4 +66,5 @@ export type {
   GetNameStateError as GetRegistrantError,
   GetNameStateParameters as GetRegistrantParameters,
 } from "../get-name-state/types.js";
+
 export type GetRegistrantResult = EthereumAddress | null;

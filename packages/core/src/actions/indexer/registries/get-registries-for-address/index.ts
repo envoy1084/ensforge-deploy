@@ -38,6 +38,7 @@ const getRegistriesForAddressEffect = Effect.fn("ensforge.getRegistriesForAddres
       message: "Indexer actions are disabled for this configuration",
     });
   }
+
   const decoded = yield* Schema.decodeUnknownEffect(GetRegistriesForAddressParametersSchema)(
     parameters,
   ).pipe(
@@ -49,24 +50,31 @@ const getRegistriesForAddressEffect = Effect.fn("ensforge.getRegistriesForAddres
         }),
     ),
   );
+
   const unsupported = getV2IndexerUnsupported(config);
+
   if (unsupported !== null) return unsupported;
 
   const address = getAddress(decoded.address);
   const pageSize = decoded.pageSize ?? Math.min(20, config.indexer.maximumPageSize);
+
   if (pageSize > config.indexer.maximumPageSize) {
     return yield* new IndexerFilterError({
       code: "INVALID_FILTER",
       message: `pageSize cannot exceed ${config.indexer.maximumPageSize}`,
     });
   }
+
   const binding = makeIndexerCursorBinding(config, "getRegistriesForAddress", { address }, null);
+
   const positions =
     decoded.cursor === undefined
       ? { v1: { position: null, exhausted: true }, v2: { position: null, exhausted: false } }
       : (yield* decodeIndexerCursor(decoded.cursor, binding)).sources;
+
   const offset = yield* decodeLocalOffset(positions.v2.position, "registry owner");
   const operationName = "V2GetRegistriesForAddress";
+
   const response = yield* requestIndexer<
     V2GetRegistriesForAddressQuery,
     V2GetRegistriesForAddressQueryVariables
@@ -76,14 +84,18 @@ const getRegistriesForAddressEffect = Effect.fn("ensforge.getRegistriesForAddres
     document: V2GetRegistriesForAddressDocument,
     variables: { owner: address.toLowerCase() },
   });
+
   const data = yield* requireIndexerData(config, "v2", operationName, response);
+
   const indexedBlock = yield* decodeIndexedBlock(
     config,
     "v2",
     operationName,
     data["_meta"].block.number,
   );
+
   const window = data.registries.slice(offset, offset + pageSize);
+
   const items = yield* Effect.all(
     window.map((registry) =>
       normalizeV2Registry(registry, {
@@ -95,14 +107,17 @@ const getRegistriesForAddressEffect = Effect.fn("ensforge.getRegistriesForAddres
     ),
     { concurrency: "unbounded" },
   );
+
   const nextOffset = offset + window.length;
   const hasNextPage = nextOffset < data.registries.length;
+
   const cursor = hasNextPage
     ? yield* encodeIndexerCursor(binding, {
         v1: { position: null, exhausted: true },
         v2: { position: String(nextOffset), exhausted: false },
       })
     : null;
+
   return {
     status: "supported",
     value: {

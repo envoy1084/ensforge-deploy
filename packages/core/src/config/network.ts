@@ -3,7 +3,9 @@ import { Schema } from "effect";
 export const ensNetworks = ["mainnet", "sepolia"] as const;
 
 export type EnsNetwork = (typeof ensNetworks)[number];
+
 export type EnsNetworkId = string;
+
 export const EnsNetworkIdSchema = Schema.NonEmptyString;
 
 export type EnsChainId = 1 | 11155111;

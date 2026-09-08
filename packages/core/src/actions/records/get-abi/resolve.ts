@@ -28,6 +28,7 @@ const contentTypesByBit = new Map<bigint, AbiContentType>([
 
 const decodeAbi = (contentType: Exclude<AbiContentType, "uri">, raw: AbiRecordData) => {
   const bytes = hexToBytes(raw);
+
   const value =
     contentType === "json"
       ? JSON.parse(bytesToString(bytes))
@@ -47,10 +48,12 @@ export const resolveAbi = Effect.fn("resolveAbi")(function* (
   }
 
   const contentTypes = Array.from(new Set(acceptedContentTypes));
+
   const contentTypeMask = contentTypes.reduce(
     (mask, contentType) => mask | contentTypeBits[contentType],
     0n,
   );
+
   const call = yield* Effect.try({
     try: () =>
       encodeFunctionData({
@@ -65,11 +68,13 @@ export const resolveAbi = Effect.fn("resolveAbi")(function* (
         cause,
       }),
   });
+
   const results = yield* resolveRecords(name, [call]);
 
   if (results === null) return { contentType: null, value: null, raw: null } as const;
 
   const encodedResult = results[0];
+
   if (encodedResult === undefined) {
     return yield* new ContractError({
       code: "DECODE_FAILED",
@@ -98,6 +103,7 @@ export const resolveAbi = Effect.fn("resolveAbi")(function* (
   }
 
   const contentType = contentTypesByBit.get(contentTypeBit);
+
   if (contentType === undefined) {
     return yield* new CodecError({
       code: "UNSUPPORTED_ABI_CONTENT_TYPE",
@@ -123,6 +129,7 @@ export const resolveAbi = Effect.fn("resolveAbi")(function* (
           message: "Invalid URI ENS ABI record",
         }),
     });
+
     return { contentType, value, raw } as const;
   }
 

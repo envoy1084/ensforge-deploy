@@ -31,13 +31,17 @@ export const seedTransaction = <
         readonly account: `0x${string}`;
         readonly chain: typeof environment.clients.chain;
       }) => Promise<Hex>;
+
       const hash = await writeContract({
         ...request,
         account: environment.accounts[account],
         chain: environment.clients.chain,
       });
+
       const receipt = await environment.clients.publicClient.waitForTransactionReceipt({ hash });
+
       if (receipt.status !== "success") throw new Error(`Transaction ${hash} reverted`);
+
       return receipt;
     },
     catch: (cause) =>

@@ -12,6 +12,7 @@ const getDataEffect = Effect.fn("ensforge.getData")(function* (
   parameters: GetDataParameters,
 ) {
   const name = yield* normalizeName.effect(parameters.name);
+
   return yield* executeRead(config, parameters, resolveData(name, parameters.key));
 });
 

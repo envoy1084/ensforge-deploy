@@ -23,6 +23,7 @@ export const parsePublishedPort = (output: string): number => {
     .map((line) => line.trim())
     .find((line) => line.startsWith("127.0.0.1:"))
     ?.match(/:(\d+)$/);
+
   const port = match?.[1] === undefined ? Number.NaN : Number(match[1]);
 
   if (!Number.isInteger(port) || port < 1 || port > 65_535) {
@@ -35,6 +36,7 @@ export const parsePublishedPort = (output: string): number => {
 const makeDockerEngine = (): DockerEngineService => ({
   build: Effect.fn("DockerEngine.build")(function* (context, image) {
     const result = yield* runProcess("docker", ["build", "--tag", image, context]);
+
     yield* requireProcessSuccess("docker build", result);
   }),
   start: Effect.fn("DockerEngine.start")(function* (options) {
@@ -58,6 +60,7 @@ const makeDockerEngine = (): DockerEngineService => ({
       String(options.chainId),
       "--quiet",
     ]);
+
     const { stdout } = yield* requireProcessSuccess("docker run", result);
     const containerId = stdout.trim();
 
@@ -70,6 +73,7 @@ const makeDockerEngine = (): DockerEngineService => ({
   publishedPort: Effect.fn("DockerEngine.publishedPort")(function* (name, containerPort) {
     const result = yield* runProcess("docker", ["port", name, `${containerPort}/tcp`]);
     const { stdout } = yield* requireProcessSuccess("docker port", result);
+
     return yield* Effect.try({
       try: () => parsePublishedPort(stdout),
       catch: (cause) => (cause instanceof Error ? cause : new Error(String(cause))),
@@ -78,6 +82,7 @@ const makeDockerEngine = (): DockerEngineService => ({
   logs: Effect.fn("DockerEngine.logs")(function* (name) {
     const result = yield* runProcess("docker", ["logs", name]);
     const { stdout, stderr } = yield* requireProcessSuccess("docker logs", result);
+
     return `${stdout}${stderr}`;
   }),
   remove: Effect.fn("DockerEngine.remove")(function* (name) {
@@ -89,7 +94,9 @@ const makeDockerEngine = (): DockerEngineService => ({
   }),
   hasImage: Effect.fn("DockerEngine.hasImage")(function* (image) {
     const result = yield* runProcess("docker", ["image", "inspect", image]);
+
     if (result.exitCode === 0) return true;
+
     if (result.stderr.includes("No such image")) return false;
 
     return yield* Effect.fail(

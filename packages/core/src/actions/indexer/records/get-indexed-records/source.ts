@@ -50,6 +50,7 @@ const queryV1 = Effect.fn("queryV1IndexedRecords")(function* (
   lookup: RecordsLookup,
 ): Effect.fn.Return<IndexedRecordsSourceResult, GetIndexedRecordsError> {
   const operationName = "V1GetIndexedRecords";
+
   const response = yield* requestIndexer<
     V1GetIndexedRecordsQuery,
     V1GetIndexedRecordsQueryVariables
@@ -59,7 +60,9 @@ const queryV1 = Effect.fn("queryV1IndexedRecords")(function* (
     document: V1GetIndexedRecordsDocument,
     variables: { id: lookup.namehash, domainId: lookup.namehash, first: 100 },
   });
+
   const data = yield* requireIndexerData(config, "v1", operationName, response);
+
   const indexedBlock = yield* decodeIndexedBlock(
     config,
     "v1",
@@ -78,30 +81,39 @@ const queryV1 = Effect.fn("queryV1IndexedRecords")(function* (
         let sawReverseName = false;
         const authorizations = new Map<string, boolean>();
         let version: bigint | null = null;
+
         for (const event of resolver.events) {
           if (event["__typename"] === "AbiChanged")
             abiContentTypes.add(decodeBigInt(event.contentType));
+
           if (event["__typename"] === "InterfaceChanged") {
             const interfaceId = decodeHex(event.interfaceID);
+
             if (!interfaces.has(interfaceId)) {
               interfaces.set(interfaceId, !zeroHex(event.implementer));
             }
           }
+
           if (event["__typename"] === "PubkeyChanged" && !sawPubkey) {
             hasPubkey = !zeroHex(event.x) || !zeroHex(event.y);
             sawPubkey = true;
           }
+
           if (event["__typename"] === "NameChanged" && !sawReverseName) {
             hasReverseName = event.name.length > 0;
             sawReverseName = true;
           }
+
           if (event["__typename"] === "AuthorisationChanged") {
             const key = `${event.owner.toLowerCase()}:${event.target.toLowerCase()}`;
+
             if (!authorizations.has(key)) authorizations.set(key, event.isAuthorized);
           }
+
           if (event["__typename"] === "VersionChanged" && version === null)
             version = decodeBigInt(event.version);
         }
+
         return {
           source: { network: config.network, protocol: "v1" as const, indexedBlock },
           resolver: decodeAddress(resolver.address),
@@ -135,6 +147,7 @@ const queryV1 = Effect.fn("queryV1IndexedRecords")(function* (
         cause,
       }),
   });
+
   return { indexedBlock, bindings };
 });
 
@@ -143,6 +156,7 @@ const queryV2 = Effect.fn("queryV2IndexedRecords")(function* (
   lookup: RecordsLookup,
 ): Effect.fn.Return<IndexedRecordsSourceResult, GetIndexedRecordsError> {
   const operationName = "V2GetIndexedRecords";
+
   const response = yield* requestIndexer<
     V2GetIndexedRecordsQuery,
     V2GetIndexedRecordsQueryVariables
@@ -157,13 +171,16 @@ const queryV2 = Effect.fn("queryV2IndexedRecords")(function* (
       protocol: getIndexerRuntimeConfig(config.indexer).sourceStates.v1 === "enabled" ? "v2" : null,
     },
   });
+
   const data = yield* requireIndexerData(config, "v2", operationName, response);
+
   const indexedBlock = yield* decodeIndexedBlock(
     config,
     "v2",
     operationName,
     data["_meta"].block.number,
   );
+
   const currentResolver = (data.byName ?? data.byNamehash)?.resolver?.id;
 
   const bindings = yield* Effect.try({
@@ -203,6 +220,7 @@ const queryV2 = Effect.fn("queryV2IndexedRecords")(function* (
         cause,
       }),
   });
+
   return { indexedBlock, bindings };
 });
 
@@ -217,6 +235,7 @@ export const queryIndexedRecordsSource = Effect.fn("queryIndexedRecordsSource")(
   const result = yield* Effect.result(
     protocol === "v1" ? queryV1(config, lookup) : queryV2(config, lookup),
   );
+
   if (Result.isFailure(result)) {
     return {
       status: "failed",
@@ -228,6 +247,7 @@ export const queryIndexedRecordsSource = Effect.fn("queryIndexedRecordsSource")(
       },
     };
   }
+
   return {
     status: "complete",
     page: {

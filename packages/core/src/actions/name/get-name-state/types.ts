@@ -13,6 +13,7 @@ export const NameStatus = Schema.Literals(["available", "active", "grace", "expi
 export type NameStatus = typeof NameStatus.Type;
 
 const nullableAddress = Schema.NullOr(EthereumAddress);
+
 const nullableBigInt = Schema.NullOr(Schema.BigInt);
 
 const sharedFields = {

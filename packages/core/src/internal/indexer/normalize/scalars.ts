@@ -19,15 +19,19 @@ export const decodeNullableAddress = (value: unknown) =>
 
 export const decodeDomainNamehash = (identifier: unknown, indexedName?: unknown) => {
   const rawIdentifier = Schema.decodeUnknownSync(Schema.String)(identifier);
+
   const identifierNamehash = Schema.is(Namehash)(rawIdentifier)
     ? rawIdentifier
     : Schema.decodeUnknownSync(Namehash)(namehash(rawIdentifier));
+
   if (indexedName !== null && indexedName !== undefined) {
     const rawName = Schema.decodeUnknownSync(Schema.String)(indexedName);
+
     if (namehash(rawName).toLowerCase() !== identifierNamehash.toLowerCase()) {
       throw new Error("Indexed name does not match its identifier");
     }
   }
+
   return identifierNamehash;
 };
 
@@ -39,6 +43,7 @@ export const decodeNullableLabelhash = (value: unknown) =>
 
 export const decodeBigInt = (value: unknown) => {
   const raw = Schema.decodeUnknownSync(Schema.String)(value);
+
   return Schema.decodeUnknownSync(Schema.BigInt)(BigInt(raw));
 };
 
@@ -59,11 +64,14 @@ export const decodeIndexedNameValue = (
   if (value === null || value === undefined) return { kind: "unknown", value: null };
 
   const rawName = Schema.decodeUnknownSync(Schema.String)(value);
+
   try {
     const normalized = Schema.decodeUnknownSync(NormalizedName)(normalize(rawName));
+
     if (namehash(normalized).toLowerCase() !== expectedNamehash.toLowerCase()) {
       return { kind: "encoded", value: rawName };
     }
+
     return { kind: "normalized", value: normalized };
   } catch {
     return { kind: "encoded", value: rawName };

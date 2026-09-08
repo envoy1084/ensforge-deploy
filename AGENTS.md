@@ -21,6 +21,15 @@ must not depend on React or application runtimes.
 Use the Klarity presets already configured at the workspace root. Do not add Prettier, ESLint, Husky,
 lint-staged, tsup, or Rollup unless a demonstrated requirement cannot be met by the existing tools.
 
+## Readability
+
+Separate validation, execution, state updates, and result construction with blank lines. Keep short,
+related declarations and assertions together; do not add a blank line after every statement. Separate
+independent functions and type declarations, while keeping overloads and schema/type pairs together.
+
+Use brief comments for non-obvious constraints, ordering, or lifecycle decisions. Avoid comments that
+repeat the code, section banners, and manual reformatting of generated artifacts.
+
 # Learning more about Effect
 
 This repository uses the Effect TypeScript library.

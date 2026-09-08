@@ -12,6 +12,7 @@ const getPubkeyEffect = Effect.fn("ensforge.getPubkey")(function* (
   parameters: GetPubkeyParameters,
 ) {
   const name = yield* normalizeName.effect(parameters.name);
+
   return yield* executeRead(config, parameters, resolvePubkey(name));
 });
 

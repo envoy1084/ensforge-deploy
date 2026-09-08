@@ -17,6 +17,7 @@ describe("Sepolia indexed resolvers", () => {
       const name = yield* getIndexedName.effect(sepoliaConfig, {
         name: sepoliaNames.v2.profile,
       });
+
       if (name?.resolver === null || name === null) return assert.fail("expected a V2 resolver");
 
       const resolver = yield* getIndexedResolver.effect(sepoliaConfig, {
@@ -24,6 +25,7 @@ describe("Sepolia indexed resolvers", () => {
         protocol: "v2",
         name: sepoliaNames.v2.profile,
       });
+
       assert.strictEqual(resolver?.protocol, "v2");
       assert.isAbove(resolver?.bindings.length ?? 0, 0);
       assert.isTrue(resolver?.bindings.some((binding) => binding.textKeys.length > 0));
@@ -39,11 +41,15 @@ describe("Sepolia indexed resolvers", () => {
         ],
         { concurrency: "unbounded" },
       );
+
       if (name?.resolver === null || name === null) return assert.fail("expected a V2 resolver");
+
       if (registry.status !== "supported" || registry.value === null) {
         return assert.fail("expected the resolver owner fixture");
       }
+
       const owner = registry.value.owner;
+
       if (owner === null) return assert.fail("expected a resolver owner");
 
       const [owned, metadata, approvals] = yield* Effect.all(
@@ -56,10 +62,13 @@ describe("Sepolia indexed resolvers", () => {
         ],
         { concurrency: "unbounded" },
       );
+
       assert.strictEqual(owned.status, "supported");
       assert.strictEqual(metadata.status, "supported");
       assert.strictEqual(approvals.status, "supported");
+
       if (owned.status !== "supported") return;
+
       assert.isTrue(owned.value.items.some(({ address }) => address === name.resolver));
     }),
   );

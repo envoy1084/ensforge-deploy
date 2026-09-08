@@ -72,6 +72,7 @@ export const prepareHcaCalls = defineAction<
           code: "INVALID_PARAMETERS",
           message: "Unknown execution capability requirement",
         });
+
       if (
         parameters.operationId !== undefined &&
         !Schema.is(Schema.NonEmptyString)(parameters.operationId)
@@ -80,32 +81,39 @@ export const prepareHcaCalls = defineAction<
           code: "INVALID_PARAMETERS",
           message: "Operation ID must be nonempty",
         });
+
       if (parameters.authorization?.kind !== "owner")
         return yield* new HcaError({
           code: "UNSUPPORTED_AUTHORIZATION",
           message:
             "P1 supports owner authorization only; destination sessions require validated policy preparation",
         });
+
       if (!Array.isArray(parameters.calls) || parameters.calls.length === 0)
         return yield* new HcaError({
           code: "INVALID_PARAMETERS",
           message: "An HCA batch must contain at least one call",
         });
+
       const account = yield* verifyHca.effect(config, {
         hca: parameters.hca,
         ...(parameters.salt === undefined ? {} : { salt: parameters.salt }),
       });
+
       const calls = yield* Effect.forEach(parameters.calls, (input) =>
         Effect.gen(function* () {
           if (Schema.is(HcaCall)(input)) {
             return { to: input.to, data: input.data ?? ("0x" as const), value: input.value ?? 0n };
           }
+
           const intent = input as EnsWriteIntent<unknown, WriteError>;
+
           if (!input || typeof input !== "object" || getWriteIntentPreparer(intent) === undefined)
             return yield* new HcaError({
               code: "INVALID_PARAMETERS",
               message: "Expected a validated raw call or an ENS .call intent",
             });
+
           const [prepared] = yield* prepareWriteIntents(config, {
             calls: [intent],
             account: account.address,
@@ -113,30 +121,37 @@ export const prepareHcaCalls = defineAction<
               ? {}
               : { walletClient: parameters.walletClient }),
           });
+
           if (!prepared)
             return yield* new HcaError({
               code: "INVALID_EXECUTION",
               message: "ENS intent produced no HCA call",
             });
+
           return { to: prepared.to, data: prepared.data ?? ("0x" as const), value: prepared.value };
         }),
       );
+
       if (calls.some((call) => isAddressEqual(call.to, account.address)))
         return yield* new HcaError({
           code: "INVALID_EXECUTION",
           message: "HCA self-calls require dedicated validated management actions",
         });
+
       const value = calls.reduce((sum, call) => sum + call.value, 0n);
+
       if (value >= 1n << 256n)
         return yield* new HcaError({
           code: "INVALID_PARAMETERS",
           message: "HCA batch value exceeds uint256",
         });
+
       const data = encodeFunctionData({
         abi: standaloneHcaV2ExecuteByOwnerAbi,
         functionName: "executeByOwner",
         args: [calls.map((call) => ({ target: call.to, value: call.value, callData: call.data }))],
       });
+
       return Object.freeze({
         account: Object.freeze(account),
         ...(parameters.operationId === undefined ? {} : { operationId: parameters.operationId }),

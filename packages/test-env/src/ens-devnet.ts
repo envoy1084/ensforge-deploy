@@ -38,6 +38,7 @@ export const startEnsDevnet = async (options: StartEnsDevnetOptions = {}): Promi
 
   const stop = async (): Promise<void> => {
     if (stopped) return;
+
     stopped = true;
     await Effect.runPromise(Scope.close(scope, Exit.void));
   };
@@ -50,8 +51,10 @@ export const startEnsDevnet = async (options: StartEnsDevnetOptions = {}): Promi
           ...options,
           image: options.image ?? process.env.ENSFORGE_TEST_IMAGE ?? ensDevnetPublishedImage,
         });
+
         const seededEnvironment = yield* createDevnetEnvironment(instance);
         const fixtureManifest = yield* seedFixtures(seededEnvironment);
+
         return { environment: seededEnvironment, fixtures: fixtureManifest };
       }).pipe(Effect.provideService(Scope.Scope, scope), Effect.provide(DockerEngine.layer)),
     );
@@ -73,6 +76,7 @@ export const startEnsDevnet = async (options: StartEnsDevnetOptions = {}): Promi
     };
   } catch (cause) {
     await stop();
+
     throw cause;
   }
 };

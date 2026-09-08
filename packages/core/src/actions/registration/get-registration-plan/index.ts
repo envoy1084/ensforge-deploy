@@ -24,15 +24,19 @@ const getRegistrationPlanEffect = Effect.fn("ensforge.getRegistrationPlan")(func
   parameters: GetRegistrationPlanParameters,
 ) {
   const name = yield* normalizeName.effect(parameters.name);
+
   return yield* executeRead(
     config,
     parameters,
     Effect.gen(function* () {
       const price = yield* getRegistrationPrice.effect(config, parameters);
+
       if (price.status === "unavailable") return { status: "unavailable", name } as const;
+
       if (price.status === "payment-token-required") {
         return { status: "payment-token-required", name } as const;
       }
+
       if (price.status === "unsupported-payment-token") {
         return {
           status: "unsupported-payment-token",
@@ -48,10 +52,12 @@ const getRegistrationPlanEffect = Effect.fn("ensforge.getRegistrationPlan")(func
         ] as const,
         { concurrency: "unbounded" },
       );
+
       const commitmentStatus = yield* getCommitmentStatus.effect(config, {
         ...parameters,
         commitment: commitment.commitment,
       });
+
       const status =
         commitmentStatus.status === "not-found"
           ? "commitment-required"
@@ -60,6 +66,7 @@ const getRegistrationPlanEffect = Effect.fn("ensforge.getRegistrationPlan")(func
             : commitmentStatus.status === "expired"
               ? "commitment-expired"
               : "ready";
+
       return {
         status,
         name,

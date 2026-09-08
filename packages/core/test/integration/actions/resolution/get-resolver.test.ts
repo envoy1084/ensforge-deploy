@@ -8,6 +8,7 @@ describe("getResolver integration", () => {
   it.effect("discovers a v1 resolver and the v2 protocol resolver", () =>
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
+
       const [legacy, migrated, nested] = yield* Effect.all(
         [
           getResolver.effect(devnet.configs.v1, {
@@ -32,6 +33,7 @@ describe("getResolver integration", () => {
   it.effect("discovers inherited and mirrored resolvers", () =>
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
+
       const [parent, inherited, mirrored] = yield* Effect.all(
         [
           getResolver.effect(devnet.configs.v2, { name: "ens.eth" }),
@@ -54,6 +56,7 @@ describe("getResolver integration", () => {
   it.effect("distinguishes parent fallback from a missing resolver", () =>
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
+
       const [legacy, native, available] = yield* Effect.all(
         [
           getResolver.effect(devnet.configs.v1, { name: devnet.fixtures.v1.noResolver.name }),
@@ -73,6 +76,7 @@ describe("getResolver integration", () => {
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
       const inheritedResolver = yield* getResolver.effect(devnet.configs.v2, { name: "ens.eth" });
+
       const result = yield* readBatch.effect(devnet.configs.v2, {
         inherited: getResolver.request({ name: devnet.fixtures.v2.inheritedResolver.name }),
         migrated: getResolver.request({ name: devnet.fixtures.migration.migratedLocked.name }),

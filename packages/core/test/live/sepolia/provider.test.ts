@@ -13,7 +13,9 @@ import { sepoliaPublicClient } from "../setup/sepolia.js";
 
 const deployedAddresses = (value: unknown, path = "deployment"): Array<[string, Address]> => {
   if (typeof value === "string" && isAddress(value)) return [[path, value]];
+
   if (value === null || typeof value !== "object") return [];
+
   return Object.entries(value).flatMap(([key, child]) =>
     deployedAddresses(child, `${path}.${key}`),
   );
@@ -38,6 +40,7 @@ describe("Sepolia provider and deployments", () => {
       );
 
       const age = BigInt(Math.floor(Date.now() / 1_000)) - block.timestamp;
+
       assert.strictEqual(chainId, 11_155_111);
       assert.isTrue(block.number > 0n);
       assert.isTrue(age >= -60n && age <= 600n, `Latest block is ${age} seconds old`);
@@ -47,6 +50,7 @@ describe("Sepolia provider and deployments", () => {
   it.effect("finds bytecode at every configured V1 and V2 contract address", () =>
     Effect.gen(function* () {
       const unique = new Map<string, string>();
+
       for (const [path, address] of [
         ...deployedAddresses(sepoliaV1Deployment, "v1"),
         ...deployedAddresses(sepoliaV2Deployment, "v2"),
@@ -73,6 +77,7 @@ describe("Sepolia provider and deployments", () => {
   it.effect("resolves the configured proxy implementation chain", () =>
     Effect.gen(function* () {
       const deployment = sepoliaV2Deployment;
+
       const [publicImplementation, managedImplementation, contractNamerStorage] = yield* Effect.all(
         [
           Effect.tryPromise(() =>
@@ -115,6 +120,7 @@ describe("Sepolia provider and deployments", () => {
   it.effect("recognizes the deployed registry and resolver interfaces", () =>
     Effect.gen(function* () {
       const deployment = sepoliaV2Deployment;
+
       const checks = [
         [
           deployment.contracts.rootRegistry,
@@ -137,6 +143,7 @@ describe("Sepolia provider and deployments", () => {
           "Permissioned Resolver implementation",
         ],
       ] as const;
+
       const supported = yield* Effect.forEach(
         checks,
         ([address, interfaceId, description]) =>

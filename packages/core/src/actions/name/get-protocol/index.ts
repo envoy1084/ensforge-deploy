@@ -13,6 +13,7 @@ const getProtocolEffect = Effect.fn("ensforge.getProtocol")(function* (
   parameters: GetNameStateParameters,
 ) {
   const name = yield* normalizeName.effect(parameters.name);
+
   return yield* executeRead(
     config,
     parameters,
@@ -28,4 +29,5 @@ export type {
   GetNameStateError as GetProtocolError,
   GetNameStateParameters as GetProtocolParameters,
 } from "../get-name-state/types.js";
+
 export type GetProtocolResult = EnsProtocol;

@@ -15,7 +15,9 @@ describe("Sepolia indexed registries", () => {
       const lookup = yield* getRegistry.effect(sepoliaConfig, {
         name: sepoliaNames.v2.indexedRegistry,
       });
+
       assert.strictEqual(lookup.status, "supported");
+
       if (lookup.status !== "supported" || lookup.value === null) {
         return assert.fail("expected the smoke namespace registry");
       }
@@ -24,8 +26,11 @@ describe("Sepolia indexed registries", () => {
         address: lookup.value.address,
         pageSize: 10,
       });
+
       assert.strictEqual(labels.status, "supported");
+
       if (labels.status !== "supported") return;
+
       assert.isAbove(labels.value.items.length, 0);
       assert.isTrue(labels.value.items.every(({ relationship }) => relationship === "label"));
     }),
@@ -36,11 +41,14 @@ describe("Sepolia indexed registries", () => {
       const lookup = yield* getRegistry.effect(sepoliaConfig, {
         name: sepoliaNames.v2.indexedRegistry,
       });
+
       if (lookup.status !== "supported" || lookup.value === null) {
         return assert.fail("expected a registry with an indexed owner");
       }
+
       const indexedRegistry = lookup.value;
       const registryOwner = indexedRegistry.owner;
+
       if (registryOwner === null) return assert.fail("expected an indexed registry owner");
 
       const [registries, roles] = yield* Effect.all(
@@ -53,9 +61,12 @@ describe("Sepolia indexed registries", () => {
         ],
         { concurrency: "unbounded" },
       );
+
       assert.strictEqual(registries.status, "supported");
       assert.strictEqual(roles.status, "supported");
+
       if (registries.status !== "supported" || roles.status !== "supported") return;
+
       assert.isTrue(
         registries.value.items.some(({ address }) => address === indexedRegistry.address),
       );

@@ -4,8 +4,11 @@ import { Hex } from "../../schemas/hex.js";
 import { EthereumAddress } from "../../schemas/identity.js";
 
 export const HcaExecutionHash = Hex.check(Schema.isPattern(/^0x[0-9a-fA-F]{64}$/));
+
 const unsigned = Schema.BigInt.check(Schema.makeFilter<bigint>((n) => n >= 0n));
+
 const chainId = Schema.Int.check(Schema.isGreaterThan(0));
+
 export const HcaExecutionIdentitySchema = Schema.Struct({
   operationId: Schema.optional(Schema.NonEmptyString),
   adapterId: Schema.NonEmptyString,
@@ -15,6 +18,7 @@ export const HcaExecutionIdentitySchema = Schema.Struct({
   profileId: Schema.NonEmptyString,
   planFingerprint: HcaExecutionHash,
 });
+
 export const HcaExecutionCapabilities = Schema.Struct({
   ownerExecution: Schema.Boolean,
   sessionExecution: Schema.Boolean,
@@ -24,6 +28,7 @@ export const HcaExecutionCapabilities = Schema.Struct({
   crossChainFunding: Schema.Boolean,
 });
 export type HcaExecutionCapabilities = typeof HcaExecutionCapabilities.Type;
+
 export const HcaExecutionFee = Schema.Struct({
   kind: Schema.Literals(["execution", "registration", "bridge", "swap"]),
   chainId,
@@ -33,12 +38,14 @@ export const HcaExecutionFee = Schema.Struct({
   sponsored: Schema.Boolean,
 });
 export type HcaExecutionFee = typeof HcaExecutionFee.Type;
+
 export const HcaAuthorizationRequirement = Schema.Struct({
   kind: Schema.Literals(["message", "typed-data", "transaction"]),
   signer: EthereumAddress,
   description: Schema.NonEmptyString,
   scopeHash: HcaExecutionHash,
 });
+
 export const HcaExecutionReview = Schema.Struct({
   expiresAt: Schema.optional(unsigned),
   fees: Schema.Array(HcaExecutionFee),
@@ -52,6 +59,7 @@ export const HcaExecutionReview = Schema.Struct({
   }),
 });
 export type HcaExecutionReview = typeof HcaExecutionReview.Type;
+
 export const HcaExecutionLocator = Schema.Union([
   Schema.Struct({ kind: Schema.Literal("transaction"), chainId, hash: HcaExecutionHash }),
   Schema.Struct({
@@ -93,6 +101,7 @@ export const HcaExecutionFeeLimit = Schema.Struct({
   token: HcaExecutionFee.fields.token,
   maximum: HcaExecutionFee.fields.maximum,
 });
+
 export const HcaExecutionPolicy = Schema.Struct({
   requireExpiry: Schema.optional(Schema.Boolean),
   feeLimits: Schema.optional(Schema.Array(HcaExecutionFeeLimit)),

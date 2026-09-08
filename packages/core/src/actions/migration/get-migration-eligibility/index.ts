@@ -35,6 +35,7 @@ const getMigrationEligibilityEffect = Effect.fn("ensforge.getMigrationEligibilit
   parameters: GetMigrationEligibilityParameters,
 ) {
   const name = yield* normalizeName.effect(parameters.name);
+
   return yield* executeRead(
     config,
     parameters,
@@ -46,13 +47,16 @@ const getMigrationEligibilityEffect = Effect.fn("ensforge.getMigrationEligibilit
         ] as const,
         { concurrency: "unbounded" },
       );
+
       const blockers: Array<MigrationBlocker> = [];
+
       if (!target.supported) {
         if (status.status === "locked-child-pending-parent") blockers.push("PARENT_NOT_MIGRATED");
         else if (status.status === "unsupported") blockers.push(status.reason);
         else if (status.status === "migrated-unlocked" || status.status === "migrated-locked") {
           blockers.push("NAME_ALREADY_MIGRATED");
         } else blockers.push("NAME_AVAILABLE");
+
         return {
           name,
           eligible: false,
@@ -66,6 +70,7 @@ const getMigrationEligibilityEffect = Effect.fn("ensforge.getMigrationEligibilit
       }
 
       const ethereum = yield* EthereumClient;
+
       const owner =
         target.tokenStandard === "erc721"
           ? yield* ethereum.readContract({
@@ -82,6 +87,7 @@ const getMigrationEligibilityEffect = Effect.fn("ensforge.getMigrationEligibilit
                 args: [target.tokenId],
               })
               .pipe(Effect.map(([wrappedOwner]) => wrappedOwner));
+
       const [approved, operatorApproved] =
         target.tokenStandard === "erc721"
           ? yield* Effect.all(
@@ -118,10 +124,12 @@ const getMigrationEligibilityEffect = Effect.fn("ensforge.getMigrationEligibilit
               ] as const,
               { concurrency: "unbounded" },
             );
+
       const authorized =
         isAddressEqual(owner, parameters.account) ||
         isAddressEqual(approved, parameters.account) ||
         operatorApproved;
+
       if (!authorized) blockers.push("ACCOUNT_NOT_OWNER_OR_OPERATOR");
 
       if (
@@ -132,6 +140,7 @@ const getMigrationEligibilityEffect = Effect.fn("ensforge.getMigrationEligibilit
         if ((status.fuses & nameWrapperFuses.cannotTransfer) !== 0) {
           blockers.push("TRANSFER_DISABLED");
         }
+
         if (
           (status.fuses & nameWrapperFuses.cannotApprove) !== 0 &&
           !isAddressEqual(approved, zeroAddress)
@@ -139,6 +148,7 @@ const getMigrationEligibilityEffect = Effect.fn("ensforge.getMigrationEligibilit
           blockers.push("FROZEN_TOKEN_APPROVAL");
         }
       }
+
       return {
         name,
         eligible: blockers.length === 0,

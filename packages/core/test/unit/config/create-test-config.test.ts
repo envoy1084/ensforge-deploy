@@ -10,7 +10,9 @@ const devnetChain = defineChain({
   nativeCurrency: { decimals: 18, name: "Ether", symbol: "ETH" },
   rpcUrls: { default: { http: ["http://127.0.0.1:8545"] } },
 });
+
 const transport = custom({ request: async () => null });
+
 const deployment = {
   ...mainnetV1Deployment,
   id: "devnet-v1",
@@ -20,11 +22,13 @@ const deployment = {
 describe("createTestConfig", () => {
   it("creates an isolated devnet config without widening the public factory", () => {
     const publicClient = createPublicClient({ chain: devnetChain, transport });
+
     const walletClient = createWalletClient({
       account: zeroAddress,
       chain: devnetChain,
       transport,
     });
+
     const config = createTestConfig({
       deployments: { protocol: "v1", v1: deployment },
       publicClient,

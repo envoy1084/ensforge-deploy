@@ -29,10 +29,13 @@ export const predictHcaAddress = defineReadAction<HcaDerivationParameters, Addre
     withHcaSnapshot(config, parameters, (profile, blockNumber) =>
       Effect.gen(function* () {
         const owner = yield* validateHcaAddress(parameters.owner);
+
         const implementation = yield* validateHcaAddress(
           parameters.implementation ?? profile.contracts.standaloneImplementation,
         );
+
         const salt = yield* validateHcaSalt(parameters.salt ?? profile.generation.canonicalSalt);
+
         const proxyLogic = yield* hcaRpc(() =>
           config.publicClient.readContract({
             address: profile.deployment.contracts.verifiableFactory,
@@ -41,6 +44,7 @@ export const predictHcaAddress = defineReadAction<HcaDerivationParameters, Addre
             blockNumber,
           }),
         );
+
         return deriveHcaAddress(
           owner,
           implementation,
@@ -59,18 +63,24 @@ export const getHca = defineReadAction<HcaReadParameters, HcaState, HcaErrorResu
       Effect.gen(function* () {
         const address = yield* validateHcaAddress(parameters.hca);
         const code = yield* hcaRpc(() => config.publicClient.getCode({ address, blockNumber }));
+
         if (!code || code === "0x")
           return { status: "undeployed" as const, address, chainId: config.chainId, blockNumber };
+
         const request = { address, abi: standaloneHcaV2InspectionAbi, blockNumber } as const;
+
         const [owner, sessionNonce] = yield* hcaRpc(() =>
           config.publicClient.readContract({ ...request, functionName: "ownerAndSessionNonce" }),
         );
+
         const implementation = yield* hcaRpc(() =>
           config.publicClient.readContract({ ...request, functionName: "getImplementation" }),
         );
+
         const accountId = yield* hcaRpc(() =>
           config.publicClient.readContract({ ...request, functionName: "accountId" }),
         );
+
         return {
           status: "deployed" as const,
           address,
@@ -91,6 +101,7 @@ export const getHcaOwner = defineReadAction<HcaReadParameters, Address | null, H
       .effect(config, parameters)
       .pipe(Effect.map((state) => (state.status === "deployed" ? state.owner : null))),
 );
+
 export const getHcaImplementation = defineReadAction<
   HcaReadParameters,
   Address | null,
@@ -100,12 +111,14 @@ export const getHcaImplementation = defineReadAction<
     .effect(config, parameters)
     .pipe(Effect.map((state) => (state.status === "deployed" ? state.implementation : null))),
 );
+
 export const getHcaAccountId = defineReadAction<HcaReadParameters, string | null, HcaErrorResult>(
   (config, parameters) =>
     getHca
       .effect(config, parameters)
       .pipe(Effect.map((state) => (state.status === "deployed" ? state.accountId : null))),
 );
+
 export const getHcaSessionNonce = defineReadAction<
   HcaReadParameters,
   bigint | null,
@@ -124,6 +137,7 @@ export const getAuthorizedHcaOwner = defineReadAction<
   withHcaSnapshot(config, parameters, (profile, blockNumber) =>
     Effect.gen(function* () {
       const hca = yield* validateHcaAddress(parameters.hca);
+
       const owner = yield* hcaRpc(() =>
         config.publicClient.readContract({
           address: profile.contracts.standaloneFactory,
@@ -133,10 +147,12 @@ export const getAuthorizedHcaOwner = defineReadAction<
           blockNumber,
         }),
       );
+
       return owner === zeroAddress ? null : owner;
     }),
   ),
 );
+
 export const getHcaImplementationApproval = defineReadAction<
   BlockParameters & { readonly implementation: Address },
   boolean,
@@ -145,6 +161,7 @@ export const getHcaImplementationApproval = defineReadAction<
   withHcaSnapshot(config, parameters, (profile, blockNumber) =>
     Effect.gen(function* () {
       const implementation = yield* validateHcaAddress(parameters.implementation);
+
       return yield* hcaRpc(() =>
         config.publicClient.readContract({
           address: profile.contracts.standaloneFactory,
@@ -163,23 +180,29 @@ export const verifyHca = defineReadAction<VerifyHcaParameters, VerifiedHcaAccoun
     withHcaSnapshot(config, parameters, (profile, blockNumber) =>
       Effect.gen(function* () {
         const state = yield* getHca.effect(config, { hca: parameters.hca, blockNumber });
+
         if (state.status === "undeployed")
           return yield* new HcaError({
             code: "ACCOUNT_UNDEPLOYED",
             message: "The HCA is not deployed",
           });
+
         const initialImplementation = yield* validateHcaAddress(
           parameters.initialImplementation ?? profile.contracts.standaloneImplementation,
         );
+
         const salt = yield* validateHcaSalt(parameters.salt ?? profile.generation.canonicalSalt);
+
         if (parameters.expectedOwner !== undefined) {
           const owner = yield* validateHcaAddress(parameters.expectedOwner);
+
           if (!isAddressEqual(state.owner, owner))
             return yield* new HcaError({
               code: "OWNER_MISMATCH",
               message: "The HCA belongs to a different owner",
             });
         }
+
         if (
           !isAddressEqual(initialImplementation, profile.contracts.standaloneImplementation) ||
           !isAddressEqual(state.implementation, profile.contracts.standaloneImplementation) ||
@@ -190,7 +213,9 @@ export const verifyHca = defineReadAction<VerifyHcaParameters, VerifiedHcaAccoun
             message: "The account implementation is outside the supported HCA generation",
           });
         }
+
         const wiring = yield* verifyHcaDeployment(config.publicClient, profile, blockNumber);
+
         const predicted = deriveHcaAddress(
           state.owner,
           initialImplementation,
@@ -199,10 +224,12 @@ export const verifyHca = defineReadAction<VerifyHcaParameters, VerifiedHcaAccoun
           profile.deployment.contracts.verifiableFactory,
           wiring.proxyLogic,
         );
+
         const certified = yield* getAuthorizedHcaOwner.effect(config, {
           hca: state.address,
           blockNumber,
         });
+
         const implementation = yield* hcaRpc(() =>
           config.publicClient.readContract({
             address: profile.deployment.contracts.verifiableFactory,
@@ -212,6 +239,7 @@ export const verifyHca = defineReadAction<VerifyHcaParameters, VerifiedHcaAccoun
             blockNumber,
           }),
         );
+
         if (
           !isAddressEqual(predicted, state.address) ||
           !certified ||
@@ -224,6 +252,7 @@ export const verifyHca = defineReadAction<VerifyHcaParameters, VerifiedHcaAccoun
               "HCA derivation, proxy implementation or factory owner certification does not match",
           });
         }
+
         return Object.freeze({
           kind: "ens-hca" as const,
           address: state.address,
@@ -248,6 +277,7 @@ export interface HcaCapabilities {
   readonly delegatecall: false;
   readonly reasons: readonly string[];
 }
+
 export const getHcaCapabilities = defineReadAction<
   VerifyHcaParameters,
   HcaCapabilities,

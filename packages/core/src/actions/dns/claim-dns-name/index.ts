@@ -21,13 +21,16 @@ const prepare: EnsWriteIntentPreparer<ClaimDnsNameParameters, WriteError> = Effe
   "ensforge.claimDnsName.prepare",
 )(function* (config, parameters) {
   const v1 = config.deployments.v1;
+
   if (v1 === undefined) {
     return yield* new DnsImportError({
       code: "DNS_REGISTRAR_UNAVAILABLE",
       message: "The active deployment does not provide the ENS DNS Registrar",
     });
   }
+
   const name = yield* normalizeName.effect(parameters.name);
+
   const proof = yield* Schema.decodeUnknownEffect(DnssecProofChain)(parameters.proof).pipe(
     Effect.mapError(
       () =>
@@ -37,20 +40,24 @@ const prepare: EnsWriteIntentPreparer<ClaimDnsNameParameters, WriteError> = Effe
         }),
     ),
   );
+
   if (parameters.address !== undefined && parameters.resolver === undefined) {
     return yield* new DnsImportError({
       code: "RESOLVER_REQUIRED",
       message: `A resolver is required when setting an address for ${name}`,
     });
   }
+
   const resolver =
     parameters.resolver === undefined
       ? null
       : yield* decodeOwnershipAddress(parameters.resolver, "resolver");
+
   const address =
     parameters.address === undefined
       ? zeroAddress
       : yield* decodeOwnershipAddress(parameters.address, "DNS address record");
+
   const dnsName = yield* dnsEncodeName.effect(name);
 
   const data = yield* Effect.try({
@@ -73,6 +80,7 @@ const prepare: EnsWriteIntentPreparer<ClaimDnsNameParameters, WriteError> = Effe
         cause,
       }),
   });
+
   return {
     to: v1.contracts.dnsRegistrar,
     data,

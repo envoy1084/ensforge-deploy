@@ -55,6 +55,7 @@ describe("Sepolia V1 and V2 capabilities", () => {
     Effect.gen(function* () {
       const operator = sepoliaFixtureAccounts.operator;
       const record = { type: "text", key: "description" } as const;
+
       const [registry, registryAllowed, resolver, resolverAllowed, v1] = yield* Effect.all(
         [
           getRegistryRoles.effect(sepoliaConfig, {
@@ -86,12 +87,16 @@ describe("Sepolia V1 and V2 capabilities", () => {
       );
 
       assert.isTrue(registry.supported);
+
       if (registry.supported)
         assert.strictEqual(registry.roles & registryRoles.setResolver, registryRoles.setResolver);
+
       assert.isTrue(registryAllowed.supported && registryAllowed.authorized);
       assert.isTrue(resolver.supported);
+
       if (resolver.supported)
         assert.strictEqual(resolver.roles & resolverRoles.setText, resolverRoles.setText);
+
       assert.isTrue(resolverAllowed.supported && resolverAllowed.authorized);
       assert.isFalse(v1.supported);
     }),
@@ -101,6 +106,7 @@ describe("Sepolia V1 and V2 capabilities", () => {
     Effect.gen(function* () {
       const operator = sepoliaFixtureAccounts.operator;
       const owner = yield* getOwner.effect(sepoliaConfig, { name: sepoliaNames.v2.profile });
+
       if (owner?.owner === null || owner === null) {
         return yield* Effect.die(new Error("Sepolia profile has no owner"));
       }
@@ -154,6 +160,7 @@ describe("Sepolia V1 and V2 capabilities", () => {
   it.effect("explains write targets and authorization without submitting transactions", () =>
     Effect.gen(function* () {
       const operator = sepoliaFixtureAccounts.operator;
+
       const [recordTarget, registryTarget, recordAuthorization, registryAuthorization, summary] =
         yield* Effect.all(
           [
@@ -185,7 +192,9 @@ describe("Sepolia V1 and V2 capabilities", () => {
         );
 
       assert.isTrue(recordTarget.available);
+
       if (recordTarget.available) assert.strictEqual(recordTarget.kind, "resolver");
+
       assert.isTrue(registryTarget.available);
       assert.strictEqual(recordAuthorization.authorization.status, "authorized");
       assert.strictEqual(registryAuthorization.authorization.status, "authorized");
@@ -198,6 +207,7 @@ describe("Sepolia V1 and V2 capabilities", () => {
   it.effect("reports wrapper permissions for a V1 wrapped name and a V2 registry", () =>
     Effect.gen(function* () {
       const account = sepoliaFixtureAccounts.operator;
+
       const [v1, v2] = yield* Effect.all(
         [
           getWrapperPermissions.effect(sepoliaConfig, { name: sepoliaNames.v1.wrapped, account }),
@@ -207,8 +217,11 @@ describe("Sepolia V1 and V2 capabilities", () => {
       );
 
       assert.isTrue(v1.supported);
+
       if (v1.supported) assert.strictEqual(v1.protocol, "v1");
+
       assert.isFalse(v2.supported);
+
       if (!v2.supported) {
         assert.strictEqual(v2.protocol, "v2");
         assert.strictEqual(v2.reason, "NAME_NOT_WRAPPED");

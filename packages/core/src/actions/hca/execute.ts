@@ -41,6 +41,7 @@ export const checkHcaAdapterIdentity = (
     });
   }
 };
+
 const checkIdentity = (
   execution: ExecutionAdapter,
   plan: PreparedHcaCalls,
@@ -71,6 +72,7 @@ export interface ExecuteHcaCallsAction {
     parameters: ExecuteHcaCallsParameters,
     options?: Effect.RunOptions,
   ): Promise<HcaExecutionSubmission>;
+
   readonly effect: {
     <Adapter extends ExecutionAdapter>(
       config: EnsforgeConfig,
@@ -86,6 +88,7 @@ export interface ExecuteHcaCallsAction {
     ): Effect.Effect<HcaExecutionSubmission, WriteError>;
   };
 }
+
 export const executeHcaCalls: ExecuteHcaCallsAction = defineAction<
   ExecuteHcaCallsParameters,
   HcaExecutionSubmission,
@@ -94,6 +97,7 @@ export const executeHcaCalls: ExecuteHcaCallsAction = defineAction<
   Effect.fn("ensforge.executeHcaCalls")(function* (config, parameters) {
     const plan = yield* prepareHcaCalls.effect(config, parameters);
     const execution = parameters.execution;
+
     if (
       parameters.requiredCapabilities?.some(
         (capability) => execution?.capabilities?.[capability] !== true,
@@ -103,24 +107,29 @@ export const executeHcaCalls: ExecuteHcaCallsAction = defineAction<
         code: "UNSUPPORTED_CAPABILITY",
         message: "Execution adapter does not provide every requested capability",
       });
+
     if (execution !== undefined) {
       const support = yield* Effect.try({
         try: () => execution.supports(plan),
         catch: () =>
           new HcaError({ code: "ADAPTER_FAILED", message: "Adapter compatibility check failed" }),
       });
+
       if (!support.supported)
         return yield* new HcaError({
           code: "UNSUPPORTED_AUTHORIZATION",
           message: support.reason ?? "Adapter does not support this HCA owner operation",
         });
+
       const prepared = yield* execution.prepare.effect(config, plan);
       yield* checkIdentity(execution, plan, prepared);
+
       if (prepared.simulation !== "succeeded")
         return yield* new HcaError({
           code: "INVALID_EXECUTION",
           message: "Adapter must simulate the complete operation before authorization",
         });
+
       const authorized = yield* execution.authorize.effect(config, prepared);
       yield* checkIdentity(execution, plan, authorized);
       yield* verifyHca.effect(config, {
@@ -128,32 +137,41 @@ export const executeHcaCalls: ExecuteHcaCallsAction = defineAction<
         expectedOwner: plan.account.owner,
         salt: plan.account.salt,
       });
+
       const submission = yield* execution.submit.effect(config, authorized);
       yield* checkIdentity(execution, plan, submission);
+
       if (submission.kind !== "adapter" || !submission.reference)
         return yield* new HcaError({
           code: "INVALID_EXECUTION",
           message: "Adapter submitted without a tracking reference; reconcile before retrying",
         });
+
       return submission;
     }
+
     const { walletClient, account } = yield* provideConfig(
       config,
       resolveWalletContext(parameters),
     );
     const owner = typeof account === "string" ? account : account.address;
+
     if (!isAddressEqual(owner, plan.account.owner))
       return yield* new HcaError({
         code: "OWNER_MISMATCH",
         message: "Direct HCA execution requires the immutable owner wallet",
       });
+
     const walletChain = yield* hcaRpc(() => walletClient.getChainId());
+
     if (walletChain !== config.chainId)
       return yield* new HcaError({
         code: "DEPLOYMENT_MISMATCH",
         message: "The connected wallet changed networks",
       });
+
     const client = yield* provideConfig(config, WriteClient);
+
     const call = {
       id: "hca-owner",
       operation: "executeHcaCalls",
@@ -163,8 +181,11 @@ export const executeHcaCalls: ExecuteHcaCallsAction = defineAction<
       data: plan.data,
       value: plan.value,
     };
+
     yield* client.simulate(call);
+
     const hash = yield* client.sendTransaction(walletClient, call);
+
     return {
       kind: "transaction",
       ...(plan.operationId === undefined ? {} : { operationId: plan.operationId }),

@@ -28,6 +28,7 @@ export const normalizeV2Registry = Effect.fn("normalizeV2Registry")(function* (
   return yield* Effect.try({
     try: () => {
       const namehash = decodeDomainNamehash(wire.namehash, wire.name);
+
       return Schema.decodeUnknownSync(IndexedRegistry)({
         address: decodeAddress(wire.address),
         managedName: decodeIndexedNameValue(wire.name, namehash),
@@ -67,6 +68,7 @@ export const normalizeV2RegistryRole = Effect.fn("normalizeV2RegistryRole")(func
   return yield* Effect.try({
     try: () => {
       const bitmap = decodeHex(wire.roleBitmap);
+
       return Schema.decodeUnknownSync(IndexedRegistryRole)({
         id: wire.id,
         registry: decodeAddress(registry),

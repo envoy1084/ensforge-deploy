@@ -10,7 +10,9 @@ import {
 } from "../../../../src/internal/indexer/normalize/v2-name.js";
 
 const registryOwner = "0x000000000000000000000000000000000000bEEF" as const;
+
 const wrappedOwner = "0x000000000000000000000000000000000000dEaD" as const;
+
 const resolver = "0x0000000000000000000000000000000000001234" as const;
 
 const context = {
@@ -91,7 +93,9 @@ describe("indexed name normalization", () => {
       });
 
       assert.strictEqual(result.protocol, "v1");
+
       if (result.protocol !== "v1") return;
+
       assert.strictEqual(result.name.kind, "normalized");
       assert.strictEqual(result.name.value, "alice.eth");
       assert.strictEqual(result.owner, wrappedOwner);
@@ -108,7 +112,9 @@ describe("indexed name normalization", () => {
 
       assert.strictEqual(result.protocol, "v1");
       assert.strictEqual(result.source.protocol, "v2");
+
       if (result.protocol !== "v1") return;
+
       assert.strictEqual(result.ttl, 60n);
       assert.isNull(result.registryOwner);
     }),
@@ -119,7 +125,9 @@ describe("indexed name normalization", () => {
       const result = yield* normalizeV2IndexerName(v2Wire, context);
 
       assert.strictEqual(result.protocol, "v2");
+
       if (result.protocol !== "v2") return;
+
       assert.strictEqual(result.registry, registryOwner);
       assert.strictEqual(result.subregistry, resolver);
       assert.strictEqual(result.canonicalId, 123n);
@@ -142,6 +150,7 @@ describe("indexed name normalization", () => {
   it.effect("preserves an encoded name instead of inventing a normalized value", () =>
     Effect.gen(function* () {
       const encoded = `[${"a".repeat(64)}].eth`;
+
       const result = yield* normalizeV1IndexedName(
         { ...v1Wire, id: namehash(encoded), name: encoded },
         { ...context, protocol: "v1" },
@@ -154,6 +163,7 @@ describe("indexed name normalization", () => {
   it.effect("preserves a raw name whose normalized form has a different namehash", () =>
     Effect.gen(function* () {
       const rawName = "Alice.eth";
+
       const result = yield* normalizeV1IndexedName(
         { ...v1Wire, id: namehash(rawName), name: rawName },
         { ...context, protocol: "v1" },

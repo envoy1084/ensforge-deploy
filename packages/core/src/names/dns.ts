@@ -39,6 +39,7 @@ export const dnsDecodeName = (
 
   try {
     const encoded = Schema.decodeSync(DnsEncodedName)(encodedName);
+
     bytes = hexToBytes(encoded);
   } catch {
     throw new CodecError({
@@ -53,7 +54,9 @@ export const dnsDecodeName = (
   try {
     while (bytes[offset] !== 0) {
       const length = bytes[offset];
+
       if (length === undefined) throw new Error("Missing DNS label length");
+
       const start = offset + 1;
       const end = start + length;
       const labelBytes = bytes.subarray(start, end);
@@ -80,6 +83,7 @@ export const dnsDecodeName = (
     return normalizedName;
   } catch (error) {
     if (error instanceof CodecError) throw error;
+
     throw new CodecError({
       code: "INVALID_DNS_NAME",
       message: "DNS name bytes do not contain a valid ENS name",

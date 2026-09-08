@@ -28,6 +28,7 @@ describe("Sepolia indexed registration history", () => {
         filter: { protocols: ["v2"] },
         pageSize: 20,
       });
+
       assert.isTrue(
         page.items.some(({ name }) => name.value === sepoliaNames.v2.indexedRegistration),
       );
@@ -40,6 +41,7 @@ describe("Sepolia indexed registration history", () => {
         name: sepoliaNames.v2.indexedRegistration,
         pageSize: 5,
       });
+
       assert.isAbove(page.items.length, 0);
       assert.isTrue(page.items.every(({ namehash }) => namehash !== null));
       assert.isTrue(page.items.some(({ protocol }) => protocol === "v2"));

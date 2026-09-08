@@ -23,6 +23,7 @@ export const setInterface = makeResolverWriteAction<SetInterfaceParameters>({
             message: `Invalid interface ID for ${context.name}`,
           }),
       });
+
       const implementer = yield* Effect.try({
         try: () => Schema.decodeUnknownSync(EthereumAddress)(parameters.implementer),
         catch: () =>
@@ -31,6 +32,7 @@ export const setInterface = makeResolverWriteAction<SetInterfaceParameters>({
             message: `Invalid interface implementer for ${context.name}`,
           }),
       });
+
       return yield* Effect.try({
         try: () =>
           encodeFunctionData({

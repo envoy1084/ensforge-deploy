@@ -58,16 +58,20 @@ export const makeContractReadRequest = Effect.fn("makeContractReadRequest")(func
     functionName: parameters.functionName,
     ...(Array.isArray(parameters.args) ? { args: parameters.args } : {}),
   };
+
   const callData = yield* Effect.try({
     try: () => encodeFunctionData(contract),
     catch: (cause) => viemErrorToEffectError(cause, "encodeFunctionData"),
   });
+
   const blockKey =
     parameters.blockNumber === undefined
       ? `tag:${parameters.blockTag ?? "latest"}`
       : `number:${parameters.blockNumber}`;
+
   const groupKey = `${blockKey}|account:${parameters.account?.toLowerCase() ?? "none"}`;
   const requestKey = `${groupKey}|target:${parameters.address.toLowerCase()}|data:${callData}`;
+
   return new ContractReadRequest<
     ContractFunctionReturnType<abi, "pure" | "view", functionName, args>
   >({

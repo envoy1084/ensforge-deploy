@@ -36,6 +36,7 @@ export const executeSequential = Effect.fn("executeSequential")(function* (
 
   for (const [localIndex, intent] of parameters.calls.entries()) {
     const index = startIndex + localIndex;
+
     const execution = yield* Effect.result(
       Effect.gen(function* () {
         const singleCallParameters = {
@@ -45,8 +46,10 @@ export const executeSequential = Effect.fn("executeSequential")(function* (
             : { walletClient: parameters.walletClient }),
           ...(parameters.account === undefined ? {} : { account: parameters.account }),
         };
+
         const prepared = yield* prepareWriteIntents(config, singleCallParameters, "call", index);
         const call = prepared[0];
+
         if (call === undefined) {
           return yield* new WritePlanError({
             code: "INVALID_CALL_PLAN",
@@ -54,12 +57,15 @@ export const executeSequential = Effect.fn("executeSequential")(function* (
             cause: intent,
           });
         }
+
         if (simulation === "required") {
           yield* provideConfig(config, simulatePreparedCalls([call], 1));
         }
+
         const { walletClient } = yield* provideConfig(config, resolveWalletContext(parameters));
         const client = yield* provideConfig(config, WriteClient);
         const hash = yield* client.sendTransaction(walletClient, call);
+
         if (confirmation.type === "submitted") {
           return {
             call: {
@@ -72,6 +78,7 @@ export const executeSequential = Effect.fn("executeSequential")(function* (
             failure: null,
           } as const;
         }
+
         const confirmationResult = yield* Effect.result(
           client
             .waitForReceipt(hash, {
@@ -87,6 +94,7 @@ export const executeSequential = Effect.fn("executeSequential")(function* (
               }),
             ),
         );
+
         if (Result.isFailure(confirmationResult)) {
           return {
             call: {
@@ -99,7 +107,9 @@ export const executeSequential = Effect.fn("executeSequential")(function* (
             failure: confirmationResult.failure,
           } as const;
         }
+
         const receipt = confirmationResult.success;
+
         return {
           call: {
             id: call.id,
@@ -115,12 +125,15 @@ export const executeSequential = Effect.fn("executeSequential")(function* (
 
     if (Result.isFailure(execution)) {
       const failure = execution.failure;
+
       if (completed.length === 0) return yield* failure;
+
       const remaining = parameters.calls
         .slice(localIndex)
         .map((remainingIntent, offset) =>
           notStarted(`call-${index + offset}`, remainingIntent.operation),
         );
+
       return {
         mode: "sequential",
         atomic: false,
@@ -129,14 +142,18 @@ export const executeSequential = Effect.fn("executeSequential")(function* (
         failure,
       };
     }
+
     const success = execution.success;
+
     completed.push(success.call);
+
     if (success.failure !== null) {
       const remaining = parameters.calls
         .slice(localIndex + 1)
         .map((remainingIntent, offset) =>
           notStarted(`call-${index + offset + 1}`, remainingIntent.operation),
         );
+
       return {
         mode: "sequential",
         atomic: false,

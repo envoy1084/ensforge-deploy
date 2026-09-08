@@ -45,6 +45,7 @@ export const queryV1Subnames = Effect.fn("queryV1Subnames")(function* (
 > {
   const decodedPosition =
     position === null ? undefined : yield* decodeV1NamePosition(position, order);
+
   const result = yield* Effect.gen(function* () {
     const response = yield* requestIndexer<V1GetSubnamesQuery, V1GetSubnamesQueryVariables>(
       config,
@@ -65,13 +66,16 @@ export const queryV1Subnames = Effect.fn("queryV1Subnames")(function* (
         } as V1GetSubnamesQueryVariables,
       },
     );
+
     const data = yield* requireIndexerData(config, "v1", operationName, response);
+
     const indexedBlock = yield* decodeIndexedBlock(
       config,
       "v1",
       operationName,
       data["_meta"].block.number,
     );
+
     const names = yield* Effect.all(
       (data.domain?.subdomains ?? []).map((wire) =>
         normalizeV1IndexedName(wire, {
@@ -83,6 +87,7 @@ export const queryV1Subnames = Effect.fn("queryV1Subnames")(function* (
       ),
       { concurrency: "unbounded" },
     );
+
     return {
       indexedBlock,
       page: {
@@ -92,6 +97,7 @@ export const queryV1Subnames = Effect.fn("queryV1Subnames")(function* (
       },
     };
   }).pipe(Effect.result);
+
   if (Result.isFailure(result)) {
     return {
       status: "failed",
@@ -99,6 +105,7 @@ export const queryV1Subnames = Effect.fn("queryV1Subnames")(function* (
       metadata: { protocol: "v1", status: "failed", failure: indexerSourceFailure(result.failure) },
     };
   }
+
   return {
     status: "complete",
     page: result.success.page,

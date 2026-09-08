@@ -60,6 +60,7 @@ export const makeReadExecution = ({
     readSemaphore,
     multicallBatchSize,
   });
+
   const makeContext = Effect.fn("ReadExecution.makeContext")(function* (
     options: ReadExecutionOptions = {},
   ): Effect.fn.Return<ReadExecutionContext, RpcError> {
@@ -82,6 +83,7 @@ export const makeReadExecution = ({
     }
 
     const blockTag = options.blockTag ?? "latest";
+
     if (blockTag === "pending") {
       return yield* new RpcError({
         code: "REQUEST_FAILED",

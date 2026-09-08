@@ -18,17 +18,21 @@ describe("mutation hooks", () => {
   it("supports Promise execution, callbacks, and reset", async () => {
     const sdk = makeSdk();
     const onExit = vi.fn();
+
     const useTestMutation = makeMutationHook(
       makeMutationAtom<TestParameters, number, never>("test", () => ({
         effect: ({ value }) => Effect.succeed(value * 2),
       })),
     );
+
     const wrapper = ({ children }: { readonly children: ReactNode }) => (
       <EnsforgeProvider sdk={sdk}>{children}</EnsforgeProvider>
     );
+
     const { result } = renderHook(() => useTestMutation({ onExit }), { wrapper });
 
     let value: number | undefined;
+
     await act(async () => {
       value = await result.current.mutateAsync({ value: 21 });
     });
@@ -47,17 +51,21 @@ describe("mutation hooks", () => {
 
   it("exposes Effect execution", async () => {
     const sdk = makeSdk();
+
     const useTestMutation = makeMutationHook(
       makeMutationAtom<TestParameters, number, never>("test", () => ({
         effect: ({ value }) => Effect.succeed(value),
       })),
     );
+
     const wrapper = ({ children }: { readonly children: ReactNode }) => (
       <EnsforgeProvider sdk={sdk}>{children}</EnsforgeProvider>
     );
+
     const { result } = renderHook(() => useTestMutation(), { wrapper });
 
     let value: number | undefined;
+
     await act(async () => {
       value = await Effect.runPromise(result.current.mutateEffect({ value: 7 }));
     });
@@ -69,23 +77,28 @@ describe("mutation hooks", () => {
   it("retries typed mutation failures with an Effect schedule", async () => {
     const sdk = makeSdk();
     let attempts = 0;
+
     const useTestMutation = makeMutationHook(
       makeMutationAtom<TestParameters, number, "RETRY">("test", () => ({
         effect: ({ value }) =>
           Effect.suspend(() => {
             attempts += 1;
+
             return attempts === 1 ? Effect.fail("RETRY" as const) : Effect.succeed(value);
           }),
       })),
     );
+
     const wrapper = ({ children }: { readonly children: ReactNode }) => (
       <EnsforgeProvider sdk={sdk}>{children}</EnsforgeProvider>
     );
+
     const { result } = renderHook(() => useTestMutation({ retry: Schedule.recurs(1) }), {
       wrapper,
     });
 
     let value: number | undefined;
+
     await act(async () => {
       value = await result.current.mutateAsync({ value: 7 });
     });
@@ -97,19 +110,23 @@ describe("mutation hooks", () => {
   it("refreshes related queries after a successful mutation", async () => {
     const sdk = makeSdk();
     let value = 1;
+
     const useTestQuery = makeQueryHook(
       makeQueryAtom<TestParameters, number, never>("records", () => ({
         effect: () => Effect.succeed(value),
       })),
     );
+
     const useTestMutation = makeMutationHook(
       makeMutationAtom<TestParameters, number, never>("records", () => ({
         effect: ({ value: nextValue }) => Effect.sync(() => (value = nextValue)),
       })),
     );
+
     const wrapper = ({ children }: { readonly children: ReactNode }) => (
       <EnsforgeProvider sdk={sdk}>{children}</EnsforgeProvider>
     );
+
     const { result } = renderHook(
       () => ({
         mutation: useTestMutation(),

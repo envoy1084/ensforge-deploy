@@ -35,6 +35,7 @@ export const requireIndexerData = Effect.fn("requireIndexerData")(function* <
       ...(response.data === undefined ? {} : { data: response.data }),
     });
   }
+
   if (response.data === undefined || response.data["_meta"] === null) {
     return yield* new IndexerDecodeError({
       code: "INVALID_RESPONSE",
@@ -45,6 +46,7 @@ export const requireIndexerData = Effect.fn("requireIndexerData")(function* <
       cause: response,
     });
   }
+
   return response.data as CompleteIndexerData<Result>;
 });
 

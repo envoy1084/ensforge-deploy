@@ -54,6 +54,7 @@ export const approveWrapperIntent = Effect.fn("ensforge.approveWrapperIntent")(f
       args: [wrapper, tokenId],
     }),
   );
+
   return intent({ operation: "approveNameWrapper", to: registrar, data });
 });
 
@@ -70,6 +71,7 @@ export const wrapIntent = Effect.fn("ensforge.wrapIntent")(function* (parameters
       args: [parameters.name, parameters.owner, parameters.resolver],
     }),
   );
+
   return intent({ operation: "wrapName", to: parameters.wrapper, data });
 });
 
@@ -87,5 +89,6 @@ export const wrapEth2ldIntent = Effect.fn("ensforge.wrapEth2ldIntent")(function*
       args: [parameters.label, parameters.owner, parameters.fuses, parameters.resolver],
     }),
   );
+
   return intent({ operation: "wrapName", to: parameters.wrapper, data });
 });

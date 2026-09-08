@@ -11,12 +11,14 @@ export const readPaymentTokenSupport = Effect.fn("readPaymentTokenSupport")(func
   token: EthereumAddress,
 ) {
   const ethereum = yield* EthereumClient;
+
   const supported = yield* ethereum.readContract({
     address: oracle,
     abi: standardRentPriceOracleV2IsPaymentTokenAbi,
     functionName: "isPaymentToken",
     args: [token],
   });
+
   if (!supported) return { supported: false as const };
 
   const [symbol, decimals] = yield* Effect.all(
@@ -26,5 +28,6 @@ export const readPaymentTokenSupport = Effect.fn("readPaymentTokenSupport")(func
     ] as const,
     { concurrency: "unbounded" },
   );
+
   return { supported: true as const, symbol, decimals };
 });

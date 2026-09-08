@@ -12,6 +12,7 @@ import {
   type ResolvedEnsAtomOptions,
 } from "../query/options.js";
 
+// Include the SDK instance in the family key to keep caches separate across clients.
 class QueryAtomInput<Parameters, Failure> extends Data.Class<{
   readonly options: ResolvedEnsAtomOptions<Failure>;
   readonly parameters: Parameters;
@@ -57,10 +58,12 @@ export const makeQueryAtom = <Parameters, Success, Failure>(
 ): EnsAtomFactory<Parameters, Success, Failure> => {
   const family = Atom.family((input: QueryAtomInput<Parameters, Failure>) => {
     const actionEffect = Effect.suspend(() => getAction(input.sdk).effect(input.parameters));
+
     const effect =
       input.options.retry === false
         ? actionEffect
         : actionEffect.pipe(Effect.retry(input.options.retry));
+
     return configureAtom(
       atomRuntime.atom(effect),
       input.options,

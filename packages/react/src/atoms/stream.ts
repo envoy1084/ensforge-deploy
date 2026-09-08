@@ -25,10 +25,12 @@ export const makeStreamAtom = <Parameters, Success, Failure>(
   const family = Atom.family(
     (input: StreamAtomInput<Parameters, Failure | Cause.NoSuchElementError>) => {
       const actionStream = Stream.suspend(() => getAction(input.sdk).stream(input.parameters));
+
       const stream =
         input.options.retry === false
           ? actionStream
           : actionStream.pipe(Stream.retry(input.options.retry));
+
       return configureAtom(
         atomRuntime.atom(stream),
         input.options,

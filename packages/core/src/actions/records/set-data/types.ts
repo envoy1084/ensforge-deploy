@@ -8,4 +8,5 @@ export interface SetDataParameters {
 }
 
 export type SetDataResult = CallExecutionResult;
+
 export type SetDataError = WriteError;

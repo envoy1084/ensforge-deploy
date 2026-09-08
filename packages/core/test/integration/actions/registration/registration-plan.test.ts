@@ -12,6 +12,7 @@ describe("registration plan integration", () => {
   it.effect("composes the V2 quote, parameters, commitment, and readiness", () =>
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
+
       const result = yield* getRegistrationPlan.effect(devnet.configs.v2, {
         name: `${devnet.fixtures.registration.v2.label}.eth`,
         owner: devnet.accounts.owner,
@@ -21,6 +22,7 @@ describe("registration plan integration", () => {
       });
 
       assert.include(["commitment-pending", "ready"], result.status);
+
       if (
         result.status === "commitment-pending" ||
         result.status === "ready" ||
@@ -40,11 +42,13 @@ describe("registration plan integration", () => {
   it.effect("reports unavailable and missing-payment prerequisites without failing", () =>
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
+
       const shared = {
         owner: devnet.accounts.owner,
         secret: devnet.fixtures.registration.v2.secret,
         duration,
       } as const;
+
       const [unavailable, missingPayment] = yield* Effect.all(
         [
           getRegistrationPlan.effect(devnet.configs.v2, {
@@ -68,6 +72,7 @@ describe("registration plan integration", () => {
   it.effect("reports when a fresh commitment must be submitted", () =>
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
+
       const result = yield* getRegistrationPlan.effect(devnet.configs.v2, {
         name: devnet.fixtures.v2.available.name,
         owner: devnet.accounts.owner,
@@ -77,6 +82,7 @@ describe("registration plan integration", () => {
       });
 
       assert.strictEqual(result.status, "commitment-required");
+
       if (result.status === "commitment-required") {
         assert.strictEqual(result.commitmentStatus.status, "not-found");
       }

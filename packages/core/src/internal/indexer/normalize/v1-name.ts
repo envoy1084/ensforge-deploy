@@ -55,6 +55,7 @@ export const normalizeV1IndexedName = Effect.fn("normalizeV1IndexedName")(functi
     try: () => {
       const indexedNamehash = decodeDomainNamehash(wire.id, wire.name);
       const registryOwner = decodeAddress(wire.owner.id);
+
       const wrapped =
         wire.wrappedDomain === null
           ? null

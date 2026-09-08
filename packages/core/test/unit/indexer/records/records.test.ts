@@ -14,10 +14,14 @@ import {
 } from "../../fixtures/client-fixtures.js";
 
 const resolver = "0x0000000000000000000000000000000000001000" as const;
+
 const oldResolver = "0x0000000000000000000000000000000000002000" as const;
+
 const transactionHash = `0x${"ab".repeat(32)}` as const;
+
 const response = (data: unknown) =>
   new Response(JSON.stringify({ data }), { headers: { "content-type": "application/json" } });
+
 const request = (init: RequestInit | undefined) =>
   JSON.parse(String(init?.body)) as {
     readonly query: string;
@@ -29,8 +33,10 @@ describe("indexed records", () => {
     Effect.gen(function* () {
       const fetch: typeof globalThis.fetch = (_input, init) => {
         const { query, variables } = request(init);
+
         if (query.includes("V1GetIndexedRecords")) {
           assert.deepInclude(variables, { domainId: namehash("alice.eth") });
+
           return Promise.resolve(
             response({
               _meta: { block: { number: 100 } },
@@ -69,7 +75,9 @@ describe("indexed records", () => {
             }),
           );
         }
+
         assert.deepInclude(variables, { protocol: "v2" });
+
         return Promise.resolve(
           response({
             _meta: { block: { number: 200 } },
@@ -92,6 +100,7 @@ describe("indexed records", () => {
           }),
         );
       };
+
       const config = createConfig({
         network: "sepolia",
         publicClient: makeSepoliaPublicClient(),
@@ -117,7 +126,9 @@ describe("indexed records", () => {
     Effect.gen(function* () {
       const fetch: typeof globalThis.fetch = (_input, init) => {
         const variables = request(init).variables;
+
         assert.deepInclude(variables.where, { resolver_: { domain: namehash("alice.eth") } });
+
         return Promise.resolve(
           response({
             _meta: { block: { number: 100 } },
@@ -152,6 +163,7 @@ describe("indexed records", () => {
           }),
         );
       };
+
       const config = createConfig({
         network: "mainnet",
         publicClient: makeMainnetPublicClient(),
@@ -215,11 +227,14 @@ describe("indexed records", () => {
           },
         },
       ];
+
       const fetch: typeof globalThis.fetch = (_input, init) => {
         const variables = request(init).variables;
         const after = variables.after;
+
         const selected =
           after === "address-cursor" ? events.slice(1) : after === "text-cursor" ? [] : events;
+
         return Promise.resolve(
           response({
             _meta: { block: { number: 250 } },
@@ -230,6 +245,7 @@ describe("indexed records", () => {
           }),
         );
       };
+
       const config = createConfig({
         network: "sepolia",
         publicClient: makeSepoliaPublicClient(),
@@ -237,14 +253,18 @@ describe("indexed records", () => {
       });
 
       const first = yield* getRecordHistory.effect(config, { name: "alice.eth", pageSize: 1 });
+
       assert.strictEqual(first.items[0]?.kind, "address");
       assert.isNotNull(first.items[0]?.raw.data);
+
       if (first.pageInfo.cursor === null) return assert.fail("expected another history page");
+
       const second = yield* getRecordHistory.effect(config, {
         name: "alice.eth",
         pageSize: 1,
         cursor: first.pageInfo.cursor,
       });
+
       assert.strictEqual(second.items[0]?.kind, "text");
       assert.isFalse(second.pageInfo.hasNextPage);
     }),

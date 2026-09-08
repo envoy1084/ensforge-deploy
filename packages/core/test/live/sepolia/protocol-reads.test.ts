@@ -17,11 +17,13 @@ describe("Sepolia protocol-specific reads", () => {
   it.effect("round-trips the seeded V2 primary name", () =>
     Effect.gen(function* () {
       const address = yield* getAddress.effect(sepoliaConfig, { name: sepoliaNames.v2.profile });
+
       if (address.address === null) {
         return yield* Effect.die(new Error("Sepolia profile has no Ethereum address"));
       }
 
       const primary = yield* getPrimaryName.effect(sepoliaConfig, { address: address.address });
+
       assert.isNotNull(primary);
       assert.strictEqual(String(primary?.name), sepoliaNames.v2.profile);
       assert.isTrue(primary?.match);
@@ -78,6 +80,7 @@ describe("Sepolia protocol-specific reads", () => {
   it.effect("returns stable empty DNS records for the V2 Public Resolver fixture", () =>
     Effect.gen(function* () {
       const recordName = `profile.${sepoliaNames.v2.dns}`;
+
       const [records, exists] = yield* Effect.all(
         [
           getDnsRecords.effect(sepoliaConfig, {
@@ -97,6 +100,7 @@ describe("Sepolia protocol-specific reads", () => {
   it.effect("keeps migrated-name ownership readable through the V2 route", () =>
     Effect.gen(function* () {
       const owner = yield* getOwner.effect(sepoliaConfig, { name: sepoliaNames.migrated });
+
       assert.strictEqual(owner?.protocol, "v2");
       assert.isNotNull(owner?.owner ?? null);
     }),

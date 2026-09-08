@@ -36,7 +36,9 @@ export const queryV2Subnames = Effect.fn("queryV2Subnames")(function* (
     const skip = yield* Effect.try({
       try: () => {
         const value = position === null ? 0 : Number(position);
+
         if (!Number.isSafeInteger(value) || value < 0) throw new Error("Invalid offset");
+
         return value;
       },
       catch: (cause) =>
@@ -46,6 +48,7 @@ export const queryV2Subnames = Effect.fn("queryV2Subnames")(function* (
           cause,
         }),
     });
+
     const response = yield* requestIndexer<V2GetSubnamesQuery, V2GetSubnamesQueryVariables>(
       config,
       {
@@ -61,19 +64,23 @@ export const queryV2Subnames = Effect.fn("queryV2Subnames")(function* (
         } as V2GetSubnamesQueryVariables,
       },
     );
+
     const data = yield* requireIndexerData(config, "v2", operationName, response);
+
     const indexedBlock = yield* decodeIndexedBlock(
       config,
       "v2",
       operationName,
       data["_meta"].block.number,
     );
+
     const labels = data.domain?.subregistry?.labels ?? [];
     // The current Sepolia V2 endpoint exposes pagination arguments on this
     // field but returns the complete label set. Fall back to a local window
     // when the response exceeds the requested size; retain server pagination
     // for deployments that honor `first` and `skip`.
     const window = labels.length > limit + 1 ? labels.slice(skip, skip + limit + 1) : labels;
+
     const candidates = yield* Effect.all(
       window.map((node, index) =>
         normalizeV2IndexerName(node, {
@@ -85,6 +92,7 @@ export const queryV2Subnames = Effect.fn("queryV2Subnames")(function* (
       ),
       { concurrency: "unbounded" },
     );
+
     return {
       indexedBlock,
       page: {
@@ -94,6 +102,7 @@ export const queryV2Subnames = Effect.fn("queryV2Subnames")(function* (
       },
     };
   }).pipe(Effect.result);
+
   if (Result.isFailure(result)) {
     return {
       status: "failed",
@@ -101,6 +110,7 @@ export const queryV2Subnames = Effect.fn("queryV2Subnames")(function* (
       metadata: { protocol: "v2", status: "failed", failure: indexerSourceFailure(result.failure) },
     };
   }
+
   return {
     status: "complete",
     page: result.success.page,

@@ -28,7 +28,9 @@ const configFor = (devnet: IntegrationDevnet, account: `0x${string}`) => {
     rpcUrls: { default: { http: [devnet.rpcUrl] } },
     contracts: { multicall3: { address: devnet.deployments.multicall3, blockCreated: 0 } },
   });
+
   const transport = http(devnet.rpcUrl, { retryCount: 0, timeout: 10_000 });
+
   return createTestConfig({
     deployments: Object.freeze({ protocol: "v1", v1: devnet.deployments.v1 }),
     publicClient: createPublicClient({ chain, transport }),
@@ -40,6 +42,7 @@ describe("Name Wrapper integration", () => {
   it.effect("reads V1 wrapper data and reports typed V2 unsupported results", () =>
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
+
       const [fuses, expiry, v2Fuses, v2Expiry] = yield* Effect.all(
         [
           getFuses.effect(devnet.configs.v1, { name: devnet.fixtures.v1.activeWrapped.name }),
@@ -71,12 +74,15 @@ describe("Name Wrapper integration", () => {
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
       const name = devnet.fixtures.v1.noResolver.name;
+
       const wrapped = yield* wrapName.effect(devnet.configs.v1, {
         name,
         owner: devnet.accounts.owner,
         resolver: devnet.deployments.v1.contracts.publicResolver,
       });
+
       const wrappedState = yield* getNameState.effect(devnet.configs.v1, { name });
+
       yield* unwrapName.effect(devnet.configs.v1, {
         name,
         registrant: devnet.accounts.owner,
@@ -86,6 +92,7 @@ describe("Name Wrapper integration", () => {
         name,
         resolver: "0x0000000000000000000000000000000000000000",
       });
+
       const unwrappedState = yield* getNameState.effect(devnet.configs.v1, { name });
 
       assert.strictEqual(wrapped.strategy, "eth-2ld");
@@ -101,11 +108,13 @@ describe("Name Wrapper integration", () => {
       const devnet = getIntegrationDevnet();
       const config = configFor(devnet, devnet.accounts.owner2);
       const name = devnet.fixtures.v1.unwrappedSubname.name;
+
       const wrapped = yield* wrapName.effect(config, {
         name,
         owner: devnet.accounts.owner2,
         resolver: devnet.deployments.v1.contracts.publicResolver,
       });
+
       assert.strictEqual(
         wrapped.write.status,
         "completed",
@@ -113,6 +122,7 @@ describe("Name Wrapper integration", () => {
       );
       assert.strictEqual(wrapped.finalState?.kind, "v1-wrapped");
       yield* unwrapName.effect(config, { name, manager: devnet.accounts.owner2 });
+
       const restored = yield* getNameState.effect(config, { name });
 
       assert.strictEqual(wrapped.strategy, "registry");
@@ -126,12 +136,15 @@ describe("Name Wrapper integration", () => {
       const devnet = getIntegrationDevnet();
       const parentName = devnet.fixtures.v1.wrapperLifecycle.name;
       const childName = `phase16.${parentName}`;
+
       const wrappedParent = yield* wrapName.effect(devnet.configs.v1, {
         name: parentName,
         owner: devnet.accounts.owner,
         fuses: ["cannotUnwrap"],
       });
+
       const parentExpiry = wrappedParent.finalState?.expiry ?? 0n;
+
       yield* setFuses.effect(devnet.configs.v1, {
         name: parentName,
         fuses: ["cannotTransfer"],
@@ -150,6 +163,7 @@ describe("Name Wrapper integration", () => {
         name: childName,
         expiry: parentExpiry,
       });
+
       const [parentFuses, childFuses, childExpiry] = yield* Effect.all(
         [
           getFuses.effect(devnet.configs.v1, { name: parentName }),
@@ -175,12 +189,14 @@ describe("Name Wrapper integration", () => {
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
       const owner2Config = configFor(devnet, devnet.accounts.owner2);
+
       const unauthorized = yield* setFuses
         .effect(owner2Config, {
           name: devnet.fixtures.v1.activeWrapped.name,
           fuses: ["cannotTransfer"],
         })
         .pipe(Effect.flip);
+
       const v2 = yield* setFuses
         .effect(devnet.configs.v2, {
           name: devnet.fixtures.v2.active.name,

@@ -34,6 +34,7 @@ export const createTestConfig = (parameters: CreateTestConfigParameters): Ensfor
   }
 
   validateDeployments(parameters.deployments, ensTestChainId);
+
   const reads = resolveReadOptions(parameters.reads);
   const writes = resolveWriteOptions(parameters.writes);
   const gateways = resolveGatewayOptions(parameters.gateways);

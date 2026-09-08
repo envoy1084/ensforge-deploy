@@ -23,6 +23,7 @@ export const resolveIndexerSource = (
   }
 
   const state = getIndexerRuntimeConfig(config.indexer).sourceStates[protocol];
+
   if (state === "disabled") {
     throw new IndexerConfigError({
       code: "SOURCE_DISABLED",
@@ -31,6 +32,7 @@ export const resolveIndexerSource = (
   }
 
   const endpoint = config.indexer.endpoints[protocol];
+
   if (endpoint === null) {
     throw new IndexerUnavailableError({
       code: "SOURCE_UNAVAILABLE",

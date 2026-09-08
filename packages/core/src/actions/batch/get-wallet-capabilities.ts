@@ -17,8 +17,11 @@ const capabilityStatus = (
   capabilities: Readonly<Record<string, unknown>>,
 ): WalletCapabilitiesResult["atomicity"] => {
   const atomic = capabilities.atomic;
+
   if (!Predicate.isObject(atomic)) return "unavailable";
+
   const status = atomic.status;
+
   return status === "supported" || status === "ready" || status === "unsupported"
     ? status
     : "unavailable";
@@ -26,6 +29,7 @@ const capabilityStatus = (
 
 const supportsPaymaster = (capabilities: Readonly<Record<string, unknown>>): boolean => {
   const paymaster = capabilities.paymasterService;
+
   return Predicate.isObject(paymaster) && paymaster.supported === true;
 };
 
@@ -37,6 +41,7 @@ export const validateRequestedCapabilities = (
 
   for (const key of Object.keys(requested)) {
     const capability = available.raw[key];
+
     if (capability === undefined) {
       return new WalletError({
         code: "CAPABILITY_UNAVAILABLE",
@@ -44,6 +49,7 @@ export const validateRequestedCapabilities = (
         cause: { requested, available: available.raw },
       });
     }
+
     if (
       Predicate.isObject(capability) &&
       (capability.supported === false || capability.status === "unsupported")
@@ -68,6 +74,7 @@ const getWalletCapabilitiesEffect = Effect.fn("ensforge.getWalletCapabilities")(
     Effect.gen(function* () {
       const { walletClient, account } = yield* resolveWalletContext(parameters);
       const client = yield* WriteClient;
+
       const capabilities = yield* client
         .getCapabilities(walletClient, account, config.chainId)
         .pipe(
@@ -77,7 +84,9 @@ const getWalletCapabilitiesEffect = Effect.fn("ensforge.getWalletCapabilities")(
               : Effect.fail(error),
           ),
         );
+
       const atomicity = capabilityStatus(capabilities);
+
       return {
         chainId: config.chainId,
         nativeCalls: atomicity !== "unavailable",

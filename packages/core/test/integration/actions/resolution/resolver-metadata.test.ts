@@ -8,6 +8,7 @@ describe("resolver metadata integration", () => {
   it.effect("reads resolver record versions and reports a missing resolver", () =>
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
+
       const [v1, result] = yield* Effect.all(
         [
           getResolverVersion.effect(devnet.configs.v1, {
@@ -24,13 +25,17 @@ describe("resolver metadata integration", () => {
       );
 
       assert.isTrue(result.v2.supported);
+
       if (!v1.supported) {
         assert.strictEqual(v1.reason, "VERSIONING_UNSUPPORTED");
       }
+
       if (result.v2.supported) {
         assert.typeOf(result.v2.version, "bigint");
       }
+
       assert.isFalse(result.missing.supported);
+
       if (!result.missing.supported) {
         assert.strictEqual(result.missing.reason, "RESOLVER_NOT_FOUND");
       }
@@ -40,6 +45,7 @@ describe("resolver metadata integration", () => {
   it.effect("distinguishes Permissioned Resolver aliases from unsupported public resolvers", () =>
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
+
       const [permissioned, publicResolver] = yield* Effect.all(
         [
           getAlias.effect(devnet.configs.v2, {
@@ -51,11 +57,14 @@ describe("resolver metadata integration", () => {
       );
 
       assert.isTrue(permissioned.supported);
+
       if (permissioned.supported) {
         assert.isNull(permissioned.target);
         assert.strictEqual(permissioned.raw, "0x");
       }
+
       assert.isFalse(publicResolver.supported);
+
       if (!publicResolver.supported) {
         assert.strictEqual(publicResolver.reason, "ALIASING_UNSUPPORTED");
       }

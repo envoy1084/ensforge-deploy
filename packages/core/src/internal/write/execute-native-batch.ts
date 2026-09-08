@@ -30,6 +30,7 @@ export const executeNativeBatch = Effect.fn("executeNativeBatch")(function* (
   }
 
   const atomicity = parameters.atomicity ?? "preferred";
+
   if (
     atomicity === "required" &&
     capabilities.atomicity !== "supported" &&
@@ -43,18 +44,23 @@ export const executeNativeBatch = Effect.fn("executeNativeBatch")(function* (
   }
 
   const calls = yield* prepareWriteIntents(config, parameters);
+
   if ((parameters.simulation ?? config.writes.simulation) === "required") {
     yield* provideConfig(config, simulatePreparedCalls(calls, config.reads.concurrency));
   }
+
   const { walletClient, account } = yield* provideConfig(config, resolveWalletContext(parameters));
   const client = yield* provideConfig(config, WriteClient);
+
   const forceAtomic =
     atomicity === "required" ||
     (atomicity === "preferred" && capabilities.atomicity === "supported");
+
   const sendOptions =
     parameters.capabilities === undefined
       ? { forceAtomic }
       : { forceAtomic, capabilities: parameters.capabilities };
+
   const submission = yield* client.sendCalls(walletClient, account, calls, sendOptions);
   const confirmation: ConfirmationPolicy = parameters.confirmation ?? config.writes.confirmation;
 

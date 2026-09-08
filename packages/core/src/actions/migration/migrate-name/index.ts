@@ -25,6 +25,7 @@ import type {
 } from "../types.js";
 
 type MigrationRoute = MigrationNameProgress["route"];
+
 type MigrationStep = MigrationNameProgress["steps"][number];
 
 const planId = (name: string, parameters: MigrateNameParameters) =>
@@ -68,23 +69,30 @@ export const resolveMigrationSteps = Effect.fn("ensforge.migrateName.resolveStep
   seen: ReadonlySet<string> = new Set(),
 ): Effect.fn.Return<ReadonlyArray<MigrationStep>, WriteError> {
   const name = yield* normalizeName.effect(parameters.name);
+
   if (seen.has(name)) {
     return yield* new MigrationError({
       code: "MIGRATION_BLOCKED",
       message: `A cyclic parent migration dependency was detected for ${name}`,
     });
   }
+
   const plan = yield* getMigrationPlan.effect(config, { ...parameters, name, account });
+
   if (plan.status === "ready" && plan.target.supported) return [{ name, route: plan.target.route }];
+
   if (plan.status === "ready") {
     return yield* new MigrationError({
       code: "MIGRATION_BLOCKED",
       message: `${name} has no transferable migration target`,
     });
   }
+
   if (plan.status === "not-required") return [];
+
   if (plan.status === "blocked" && plan.blockers.includes("PARENT_NOT_MIGRATED") && migrateParent) {
     const status = yield* getMigrationStatus.effect(config, { name });
+
     if (status.status === "locked-child-pending-parent") {
       const parents = yield* resolveMigrationSteps(
         config,
@@ -93,9 +101,11 @@ export const resolveMigrationSteps = Effect.fn("ensforge.migrateName.resolveStep
         true,
         new Set([...seen, name]),
       );
+
       return [...parents, { name, route: "locked-child" as const }];
     }
   }
+
   return yield* failPlan(plan);
 });
 
@@ -105,12 +115,14 @@ const migrateNameEffect = Effect.fn("ensforge.migrateName")(function* (
 ): Effect.fn.Return<MigrateNameResult, WriteError> {
   const name = yield* normalizeName.effect(parameters.name);
   const id = planId(name, parameters);
+
   if (parameters.resume !== undefined && parameters.resume.write.planId !== id) {
     return yield* new MigrationError({
       code: "ROUTE_CHANGED",
       message: "Migration resume data does not match the supplied migration",
     });
   }
+
   if (parameters.resume?.write.status === "completed") {
     return {
       ...parameters.resume,
@@ -121,6 +133,7 @@ const migrateNameEffect = Effect.fn("ensforge.migrateName")(function* (
 
   const { account } = yield* provideConfig(config, resolveWalletContext(parameters));
   const address = (typeof account === "string" ? account : account.address) as EthereumAddress;
+
   const steps =
     parameters.resume?.steps ??
     (yield* resolveMigrationSteps(
@@ -129,18 +142,21 @@ const migrateNameEffect = Effect.fn("ensforge.migrateName")(function* (
       address,
       parameters.migrateParent ?? true,
     ));
+
   if (steps.length === 0) {
     const current = yield* getMigrationPlan.effect(config, {
       ...parameters,
       name,
       account: address,
     });
+
     if (current.status !== "not-required") {
       return yield* new MigrationError({
         code: "ROUTE_CHANGED",
         message: `The migration route for ${name} changed while preparing the workflow`,
       });
     }
+
     return {
       status: "not-required",
       name,
@@ -171,13 +187,16 @@ const migrateNameEffect = Effect.fn("ensforge.migrateName")(function* (
     atomicity: "none",
     confirmation: parameters.confirmation ?? { type: "confirmed" },
   }));
+
   const write = yield* executeWritePlan.effect(config, {
     plan: { id, stages },
     ...(parameters.resume === undefined ? {} : { resume: parameters.resume.write }),
     ...(parameters.walletClient === undefined ? {} : { walletClient: parameters.walletClient }),
     ...(parameters.account === undefined ? {} : { account: parameters.account }),
   });
+
   const completed = write.status === "completed";
+
   return {
     status: completed ? "completed" : "partial",
     name,

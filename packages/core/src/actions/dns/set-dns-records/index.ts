@@ -20,6 +20,7 @@ export const setDnsRecords = makeResolverWriteAction<SetDnsRecordsParameters>({
           message: `Invalid DNS record wire data for ${context.name}`,
         });
       }
+
       return yield* Effect.try({
         try: () =>
           encodeFunctionData({

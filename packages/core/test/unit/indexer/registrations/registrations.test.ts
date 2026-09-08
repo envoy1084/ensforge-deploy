@@ -11,10 +11,14 @@ import { createConfig } from "../../../../src/index.js";
 import { makeSepoliaPublicClient } from "../../fixtures/client-fixtures.js";
 
 const registrant = "0x0000000000000000000000000000000000001000" as const;
+
 const currentOwner = "0x0000000000000000000000000000000000002000" as const;
+
 const referrer = `0x${"12".repeat(32)}` as const;
+
 const response = (data: unknown) =>
   new Response(JSON.stringify({ data }), { headers: { "content-type": "application/json" } });
+
 const request = (init: RequestInit | undefined) =>
   JSON.parse(String(init?.body)) as {
     readonly query: string;
@@ -26,6 +30,7 @@ describe("indexed registrations", () => {
     Effect.gen(function* () {
       const fetch: typeof globalThis.fetch = (_input, init) => {
         const { query, variables } = request(init);
+
         if (query.includes("V1GetRegistrations")) {
           return Promise.resolve(
             response({
@@ -48,7 +53,9 @@ describe("indexed registrations", () => {
             }),
           );
         }
+
         assert.deepInclude(variables.where, { protocol: "v2" });
+
         return Promise.resolve(
           response({
             _meta: { block: { number: 200 } },
@@ -77,6 +84,7 @@ describe("indexed registrations", () => {
           }),
         );
       };
+
       const config = createConfig({
         network: "sepolia",
         publicClient: makeSepoliaPublicClient(),
@@ -100,10 +108,13 @@ describe("indexed registrations", () => {
   it.effect("compiles address discovery to the historical registrant relation", () =>
     Effect.gen(function* () {
       let requests = 0;
+
       const fetch: typeof globalThis.fetch = (_input, init) => {
         const { query, variables } = request(init);
+
         requests += 1;
         assert.deepInclude(variables.where, { registrant: registrant.toLowerCase() });
+
         return Promise.resolve(
           query.includes("V1GetRegistrations")
             ? response({ _meta: { block: { number: 100 } }, registrations: [] })
@@ -116,6 +127,7 @@ describe("indexed registrations", () => {
               }),
         );
       };
+
       const config = createConfig({
         network: "sepolia",
         publicClient: makeSepoliaPublicClient(),
@@ -133,6 +145,7 @@ describe("indexed registrations", () => {
         network: "sepolia",
         publicClient: makeSepoliaPublicClient(),
       });
+
       const result = yield* Effect.exit(
         getRegistrations.effect(config, {
           filter: { name: "alice.eth" },
