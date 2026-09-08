@@ -1,5 +1,6 @@
 import { Effect, Schema } from "effect";
 
+import { hcaAccountGeneration, type HcaDeploymentProfile } from "@ensforge/contracts/deployments";
 import type { EnsV1Deployment, EnsV2Deployment } from "@ensforge/contracts/deployments";
 import type { Address } from "viem";
 
@@ -12,6 +13,11 @@ import { TestEnvironmentError } from "../errors/test-environment-error.js";
 import { DevnetDeploymentAddress, type DevnetDeploymentManifest } from "./schema.js";
 
 const DevnetRequiredDeployments = Schema.Struct({
+  HCAOwnerAndSessionValidator: DevnetDeploymentAddress,
+  HCAUpgradeGate: DevnetDeploymentAddress,
+  StandaloneHCAFactory: DevnetDeploymentAddress,
+  StandaloneHCAImplementation: DevnetDeploymentAddress,
+  MockRegistrationIntentExecutor: DevnetDeploymentAddress,
   BaseRegistrarImplementation: DevnetDeploymentAddress,
   BatchRegistrar: DevnetDeploymentAddress,
   BatchGatewayProvider: DevnetDeploymentAddress,
@@ -66,6 +72,7 @@ const DevnetRequiredDeployments = Schema.Struct({
 export interface DevnetDeployments {
   readonly v1: EnsV1Deployment;
   readonly v2: EnsV2Deployment;
+  readonly hca: HcaDeploymentProfile;
   readonly multicall3: Address;
   readonly requiredAddresses: ReadonlyArray<Address>;
   readonly dns: {
@@ -176,6 +183,25 @@ export const mapDevnetDeployments = Effect.fn("mapDevnetDeployments")(function* 
   return {
     v1,
     v2,
+    hca: {
+      generation: hcaAccountGeneration,
+      deployment: v2,
+      contracts: {
+        ownerAndSessionValidator: source.HCAOwnerAndSessionValidator,
+        upgradeGate: source.HCAUpgradeGate,
+        standaloneFactory: source.StandaloneHCAFactory,
+        standaloneImplementation: source.StandaloneHCAImplementation,
+      },
+      infrastructure: {
+        entryPoint: hcaAccountGeneration.entryPoint,
+        intentExecutor: source.MockRegistrationIntentExecutor,
+        gasRefundPaymaster: source.MockRegistrationIntentExecutor,
+        paymentToken: source.MockUSDC,
+        secondaryPaymentToken: source.MockDAI,
+      },
+      environment: "devnet",
+      sourceFunding: [],
+    },
     multicall3: source.Multicall3,
     dns: {
       aliasResolver: source.DNSAliasResolver,

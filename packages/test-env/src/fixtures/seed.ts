@@ -4,6 +4,7 @@ import type { DevnetEnvironment } from "../environment.js";
 import { seedRead } from "./contract.js";
 import { createDnsFixtures } from "./dns.js";
 import { createEventFixtures } from "./events.js";
+import { seedHcaFixtures } from "./hca.js";
 import { verifyFixtureManifest } from "./invariants.js";
 import { seedPermissionFixtures } from "./permissions.js";
 import { seedRegistrationFixtures } from "./registration.js";
@@ -14,6 +15,7 @@ import { seedV2Fixtures } from "./v2.js";
 
 export const seedFixtures = Effect.fn("seedFixtures")(function* (environment: DevnetEnvironment) {
   const fromBlock = yield* Effect.promise(() => environment.clients.publicClient.getBlockNumber());
+  const hca = yield* seedHcaFixtures(environment);
   const v1 = yield* seedV1Fixtures(environment);
   const fixtures = yield* seedV2Fixtures(environment, v1.v1);
   const records = yield* seedResolverRecordFixtures(environment);
@@ -22,7 +24,7 @@ export const seedFixtures = Effect.fn("seedFixtures")(function* (environment: De
   const registration = yield* seedRegistrationFixtures(environment);
   const dns = createDnsFixtures(environment, records);
   const events = yield* Effect.promise(() => createEventFixtures(environment, fromBlock));
-  const manifest = { ...fixtures, dns, events, permissions, records, registration, reverse };
+  const manifest = { ...fixtures, hca, dns, events, permissions, records, registration, reverse };
   yield* seedRead(
     () => verifyFixtureManifest(environment, manifest),
     "The completed ENS fixture manifest failed verification",

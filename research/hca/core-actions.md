@@ -34,19 +34,19 @@ and the HCA's address are distinct. For writes, resolve a verified account descr
 
 ## 2. Account reads, prediction and verification
 
-| Action                         | Main inputs                                                 | Result / underlying operation                                                          |
-| ------------------------------ | ----------------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| `predictHcaAddress`            | `owner`, optional profile-approved `implementation`, `salt` | Address plus complete initial derivation inputs; may resolve proxy logic by RPC        |
-| `getHca`                       | `hca`, block options                                        | `undeployed` or `deployed` aggregate; does not label arbitrary code verified           |
-| `getHcaOwner`                  | `hca`, block options                                        | Owner from `owner()`; null only for a valid undeployed address                         |
-| `getHcaImplementation`         | `hca`, block options                                        | Current implementation, cross-checked with Verifiable Factory where required           |
-| `getHcaAccountId`              | `hca`, block options                                        | On-chain `accountId()` string                                                          |
-| `getHcaSessionNonce`           | `hca`, block options                                        | Owner and nonce from `ownerAndSessionNonce()`                                          |
-| `getAuthorizedHcaOwner`        | `hca`, block options                                        | Factory `authorizedOwnerOf`; zero becomes null                                         |
-| `getHcaImplementationApproval` | `implementation`, block options                             | Factory `approvedImplementations`, explicitly not upgrade-gate approval                |
-| `isHcaImplementationTrusted`   | `implementation`, block options                             | `TrustedHCASet.includes(implementation)`; input is implementation, not account address |
-| `verifyHca`                    | `hca`, `expectedOwner`, initial derivation inputs           | Verified descriptor or typed verification failure                                      |
-| `getHcaCapabilities`           | `hca`, optional authorization context                       | Account capabilities and reasons; provider capabilities are checked separately         |
+| Action                         | Main inputs                                                 | Result / underlying operation                                                   |
+| ------------------------------ | ----------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| `predictHcaAddress`            | `owner`, optional profile-approved `implementation`, `salt` | Address plus complete initial derivation inputs; may resolve proxy logic by RPC |
+| `getHca`                       | `hca`, block options                                        | `undeployed` or `deployed` aggregate; does not label arbitrary code verified    |
+| `getHcaOwner`                  | `hca`, block options                                        | Owner from `owner()`; null only for a valid undeployed address                  |
+| `getHcaImplementation`         | `hca`, block options                                        | Current implementation, cross-checked with Verifiable Factory where required    |
+| `getHcaAccountId`              | `hca`, block options                                        | On-chain `accountId()` string                                                   |
+| `getHcaSessionNonce`           | `hca`, block options                                        | Owner and nonce from `ownerAndSessionNonce()`                                   |
+| `getAuthorizedHcaOwner`        | `hca`, block options                                        | Factory `authorizedOwnerOf`; zero becomes null                                  |
+| `getHcaImplementationApproval` | `implementation`, block options                             | Factory `approvedImplementations`, explicitly not upgrade-gate approval         |
+| `isHcaImplementationTrusted`   | `implementation`, block options                             | Historical trusted-set inspection only; not an active HCA authorization check   |
+| `verifyHca`                    | `hca`, `expectedOwner`, initial derivation inputs           | Verified descriptor or typed verification failure                               |
+| `getHcaCapabilities`           | `hca`, optional authorization context                       | Account capabilities and reasons; provider capabilities are checked separately  |
 
 Use `predictHcaAddress` as a network action when deployment data must be read. An internal pure
 address derivation helper accepts complete resolved inputs. Do not label an RPC-dependent operation
@@ -84,6 +84,10 @@ These are explanatory structural views; implementation should use an opaque veri
 Deserialized descriptors require validation/re-verification. A TypeScript cast is not proof of account
 identity. `getHca` returns RPC/contract errors for incompatible code; verification returns a typed
 mismatch rather than pretending the address is undeployed. Do not infer an owner when no code exists.
+
+P0 established that the default validator is omitted from Nexus’s installed-validator list. Verify
+its compiler-recorded immutable binding with the runtime template; do not treat `isModuleInstalled`
+returning false as a missing default validator. `TrustedHCASet` is historical metadata in this generation.
 
 `verifyHca` checks deterministic address, owner, account ID, factory certification, recognized current
 implementation, gates and fixed wiring as required by the selected profile. Verification has a block

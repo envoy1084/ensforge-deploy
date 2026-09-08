@@ -201,7 +201,20 @@ export interface EventFixtureManifest {
   readonly toBlock: bigint;
 }
 
+export interface HcaFixtureManifest {
+  readonly address: Address;
+  readonly owner: Address;
+  readonly implementation: Address;
+  readonly salt: bigint;
+  readonly wiring: {
+    readonly blockNumber: bigint;
+    readonly proxyLogic: Address;
+    readonly entryPointDeployed: boolean;
+  };
+}
+
 export interface EnsFixtureManifest {
+  readonly hca: HcaFixtureManifest;
   readonly seededAt: bigint;
   readonly v1: EnsV1FixtureManifest;
   readonly v2: EnsV2FixtureManifest;

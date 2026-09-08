@@ -8,6 +8,7 @@ export { createEventFixtures } from "./events.js";
 export { seedV1Fixtures } from "./v1.js";
 export { seedV2Fixtures } from "./v2.js";
 export type {
+  HcaFixtureManifest,
   EnsFixtureManifest,
   EnsMigrationFixtureManifest,
   EnsNameFixture,

@@ -16,4 +16,8 @@ if (devnet.fixtures.migration.migratedLocked.name !== "v2-migrated-locked.eth") 
 
 await devnet.reset();
 
+process.stdout.write(
+  `HCA fixture ${devnet.fixtures.hca.address}; EntryPoint deployed: ${devnet.fixtures.hca.wiring.entryPointDeployed}\n`,
+);
+
 process.stdout.write(`ENS devnet verified at ${devnet.rpcUrl}\n`);

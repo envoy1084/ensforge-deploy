@@ -25,7 +25,8 @@
     "test:packages": "node scripts/test-packages.mjs",
     "test:watch": "turbo run test:watch",
     "typecheck": "turbo run typecheck",
-    "version-packages": "changeset version"
+    "version-packages": "changeset version",
+    "verify:hca:sepolia": "pnpm --filter @ensforge/test-env... build && node --env-file-if-exists=.env scripts/verify-hca-sepolia.mjs"
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "0.18.5",

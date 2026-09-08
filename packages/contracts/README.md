@@ -56,6 +56,21 @@ and ABIs; compiling source from the same commit can produce newer contracts. The
 funding validator, authorizer, and interfaces have no standalone deployment JSON in this snapshot
 and are not additional verified Sepolia deployments.
 
+## HCA deployment profile
+
+`getHcaDeployment(11155111)` and `sepoliaHcaDeployment` from `@ensforge/contracts/deployments`
+provide the pinned account generation, contract wiring and constructor-derived infrastructure.
+Other public chain IDs throw; local profiles come from test-env discovery. These are deployment
+capabilities, not proof of provider compatibility. Cross-chain funding remains disabled and its
+separate source manifest list is empty until verified.
+
+Focused HCA factory, account-inspection and validator-wiring fragments live in `src/v2/fragments/`
+and are exported from `@ensforge/contracts/v2`. Complete ABIs retain their existing experimental export.
+
+The recorded `TrustedHCASet` address remains historical metadata. This account generation authorizes
+reverse operations through `StandaloneHCAFactory.authorizedOwnerOf`; the local deployment does not
+create a trusted set. It is not a required dependency of the active HCA profile.
+
 ## License
 
 Apache-2.0

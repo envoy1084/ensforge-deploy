@@ -19,3 +19,6 @@ export * from "./universal-resolver.js";
 export * from "./user-registry.js";
 export * from "./verifiable-factory.js";
 export * from "./wrapper-registry.js";
+export * from "./hca-factory.js";
+export * from "./hca-account.js";
+export * from "./hca-validator.js";

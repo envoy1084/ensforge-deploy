@@ -83,6 +83,11 @@ Do not change SDK ABIs to make that different devnet pass.
 Use `packages/contracts/src/deployments/sepolia-v2.ts` at runtime; never paste this table into
 provider implementation code. Old source-tree address tables and live-proof examples contain
 other deployment generations. Matching source code does not make those addresses interchangeable.
+P0 verification found that `TrustedHCASet` is historical artifact metadata, not a dependency of this
+account generation's active authorization path. The matched local deploy scripts do not deploy it;
+reverse adapters use `StandaloneHCAFactory.authorizedOwnerOf`. Preserve the recorded address without
+requiring a fictitious local trusted set or using membership as proof of HCA validity.
+
 A source-chain funding validator is not included in the destination HCA profile and needs its own
 verified manifest.
 
@@ -358,14 +363,27 @@ Resolve during the named phase rather than inventing answers:
 
 ### P0 — freeze the deployment boundary
 
-- [ ] Record the artifact snapshot and matched source revision in an HCA capability profile.
-- [ ] Add missing focused ABI fragments only from the deployed artifacts.
-- [ ] Verify factory approval, owner validator, executor, EntryPoint, proxy logic and reverse wiring.
-- [ ] Preserve existing single-owner initializer shapes and DNS deployment metadata.
-- [ ] Record source-chain funding manifests separately; leave unverified routes disabled.
-- [ ] Seed HCA fixtures through local discovery without hard-coded Sepolia addresses.
+- [x] Record the artifact snapshot and matched source revision in an HCA capability profile.
+- [x] Add missing focused ABI fragments only from the deployed artifacts.
+- [x] Verify factory approval, owner validator, executor, EntryPoint, proxy logic and reverse wiring.
+- [x] Preserve existing single-owner initializer shapes and DNS deployment metadata.
+- [x] Record source-chain funding manifests separately; leave unverified routes disabled.
+- [x] Seed HCA fixtures through local discovery without hard-coded Sepolia addresses.
 
-Exit: one reproducible HCA account generation, with unsupported networks rejected explicitly.
+Implemented: `@ensforge/contracts/deployments` exports the pinned profile and rejects unsupported
+public chains. Focused ABIs are in `v2/fragments/`. `test-env` discovers local HCA dependencies,
+verifies wiring and seeds a factory-certified salt-zero owner account. Source funding is a separate,
+empty manifest list and remains disabled.
+
+Verification: exact ABI-fragment comparison with the pinned artifacts, read-only Sepolia wiring,
+and the existing devnet seed/checkpoint/reset verification passed. Default-validator verification
+uses compiler-recorded immutable positions guarded by an executable-template hash; Nexus's installed
+module list excludes this validator. The local image's executable template matches Sepolia after
+zeroing immutable words; the Solidity metadata hash differs. Provider compatibility is still unproven.
+
+Repeat: `pnpm --filter @ensforge/test-env verify` and `pnpm verify:hca:sepolia`.
+
+Exit achieved: one reproducible HCA account generation, with unsupported public networks rejected explicitly.
 
 ### P1 — core actions and existing SDK group
 
