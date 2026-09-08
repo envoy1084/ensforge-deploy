@@ -242,26 +242,29 @@ subscriptions internally. A user-aborted wait must leave a resumable submission 
 Concrete returned adapter types expose extensions only when implemented and compatible:
 
 ```ts
-const execution = rhinestone({ sdk: existingRhinestoneSdk });
+const execution = rhinestone(options);
 
-const preparedSession = await execution.sessions.prepare(sdk.config, sessionRequest);
-const authorizedSession = await execution.sessions.authorize(sdk.config, {
-  prepared: preparedSession,
-  signer: ownerSigner,
-});
-const quote = await execution.crossChain.quote(sdk.config, fundingRequest);
+// Shipped session API.
+const preparedSession = await execution.extensions.sessions.prepare(sdk.config, sessionRequest);
+await execution.extensions.sessions.enable(sdk.config, preparedSession);
+
+// Proposed independent funding API; not shipped yet.
+const quote = await execution.crossChain.quoteFunding(sdk.config, fundingRequest);
+const funding = await execution.crossChain.fund(sdk.config, { quote });
+await execution.crossChain.waitForFunding(sdk.config, { funding });
+// Now run an ordinary same-chain HCA action, using any compatible execution adapter.
 ```
 
 Each extension uses the same Action/Effect convention and its own typed request/result envelopes:
 
-| Extension      | Candidate methods                   | Semantics                                                                                                 |
-| -------------- | ----------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| `sessions`     | `prepare`, `authorize`, `getStatus` | Provider-specific permission IDs/account setup/proofs; does not automatically enable on-chain state       |
-| `crossChain`   | `quote`, `prepare`                  | Bind verified source account/funding policy and destination plan; execution still uses base submit/status |
-| `sponsorship`  | `estimate`, `getEligibility`        | Optional provider-specific controls; ordinary prepare can already include configured sponsorship          |
-| `recovery`     | `getOptions`, `prepare`             | Produce an explicit new operation; never silently move funds or switch accounts                           |
-| `cancellation` | `cancel`                            | Only when provider can actually cancel; report scope and already-executed stages                          |
-| `lookup`       | `findSubmission`                    | Reconcile lost responses when provider/chain identifiers make it possible                                 |
+| Extension      | Candidate methods                                            | Semantics                                                                                                        |
+| -------------- | ------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------- |
+| `sessions`     | `prepare`, `authorize`, `getStatus`                          | Provider-specific permission IDs/account setup/proofs; does not automatically enable on-chain state              |
+| `crossChain`   | `quoteFunding`, `fund`, `getFundingStatus`, `waitForFunding` | Independently fund the destination HCA; use separate funding tracking and no registration-specific orchestration |
+| `sponsorship`  | `estimate`, `getEligibility`                                 | Optional provider-specific controls; ordinary prepare can already include configured sponsorship                 |
+| `recovery`     | `getOptions`, `prepare`                                      | Produce an explicit new operation; never silently move funds or switch accounts                                  |
+| `cancellation` | `cancel`                                                     | Only when provider can actually cancel; report scope and already-executed stages                                 |
+| `lookup`       | `findSubmission`                                             | Reconcile lost responses when provider/chain identifiers make it possible                                        |
 
 Destination HCA revocation stays a core direct-owner action. Source Nexus funding-validator removal
 and token allowance revocation are separate operations with separate callers. Do not expose one
@@ -351,3 +354,12 @@ Acceptance requires observed same-account execution across the named providers, 
 correct provider-specific typing, authorization-bound payload integrity, failure/status reconciliation,
 and documented versions. Do not publish unverified capability flags. The implementation order and
 phase exit criteria live in the [main TODO plan](../hca-integration.md#8-phased-todos).
+
+## Independent funding boundary
+
+The concrete Rhinestone adapter will expose `execution.crossChain` directly when implemented.
+Pimlico and the shared `ExecutionAdapter` need no cross-chain methods. Source funding must settle
+before the application invokes ordinary destination registration. The funding adapter and subsequent
+execution adapter can differ. P5 storage contains no bridge route and makes no source transaction.
+Use a separate funding record for claims, settlement, and recovery. This is the accepted P6 design;
+older combined funding-and-registration sketches are superseded.

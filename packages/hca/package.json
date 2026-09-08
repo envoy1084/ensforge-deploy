@@ -24,7 +24,8 @@
     "dist",
     "patches",
     "RHINESTONE.md",
-    "PIMLICO.md"
+    "PIMLICO.md",
+    "REGISTRATION.md"
   ],
   "type": "module",
   "sideEffects": false,

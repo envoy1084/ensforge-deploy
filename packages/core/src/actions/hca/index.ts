@@ -20,3 +20,9 @@ export * from "./watch-hca-execution/index.js";
 export * from "./is-hca-session-enabled/index.js";
 export * from "./enable-hca-session/index.js";
 export * from "./enable-hca-session-with-refund/index.js";
+
+export * from "./registration-types.js";
+export * from "./start-hca-registration/index.js";
+export * from "./get-hca-registration/index.js";
+export * from "./resume-hca-registration/index.js";
+export * from "./cancel-hca-registration/index.js";

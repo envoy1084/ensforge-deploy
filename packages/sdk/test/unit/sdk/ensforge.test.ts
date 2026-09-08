@@ -199,6 +199,10 @@ const actionNames = {
     "transferSubname",
   ],
   hca: [
+    "startHcaRegistration",
+    "getHcaRegistration",
+    "resumeHcaRegistration",
+    "cancelHcaRegistration",
     "predictHcaAddress",
     "getHca",
     "getHcaOwner",
@@ -253,7 +257,7 @@ describe("Ensforge", () => {
       }
     }
 
-    expect(Object.values(actionNames).flat()).toHaveLength(192);
+    expect(Object.values(actionNames).flat()).toHaveLength(196);
   });
 
   it("accepts a Wagmi config", () => {

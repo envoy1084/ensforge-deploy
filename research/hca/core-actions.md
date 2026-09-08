@@ -301,3 +301,12 @@ proposed; the TODO ownership and exit gates are in the [main research plan](../h
 
 P2 adds `watchHcaExecution` and typed provider submission inference to the existing SDK group.
 See the [adapter package](../../packages/hca/README.md) for the shipped lifecycle and persistence API.
+
+## Resumable same-chain registration
+
+Implemented actions on `sdk.hca`: `startHcaRegistration`, `getHcaRegistration`,
+`resumeHcaRegistration`, and `cancelHcaRegistration`. Each action has its own core folder.
+The storage contract lives in core and is re-exported by `@ensforge/hca`; provider serialization
+remains provider-owned. See [the shipped workflow and storage API](../../packages/hca/REGISTRATION.md).
+Registration is destination-only. Independent Rhinestone `execution.crossChain` funding is P6 and
+must finish before the application starts/resumes ordinary registration.

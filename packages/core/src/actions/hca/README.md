@@ -127,3 +127,7 @@ Counterfactual owner execution uses `counterfactualOwner` in preparation/executi
 requires an adapter with `counterfactualDeployment`. `verifyHca` remains deployed-only unless
 `allowUndeployed` and `expectedOwner` are supplied; `deployed: false` certifies deployment inputs
 rather than a deployed account. See `packages/hca/PIMLICO.md` for sponsorship and funding.
+
+Registration workflows use `startHcaRegistration`, `getHcaRegistration`, `resumeHcaRegistration`,
+and `cancelHcaRegistration`. They take caller-owned atomic storage, preserve the commitment secret,
+and keep registration on the destination chain. See [registration and storage](../../../../hca/REGISTRATION.md).

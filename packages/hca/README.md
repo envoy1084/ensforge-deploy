@@ -8,6 +8,9 @@ This package supplies typed execution contracts, persistence and the
 1.8.0 peer, plus the [`pimlico()` owner UserOperation adapter](PIMLICO.md) with optional sponsorship
 and first-operation deployment. Root and Pimlico imports do not load Rhinestone.
 
+The [resumable registration guide](REGISTRATION.md) covers the existing `sdk.hca` workflow actions,
+caller-owned storage, spending limits, and recovery.
+
 ## Using an adapter
 
 With a compatible adapter supplied by your integration:

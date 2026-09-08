@@ -1,4 +1,8 @@
 import {
+  startHcaRegistration,
+  getHcaRegistration,
+  resumeHcaRegistration,
+  cancelHcaRegistration,
   predictHcaAddress,
   getHca,
   getHcaOwner,
@@ -30,6 +34,11 @@ import {
 } from "../internal/bind-action.js";
 
 export interface HcaActions {
+  readonly startHcaRegistration: BoundAction<typeof startHcaRegistration>;
+  readonly getHcaRegistration: BoundAction<typeof getHcaRegistration>;
+  readonly resumeHcaRegistration: BoundAction<typeof resumeHcaRegistration>;
+  readonly cancelHcaRegistration: BoundAction<typeof cancelHcaRegistration>;
+
   readonly predictHcaAddress: BoundAction<typeof predictHcaAddress>;
   readonly getHca: BoundAction<typeof getHca>;
   readonly getHcaOwner: BoundAction<typeof getHcaOwner>;
@@ -54,6 +63,11 @@ export interface HcaActions {
 
 export const makeHcaActions = (config: EnsforgeConfig): HcaActions =>
   Object.freeze({
+    startHcaRegistration: bindAction(config, startHcaRegistration),
+    getHcaRegistration: bindAction(config, getHcaRegistration),
+    resumeHcaRegistration: bindAction(config, resumeHcaRegistration),
+    cancelHcaRegistration: bindAction(config, cancelHcaRegistration),
+
     predictHcaAddress: bindAction(config, predictHcaAddress),
     getHca: bindAction(config, getHca),
     getHcaOwner: bindAction(config, getHcaOwner),

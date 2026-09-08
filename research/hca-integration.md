@@ -1,8 +1,8 @@
 # HCA integration: research and implementation plan
 
-Status: P0–P4 implementation complete, including Rhinestone destination sessions and Pimlico owner UserOperations. Hosted Pimlico acceptance remains to be verified;
-registration workflows, source funding and later APIs remain proposals. Hosted relayer verification is a release follow-up.
-Last reviewed: 2026-09-08. Scope: the recorded ENSv2 Sepolia deployment, followed by separately
+Status: P0–P5 implementation complete, including Rhinestone destination sessions and Pimlico owner UserOperations. Same-chain registration is implemented; independent source funding and later APIs remain proposals.
+Hosted Pimlico acceptance and Rhinestone relayer verification remain release follow-ups.
+Last reviewed: 2026-09-09. Scope: the recorded ENSv2 Sepolia deployment, followed by separately
 verified provider integrations. No Mainnet support is implied.
 
 This document replaces the earlier separate-HCA-client proposal. Start here, then read:
@@ -284,57 +284,59 @@ Inner values are zero for the documented token-paid session route. Distinguish r
 from reverse-adapter `setNameWithHCA`; they have different effects. Keep HCA resolver roles for later
 session operations unless the user explicitly removes that authority.
 
-### Rhinestone cross-chain route
+### Independent Rhinestone cross-chain funding
 
-Add a source Nexus with its verified funding validator. Authorization binds the allowed source,
-token, destination HCA, expiry and limits. The documented route pulls the exact commit quote, then
-later a fresh reveal quote. A native token permit is separate from the SDK's Permit2 route machinery.
-Do not implement a wallet Permit2-signing prompt by copying generic provider examples.
+Cross-chain funding belongs to the concrete Rhinestone adapter, not to registration. The proposed
+`execution.crossChain` API exposes `quoteFunding`, `fund`, `getFundingStatus`, and `waitForFunding`.
+Additional recovery or cancellation methods are exposed only when supported by the verified route.
+These methods return funding-specific identifiers and outcomes, separate from ENS execution.
 
-Track source claim and destination fill independently. The source can succeed before destination
-execution fails. Cross-chain registration is not a globally atomic transaction. No source chain is
-enabled from its name alone; verify funding-validator deployment, token permit behavior, route,
-provider support, and the destination account generation. Guide proof addresses are not defaults.
+The application first quotes and funds the destination HCA, waits for confirmed destination funds,
+and then starts or resumes normal same-chain registration. It may use Rhinestone to fund and Pimlico
+to execute. Registration knows only its destination balances and spending limits: it neither bridges
+nor stores source-chain routes. Commit and reveal still receive fresh destination execution quotes;
+any additional funding is an explicit application decision.
+
+Configure a source account with verified funding-validator deployments. Funding authorization binds
+the allowed source, token, destination HCA, expiry, and spending limits. Do not imply a generic bridge:
+standalone funding support, permits, settlement behavior, and tokens must be verified with Rhinestone.
+
+Track source claims and destination funding independently. A source transaction may succeed while
+funding is delayed; do not resubmit or assume a refund. Local cancellation never reverses a source
+transaction. Funding has its own persistence/recovery records; P5 registration storage is separate.
+No chain is enabled from its name alone, and guide proof addresses are not deployment defaults.
 
 ### State, persistence and recovery
 
-Use functions taking the existing config, not a workflow client:
+The implemented actions remain on the existing SDK:
 
 ```ts
-const operation = await startHcaRegistration(sdk.config, { execution, store, ...parameters });
-const resumed = await resumeHcaRegistration(sdk.config, {
-  execution,
-  store,
-  operationId: operation.id,
-});
+const operation = await sdk.hca.startHcaRegistration({ execution, storage, ...parameters });
+const resumed = await sdk.hca.resumeHcaRegistration({ execution, storage, id: operation.id });
 ```
 
-State transitions:
+The storage contract supports atomic `create`, `get`, and revision-checked `compareAndSwap`.
+Core owns the contract so dependencies remain inward; `@ensforge/hca` re-exports it and provides a
+versioned JSON codec and in-memory development implementation. Production storage is caller-supplied.
+See the [implemented registration guide](../packages/hca/REGISTRATION.md).
 
-```text
-draft → awaiting-authorization → ready → committing → waiting-for-reveal
-      → preparing-reveal → revealing → completed
-```
+Progress is explicit: `created`, `submitting`, `submitted`, `waiting`, `needs-review`, `needs-funding`,
+`needs-authorization`, `registered`, `failed`, `expired`, or `cancelled`. Immutable registration inputs
+and the random commitment secret are saved before commit. **The full codec contains that secret**;
+protect storage until reveal and never treat it as a public telemetry/export record. Signer references
+are saved, but private keys, provider credentials, and signed provider operations are not.
 
-Track `awaiting-funding`, `needs-authorization`, `recoverable-failure`, `confirmation-unknown`,
-`commitment-expired`, and `cancelled-locally` as explicit branches. Persist immutable commitment
-inputs, owner/account derivation, resolver inputs, session references, permits/budgets, transaction
-and route identifiers, reveal windows, and provider/schema versions. Session keys and commitment
-secrets use caller-controlled protected storage; plain JSON operation exports must omit secrets.
+The durable submission claim prevents concurrent broadcasts. An uncertain attempt is never released
+on a timer. A recovered submission can be supplied explicitly and is checked against the stored
+account, step, route, and plan fingerprint. Provider data is persisted through its whitelist codec.
 
-Resume reconciles chain/provider state before submission. Refresh quote, price, allowance, session
-validity, and account state when resuming. Closing the browser stops browser orchestration; a
-provider executing one submitted intent does not schedule the later ENS reveal automatically.
-Remote automation is a separate, optional later phase with explicit custody and authorization.
+Resume refreshes price, execution quote, funding, and authorization before an eligible step. The HCA
+and permissioned resolver must already be deployed; sessions must already be enabled. An atomic
+reveal includes exact payment approval, registration, owner root-role grant, and optional primary-name
+setup. Local cancellation preserves reusable sessions and does not reverse on-chain activity.
 
-Cancellation stops future application work where possible. It does not reverse a commitment,
-transfer, or submitted route. Aborting a local wait does not cancel the transaction. After a lost
-submission response, reconcile hashes/nonce/provider IDs before retrying; do not claim exactly-once
-external delivery without provider support.
-
-A session may remain intentionally reusable after one registration. Do not delete its key merely
-because that registration completed. Delete per-registration secrets when no longer needed, and
-manage session expiration, revocation, retention, and user-requested deletion separately.
+Closing the browser stops orchestration; submitted intents do not schedule the later reveal. The
+application calls resume after the waiting period. Source funding and remote automation are separate.
 
 ## 7. Validation and unresolved decisions
 
@@ -482,25 +484,32 @@ Exit: a provider-backed HCA owner route works without Rhinestone installed.
 
 ### P5 — resumable same-chain registration
 
-- [ ] Implement start/get/resume/cancel-local workflow functions with caller-supplied storage.
-- [ ] Persist commitment inputs and protected signer references before external side effects.
-- [ ] Prepare atomic reveal including owner role grant and optional primary-name operation.
-- [ ] Refresh price and quote after the commitment delay; request more funding only if necessary.
-- [ ] Verify restart, duplicate resume, missing secret, stale quote, allowance and expiry cases.
-- [ ] Support later permitted updates with the same session without deleting reusable keys.
+- [x] Implement start/get/resume/cancel-local workflow functions with caller-supplied storage.
+- [x] Persist commitment inputs and protected signer references before external side effects.
+- [x] Prepare atomic reveal including owner role grant and optional primary-name operation.
+- [x] Refresh price and quote after the commitment delay; request more funding only if necessary.
+- [x] Verify restart, duplicate resume, missing secret, stale quote, allowance and expiry cases.
+- [x] Support later permitted updates with the same session without deleting reusable keys.
+
+Local proofs cover owner/Pimlico/Rhinestone registration, primary name, revision conflicts, restart,
+missing secrets, funding/review requirements, expired commitments, revoked sessions, and lost storage
+responses. Hosted provider proofs remain separate release checks.
 
 Exit: end-to-end same-chain registration can resume without losing state or double-submitting.
 
-### P6 — Rhinestone cross-chain funding
+### P6 — independent Rhinestone cross-chain funding
 
-- [ ] Verify each source funding validator, account version, token and settlement route.
-- [ ] Implement source Nexus setup and multi-chain authorization through the SDK.
-- [ ] Expose funding/permit limits before signing; retain provider claim/fill identifiers.
-- [ ] Quote commit and reveal separately and reconcile partial completion.
-- [ ] Implement source-session and allowance cleanup as separate owner-controlled operations.
-- [ ] Prove each advertised source/destination pair; leave all other pairs unsupported.
+- [ ] Verify standalone funding of the destination HCA through each supported source/token route.
+- [ ] Verify source funding validators, account versions, tokens, and settlement infrastructure.
+- [ ] Expose typed `execution.crossChain.quoteFunding`, `fund`, `getFundingStatus`, and `waitForFunding`.
+- [ ] Implement source account setup and funding authorization with explicit spending/permit limits.
+- [ ] Persist independent funding identifiers; reconcile source claims and destination funding.
+- [ ] Provide recovery, cancellation, and allowance/session cleanup only where actually supported.
+- [ ] Demonstrate funding through Rhinestone followed by ordinary same-chain HCA registration.
+- [ ] Keep P5 and the common execution interface independent of funding providers.
 
-Exit: cross-chain capability is enabled only for documented, verified combinations.
+Exit: verified funding routes can fund an HCA independently of the ENS action or execution adapter
+used afterwards. Registration never automatically bridges or launches source-chain operations.
 
 ### P7 — complete account and governance surface
 
