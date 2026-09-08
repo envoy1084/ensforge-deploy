@@ -13,10 +13,12 @@ import { attachConfigContext } from "../internal/config/context.js";
 import { freezeDeployment } from "../internal/config/resolve-network.js";
 import { validateClientChain, validateDeployments } from "../internal/config/validation.js";
 import { makeServicesContext } from "../internal/services/context.js";
+import type { WorkflowStorage } from "../workflows/storage.js";
 
 export const ensTestChainId = 31337 as const;
 
 export interface CreateTestConfigParameters {
+  readonly storage?: WorkflowStorage;
   readonly hca?: HcaDeploymentProfile;
   readonly deployments: EnsDeploymentProfile;
   readonly publicClient: PublicClient;
@@ -58,6 +60,7 @@ export const createTestConfig = (parameters: CreateTestConfigParameters): Ensfor
         ...(parameters.hca === undefined
           ? {}
           : { hca: freezeDeployment(structuredClone(parameters.hca)) }),
+        ...(parameters.storage === undefined ? {} : { storage: parameters.storage }),
         writes,
         gateways,
       } as unknown as EnsforgeConfig,

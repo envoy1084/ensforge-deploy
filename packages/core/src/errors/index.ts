@@ -25,3 +25,5 @@ export { TransactionError, TransactionErrorCode } from "./transaction-error.js";
 export { WalletError, WalletErrorCode } from "./wallet-error.js";
 export { WritePlanError, WritePlanErrorCode } from "./write-plan-error.js";
 export * from "./hca-error.js";
+
+export { WorkflowError } from "./workflow-error.js";

@@ -60,6 +60,7 @@ export const createConfigFromClients = (
       writes,
       gateways,
       indexer,
+      ...(parameters.storage === undefined ? {} : { storage: parameters.storage }),
       deployments,
       ...(parameters.hca === undefined
         ? {}

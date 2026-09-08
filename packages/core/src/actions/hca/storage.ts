@@ -1,24 +1,8 @@
 import { HcaError } from "../../errors/hca-error.js";
+import type { WorkflowStorage, WorkflowStoredRecord } from "../../workflows/storage.js";
 
-/** Opaque, versioned workflow payload. Never store a signer or provider credential. */
-export interface HcaStoredRecord {
-  readonly id: string;
-  readonly revision: number;
-  readonly value: string;
-}
-
-/** A single backend for HCA workflows. Namespace and ID together form the primary key. */
-export interface HcaStorage {
-  readonly kind: "hca-storage";
-  create(input: { readonly namespace: string; readonly record: HcaStoredRecord }): Promise<boolean>;
-  get(input: { readonly namespace: string; readonly id: string }): Promise<HcaStoredRecord | null>;
-  compareAndSwap(input: {
-    readonly namespace: string;
-    readonly id: string;
-    readonly expectedRevision: number;
-    readonly record: HcaStoredRecord;
-  }): Promise<boolean>;
-}
+export type HcaStoredRecord = WorkflowStoredRecord;
+export type HcaStorage = WorkflowStorage;
 
 /** Bind a workflow codec without leaking its schema into the persistence backend. */
 export const scopeHcaStorage = <Record extends { readonly id: string; readonly revision: number }>(
