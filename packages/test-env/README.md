@@ -33,6 +33,17 @@ Sepolia artifact snapshot at that commit. Verify the new devnet's discovery payl
 contract compatibility before switching the default image. Sepolia compatibility uses the deployed
 artifact ABIs and, when needed, a pinned Sepolia fork.
 
+The publishing workflow applies `scripts/devnet-dockerfile.patch` to the pinned checkout before
+building. This copies the migration fixture extraction script and archive before the first
+`bun install`, whose root postinstall needs them. The patch changes Docker copy order only, not
+contract source or dependencies. Apply the same patch when reproducing the workflow with a direct
+local Docker build; reassess it whenever the upstream commit changes.
+
+The patched image builds and starts locally, but integration setup currently fails with
+`DEPLOYMENTS_INVALID`: its discovery payload omits `DNSV1MirrorRootBatchRegistrar`, which the
+existing devnet profile requires. Resolve that compatibility gap and rerun the full integration
+suite before switching the default image.
+
 ## Development
 
 ```sh

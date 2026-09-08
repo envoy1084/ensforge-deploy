@@ -22,6 +22,11 @@ jobs:
     timeout-minutes: 60
 
     steps:
+      - name: Checkout Ensforge build helpers
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
       - name: Prepare image metadata
         id: metadata
         shell: bash
@@ -38,6 +43,12 @@ jobs:
           path: .repos/ens-contracts-v2
           submodules: recursive
           persist-credentials: false
+
+      - name: Apply devnet Dockerfile compatibility patch
+        shell: bash
+        run: |
+          git -C .repos/ens-contracts-v2 apply --check "${GITHUB_WORKSPACE}/scripts/devnet-dockerfile.patch"
+          git -C .repos/ens-contracts-v2 apply "${GITHUB_WORKSPACE}/scripts/devnet-dockerfile.patch"
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v4
