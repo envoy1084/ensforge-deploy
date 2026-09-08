@@ -135,6 +135,7 @@ export const executeHcaCalls: ExecuteHcaCallsAction = defineAction<
       yield* verifyHca.effect(config, {
         hca: plan.account.address,
         expectedOwner: plan.account.owner,
+        allowUndeployed: plan.account.deployed === false,
         salt: plan.account.salt,
       });
 
@@ -149,6 +150,12 @@ export const executeHcaCalls: ExecuteHcaCallsAction = defineAction<
 
       return submission;
     }
+
+    if (plan.account.deployed === false)
+      return yield* new HcaError({
+        code: "ACCOUNT_UNDEPLOYED",
+        message: "Deploy the HCA first or use an adapter with counterfactual deployment",
+      });
 
     if (plan.authorization.kind !== "owner")
       return yield* new HcaError({

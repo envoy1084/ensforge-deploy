@@ -23,7 +23,8 @@
   "files": [
     "dist",
     "patches",
-    "RHINESTONE.md"
+    "RHINESTONE.md",
+    "PIMLICO.md"
   ],
   "type": "module",
   "sideEffects": false,
@@ -71,15 +72,20 @@
     "@ensforge/core": "workspace:*"
   },
   "devDependencies": {
-    "@rhinestone/sdk": "1.8.0"
+    "@rhinestone/sdk": "1.8.0",
+    "permissionless": "0.4.0"
   },
   "peerDependencies": {
     "@rhinestone/sdk": "1.8.0",
     "effect": "^4.0.0-rc.112",
+    "permissionless": "^0.4.0",
     "viem": "^2.56.0"
   },
   "peerDependenciesMeta": {
     "@rhinestone/sdk": {
+      "optional": true
+    },
+    "permissionless": {
       "optional": true
     }
   }

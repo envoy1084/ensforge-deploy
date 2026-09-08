@@ -38,6 +38,8 @@ export type VerifyHcaParameters = HcaReadParameters & {
   readonly expectedOwner?: Address;
   readonly salt?: bigint;
   readonly initialImplementation?: Address;
+  /** Verify deterministic deployment inputs when expectedOwner is provided. */
+  readonly allowUndeployed?: boolean;
 };
 
 export type HcaState =
@@ -59,6 +61,8 @@ export type HcaState =
     };
 
 export interface VerifiedHcaAccount {
+  /** False means only the deterministic deployment inputs have been verified. */
+  readonly deployed?: boolean;
   readonly kind: "ens-hca";
   readonly address: Address;
   readonly owner: Address;
@@ -93,6 +97,8 @@ export type HcaAuthorization =
   | { readonly kind: "session"; readonly permissionId: Hex; readonly enableTransactionHash: Hex };
 
 export interface PrepareHcaCallsParameters extends WalletOverrides {
+  /** Required to prepare deployment and execution of an undeployed HCA. */
+  readonly counterfactualOwner?: Address;
   readonly operationId?: string;
   readonly requiredCapabilities?: readonly (keyof HcaExecutionCapabilities)[];
   readonly hca: Address;

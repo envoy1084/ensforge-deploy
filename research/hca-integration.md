@@ -1,6 +1,6 @@
 # HCA integration: research and implementation plan
 
-Status: P0–P3 implemented, including locally verified Rhinestone destination sessions. Pimlico is P4;
+Status: P0–P4 implementation complete, including Rhinestone destination sessions and Pimlico owner UserOperations. Hosted Pimlico acceptance remains to be verified;
 registration workflows, source funding and later APIs remain proposals. Hosted relayer verification is a release follow-up.
 Last reviewed: 2026-09-08. Scope: the recorded ENSv2 Sepolia deployment, followed by separately
 verified provider integrations. No Mainnet support is implied.
@@ -199,7 +199,13 @@ import { Ensforge } from "@ensforge/sdk";
 import { pimlico } from "@ensforge/hca/pimlico";
 
 const sdk = new Ensforge(config);
-const execution = pimlico({ client: existingPimlicoClient, paymaster: existingPaymasterClient });
+const execution = pimlico({
+  profile,
+  chain,
+  owner,
+  client: existingPimlicoClient,
+  sponsorship: { client: existingPaymasterClient },
+});
 
 const submission = await sdk.hca.executeHcaCalls({
   hca,
@@ -418,7 +424,7 @@ Exit achieved: useful HCA interaction with an ordinary wallet, no provider depen
 
 Implemented in [`@ensforge/hca`](../packages/hca/README.md): typed lifecycle wrappers, immutable
 review envelopes, account/nonce revalidation, bounded wait/watch, explicit fee limits, expiry checks,
-versioned tracking codecs and optional typed extensions. P3 implements Rhinestone; the Pimlico subpath remains type-only until P4. Existing semantic preparers retain their wallet-context requirement.
+versioned tracking codecs and optional typed extensions. P3 implements Rhinestone; P4 adds the named Pimlico adapter with optional ETH sponsorship and counterfactual deployment. Existing semantic preparers retain their wallet-context requirement.
 
 Exit: the same SDK operation accepts an external adapter while preserving concrete submission types.
 Local owner-delivery proofs cover restore rejection, expiry, budgets, duplicate submission, changed
@@ -458,13 +464,19 @@ Exit: a destination session works with the exact artifact-backed HCA; direct own
 
 ### P4 — Pimlico owner execution
 
-- [ ] Install a verified `permissionless` version and implement the named `pimlico()` adapter.
-- [ ] Implement HCA account encoding, owner signature/stub, nonce and counterfactual factory data.
-- [ ] Verify chain and EntryPoint support before preparation.
-- [ ] Prove funded, deployed owner UserOperation execution, then undeployed account execution.
-- [ ] Add optional sponsorship and provider fee estimation; verify rejection/expiry behavior.
-- [ ] Reconcile UserOperation success separately from the outer transaction's success.
-- [ ] Keep session/cross-chain extensions absent for this HCA until independently supported.
+- [x] Install a verified `permissionless` version and implement the named `pimlico()` adapter.
+- [x] Implement HCA account encoding, owner signature/stub, nonce and counterfactual factory data.
+- [x] Verify chain and EntryPoint support before preparation.
+- [x] Prove funded, deployed owner UserOperation execution, then undeployed account execution.
+- [x] Add optional sponsorship and provider fee estimation; verify rejection/expiry behavior.
+- [x] Reconcile UserOperation success separately from the outer transaction's success.
+- [x] Keep session/cross-chain extensions absent for this HCA until independently supported.
+
+Local EntryPoint verification covers deployed and counterfactual owner execution. Hosted Pimlico
+bundler validation and real sponsorship remain integration checks; local estimation uses a test
+transport, not Pimlico simulation. See [the implemented API](../packages/hca/PIMLICO.md).
+
+- [ ] Verify hosted Pimlico acceptance, factory validation policy, and real sponsorship.
 
 Exit: a provider-backed HCA owner route works without Rhinestone installed.
 

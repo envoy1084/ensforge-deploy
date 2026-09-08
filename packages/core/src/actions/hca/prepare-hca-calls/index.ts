@@ -71,8 +71,17 @@ export const prepareHcaCalls = defineAction<
 
       const account = yield* verifyHca.effect(config, {
         hca: parameters.hca,
+        ...(parameters.counterfactualOwner === undefined
+          ? {}
+          : { expectedOwner: parameters.counterfactualOwner, allowUndeployed: true }),
         ...(parameters.salt === undefined ? {} : { salt: parameters.salt }),
       });
+
+      if (account.deployed === false && parameters.authorization.kind !== "owner")
+        return yield* new HcaError({
+          code: "UNSUPPORTED_AUTHORIZATION",
+          message: "Counterfactual execution requires owner authorization",
+        });
 
       const calls = yield* Effect.forEach(parameters.calls, (input) =>
         Effect.gen(function* () {

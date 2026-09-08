@@ -122,3 +122,8 @@ Each public action lives in its own kebab-case folder with an `index.ts` entry p
 parameters live alongside their action; shared account, session and execution types remain in the
 group's type modules. Internal HCA modules own shared fingerprinting, session policy, enablement
 preparation and receipt polling. The group barrel preserves the public `@ensforge/core/hca` API.
+
+Counterfactual owner execution uses `counterfactualOwner` in preparation/execution parameters and
+requires an adapter with `counterfactualDeployment`. `verifyHca` remains deployed-only unless
+`allowUndeployed` and `expectedOwner` are supplied; `deployed: false` certifies deployment inputs
+rather than a deployed account. See `packages/hca/PIMLICO.md` for sponsorship and funding.

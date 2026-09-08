@@ -74,6 +74,9 @@ export const createExecutionAdapter = <
     )
       return { supported: false, reason: "Adapter is configured for another chain or HCA profile" };
 
+    if (plan.account.deployed === false && !capabilities.counterfactualDeployment)
+      return { supported: false, reason: "Adapter cannot deploy an HCA" };
+
     if (
       !capabilities.atomicBatching ||
       (plan.authorization.kind === "owner"
@@ -122,6 +125,7 @@ export const createExecutionAdapter = <
       const freshPlan = yield* prepareHcaCalls
         .effect(config, {
           hca: plan.account.address,
+          ...(plan.account.deployed === false ? { counterfactualOwner: plan.account.owner } : {}),
           salt: plan.account.salt,
           authorization: plan.authorization,
           calls: plan.calls,

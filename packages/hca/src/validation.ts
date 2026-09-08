@@ -88,6 +88,7 @@ export const checkAccount = Effect.fn("hca.checkAccount")(function* (
     .effect(config, {
       hca: plan.account.address,
       expectedOwner: plan.account.owner,
+      allowUndeployed: plan.account.deployed === false,
       salt: plan.account.salt,
     })
     .pipe(

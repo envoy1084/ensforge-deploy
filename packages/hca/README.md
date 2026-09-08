@@ -5,7 +5,8 @@ Optional, Effect-native execution adapter infrastructure for ENS HCA accounts. E
 
 This package supplies typed execution contracts, persistence and the
 [`rhinestone()` destination-session adapter](RHINESTONE.md), using an optional, patched Rhinestone
-1.8.0 peer. `/pimlico` currently exports types only. Root and Pimlico imports do not load Rhinestone.
+1.8.0 peer, plus the [`pimlico()` owner UserOperation adapter](PIMLICO.md) with optional sponsorship
+and first-operation deployment. Root and Pimlico imports do not load Rhinestone.
 
 ## Using an adapter
 

@@ -24,3 +24,5 @@ export * from "./hca-account.js";
 export * from "./hca-validator.js";
 export * from "./hca-execution.js";
 export * from "./hca-sessions.js";
+
+export * from "./hca-user-operation.js";

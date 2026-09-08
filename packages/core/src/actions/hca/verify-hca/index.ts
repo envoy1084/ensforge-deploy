@@ -10,6 +10,7 @@ import { deriveHcaAddress } from "../../../internal/hca/derive.js";
 import { withHcaSnapshot } from "../../../internal/hca/read.js";
 import { verifyHcaDeployment } from "../../../internal/hca/verify-deployment.js";
 import { getAuthorizedHcaOwner } from "../get-authorized-hca-owner/index.js";
+import { getHcaImplementationApproval } from "../get-hca-implementation-approval/index.js";
 import { getHca } from "../get-hca/index.js";
 import type { HcaErrorResult, VerifiedHcaAccount, VerifyHcaParameters } from "../types.js";
 
@@ -19,17 +20,57 @@ export const verifyHca = defineReadAction<VerifyHcaParameters, VerifiedHcaAccoun
       Effect.gen(function* () {
         const state = yield* getHca.effect(config, { hca: parameters.hca, blockNumber });
 
-        if (state.status === "undeployed")
-          return yield* new HcaError({
-            code: "ACCOUNT_UNDEPLOYED",
-            message: "The HCA is not deployed",
-          });
-
         const initialImplementation = yield* validateHcaAddress(
           parameters.initialImplementation ?? profile.contracts.standaloneImplementation,
         );
 
         const salt = yield* validateHcaSalt(parameters.salt ?? profile.generation.canonicalSalt);
+
+        if (state.status === "undeployed") {
+          if (!parameters.allowUndeployed || !parameters.expectedOwner)
+            return yield* new HcaError({
+              code: "ACCOUNT_UNDEPLOYED",
+              message: "The HCA is not deployed; counterfactual verification requires its owner",
+            });
+
+          const owner = yield* validateHcaAddress(parameters.expectedOwner);
+          const wiring = yield* verifyHcaDeployment(config.publicClient, profile, blockNumber);
+          const predicted = deriveHcaAddress(
+            owner,
+            initialImplementation,
+            salt,
+            profile.contracts.standaloneFactory,
+            profile.deployment.contracts.verifiableFactory,
+            wiring.proxyLogic,
+          );
+          const approved = yield* getHcaImplementationApproval.effect(config, {
+            implementation: initialImplementation,
+            blockNumber,
+          });
+          if (
+            !approved ||
+            !isAddressEqual(initialImplementation, profile.contracts.standaloneImplementation) ||
+            !isAddressEqual(predicted, state.address)
+          )
+            return yield* new HcaError({
+              code: "ACCOUNT_MISMATCH",
+              message: "Counterfactual HCA derivation or approved implementation does not match",
+            });
+
+          return Object.freeze({
+            kind: "ens-hca" as const,
+            deployed: false,
+            address: predicted,
+            owner,
+            chainId: config.chainId,
+            profileId: profile.generation.id,
+            initialImplementation,
+            currentImplementation: initialImplementation,
+            salt,
+            sessionNonce: 0n,
+            verifiedAtBlock: blockNumber,
+          });
+        }
 
         if (parameters.expectedOwner !== undefined) {
           const owner = yield* validateHcaAddress(parameters.expectedOwner);

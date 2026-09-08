@@ -1,6 +1,6 @@
 # Execution adapters for HCA
 
-Status: P2 typed execution contracts and P3 Rhinestone destination sessions are implemented. Pimlico remains P4.
+Status: Typed execution contracts, Rhinestone destination sessions, and Pimlico owner execution are implemented. Hosted Pimlico acceptance remains an integration check.
 Parent: [HCA integration and phased TODOs](../hca-integration.md).
 Core APIs: [HCA actions](core-actions.md).
 
@@ -16,7 +16,13 @@ Expose named factories backed by their provider packages:
 import { pimlico } from "@ensforge/hca/pimlico";
 import { rhinestone } from "@ensforge/hca/rhinestone";
 
-const execution = pimlico({ client: existingPimlicoClient, paymaster: existingPaymasterClient });
+const execution = pimlico({
+  profile,
+  chain,
+  owner,
+  client: existingPimlicoClient,
+  sponsorship: { client: existingPaymasterClient },
+});
 
 const sdk = new Ensforge(config);
 const submission = await sdk.hca.executeHcaCalls({
@@ -304,7 +310,9 @@ selectors from the verified source. Session/cross-chain support stays absent for
 
 Sources: [Pimlico infrastructure](https://docs.pimlico.io/),
 [permissionless source](https://github.com/pimlicolabs/permissionless.js).
-Documentation establishes available infrastructure; actual HCA compatibility is still pending.
+The [implemented Pimlico API](../../packages/hca/PIMLICO.md) uses permissionless 0.4, explicit owner
+signing, nonce key zero, optional sponsorship, and first-operation factory deployment. Local
+EntryPoint proofs do not certify hosted bundler validation policy or real sponsorship.
 
 ### Future ZeroDev and other accounts
 
