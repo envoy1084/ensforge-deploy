@@ -12,6 +12,10 @@ export const HcaErrorCode = Schema.Literals([
   "ADAPTER_FAILED",
   "INVALID_EXECUTION",
   "DEPLOYMENT_FAILED",
+  "EXECUTION_EXPIRED",
+  "UNSUPPORTED_CAPABILITY",
+  "SUBMISSION_UNCERTAIN",
+  "INVALID_SUBMISSION",
 ]);
 export type HcaErrorCode = typeof HcaErrorCode.Type;
 

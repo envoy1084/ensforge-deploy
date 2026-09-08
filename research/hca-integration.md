@@ -400,8 +400,7 @@ submission tracking and owner-only revocation. See the [shipped P1 API](../packa
 
 Direct execution always simulates the complete batch. Adapter execution requires a successful full
 simulation from its preparation step and consistent account/plan/adapter identities. Sessions remain
-rejected until P4. The current adapter envelope is the P1 owner-delivery boundary; P2 adds richer
-provider typing, persistence, expiry/fee policies and extensions. ENS semantic preparers currently
+rejected until P4. The current adapter envelope is the P1 owner-delivery boundary; P2 now adds provider typing, persistence, expiry/fee policies and extensions. ENS semantic preparers currently
 retain their existing configured-wallet requirement; raw adapter calls do not need a wallet.
 
 Verified locally: prediction, existing/new deployment, owner/factory checks, delegated ENS intents,
@@ -413,14 +412,21 @@ Exit achieved: useful HCA interaction with an ordinary wallet, no provider depen
 
 ### P2 — optional package and execution contracts
 
-- [ ] Scaffold `@ensforge/hca` and named provider subpaths with the repository's existing tooling.
-- [ ] Implement the typed five-method adapter contract and shared wait/watch orchestration.
-- [ ] Define prepared-plan fingerprints, authorization summaries, codecs and submission reconciliation.
-- [ ] Add optional typed capability extensions; reject unsupported features before signing.
-- [ ] Verify base/core imports do not load provider SDKs or require unrelated peers.
-- [ ] Prove adapter mismatches and restored invalid envelopes fail without side effects.
+- [x] Scaffold `@ensforge/hca` and named provider subpaths with the repository's existing tooling.
+- [x] Implement the typed five-method adapter contract and shared wait/watch orchestration.
+- [x] Define prepared-plan fingerprints, authorization summaries, codecs and submission reconciliation.
+- [x] Add optional typed capability extensions; reject unsupported features before signing.
+- [x] Verify base/core imports do not load provider SDKs or require unrelated peers.
+- [x] Prove adapter mismatches and restored invalid envelopes fail without side effects.
 
-Exit: the same SDK operation can accept an external adapter while preserving typed payloads.
+Implemented in [`@ensforge/hca`](../packages/hca/README.md): typed lifecycle wrappers, immutable
+review envelopes, account/nonce revalidation, bounded wait/watch, explicit fee limits, expiry checks,
+versioned tracking codecs and optional typed extensions. Provider subpaths are type-only until their
+implementation phases. Existing semantic preparers retain their wallet-context requirement.
+
+Exit: the same SDK operation accepts an external adapter while preserving concrete submission types.
+Local owner-delivery proofs cover restore rejection, expiry, budgets, duplicate submission, changed
+nonce, uncertain outcomes and interruption. No provider SDK compatibility is claimed by this proof.
 
 ### P3 — Pimlico owner execution
 

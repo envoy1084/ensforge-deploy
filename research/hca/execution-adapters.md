@@ -1,12 +1,12 @@
 # Execution adapters for HCA
 
-Status: P1 ships an owner-delivery interface; this document describes the broader P2+ design.
+Status: P2 ships the optional package and typed execution contracts. Provider integrations remain P3+.
 Parent: [HCA integration and phased TODOs](../hca-integration.md).
 Core APIs: [HCA actions](core-actions.md).
 
-The current core-owned `ExecutionAdapter` and its limits are described in the
-[shipped P1 API reference](../../packages/core/src/actions/hca/README.md). Provider factories and
-generic payload types below remain planned.
+The shipped APIs are documented in the [core API reference](../../packages/core/src/actions/hca/README.md)
+and [adapter package](../../packages/hca/README.md). Code sketches below describe the broader provider
+design; use the package reference for exact P2 types. Named provider factories remain planned.
 
 ## 1. Accepted public shape
 
@@ -64,7 +64,8 @@ and encoding, not just a different URL.
 Five required methods: `supports`, `prepare`, `authorize`, `submit`, `getStatus`.
 Finite async methods use the existing Promise plus `.effect` convention. Constructors inject external
 SDK dependencies so adapter effects do not introduce an unresolved application Effect environment.
-The following is a type-level design sketch; concrete Schemas and provider payloads are phase P2/P3 work.
+The following is a conceptual lifecycle sketch. P2 implements `ExecutionAdapterDefinition` and
+`TypedExecutionAdapter` with concrete core Schemas; provider-specific payload schemas arrive with each provider.
 
 ```ts
 import type { Effect } from "effect";

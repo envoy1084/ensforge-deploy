@@ -1,0 +1,79 @@
+{
+  "name": "@ensforge/hca",
+  "version": "0.0.0",
+  "description": "Typed execution adapters and persistence for ENS HCA accounts",
+  "keywords": [
+    "ens",
+    "ethereum",
+    "name-service",
+    "sdk",
+    "typescript",
+    "viem",
+    "wagmi",
+    "web3"
+  ],
+  "homepage": "https://ensforge.com",
+  "bugs": "https://github.com/thenamespace/ensforge/issues",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thenamespace/ensforge.git",
+    "directory": "packages/hca"
+  },
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "imports": {
+    "#/*": "./src/*.ts"
+  },
+  "exports": {
+    ".": {
+      "workspace-source": "./src/index.ts",
+      "default": "./dist/index.js"
+    },
+    "./alchemy": {
+      "workspace-source": "./src/providers/alchemy.ts",
+      "default": "./dist/alchemy.js"
+    },
+    "./pimlico": {
+      "workspace-source": "./src/providers/pimlico.ts",
+      "default": "./dist/pimlico.js"
+    },
+    "./rhinestone": {
+      "workspace-source": "./src/providers/rhinestone.ts",
+      "default": "./dist/rhinestone.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "imports": {
+      "#/*": "./dist/*.js"
+    },
+    "exports": {
+      ".": "./dist/index.js",
+      "./alchemy": "./dist/alchemy.js",
+      "./pimlico": "./dist/pimlico.js",
+      "./rhinestone": "./dist/rhinestone.js",
+      "./package.json": "./package.json"
+    },
+    "access": "public",
+    "provenance": true
+  },
+  "scripts": {
+    "build": "tsdown",
+    "dev": "tsdown --watch",
+    "lint": "oxlint --deny-warnings .",
+    "typecheck": "tsc --noEmit",
+    "pack:check": "publint && attw --pack . --profile esm-only",
+    "prepack": "pnpm build"
+  },
+  "dependencies": {
+    "@ensforge/core": "workspace:*"
+  },
+  "peerDependencies": {
+    "effect": "^4.0.0-rc.112",
+    "viem": "^2.56.0"
+  }
+}

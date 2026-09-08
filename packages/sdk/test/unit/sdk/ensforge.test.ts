@@ -214,6 +214,7 @@ const actionNames = {
     "executeHcaCalls",
     "getHcaExecutionStatus",
     "waitForHcaExecution",
+    "watchHcaExecution",
     "revokeHcaSessions",
   ],
   wrapping: [
@@ -247,7 +248,7 @@ describe("Ensforge", () => {
       }
     }
 
-    expect(Object.values(actionNames).flat()).toHaveLength(188);
+    expect(Object.values(actionNames).flat()).toHaveLength(189);
   });
 
   it("accepts a Wagmi config", () => {

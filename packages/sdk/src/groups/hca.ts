@@ -14,11 +14,17 @@ import {
   executeHcaCalls,
   getHcaExecutionStatus,
   waitForHcaExecution,
+  watchHcaExecution,
   revokeHcaSessions,
   type EnsforgeConfig,
 } from "@ensforge/core";
 
-import { bindAction, type BoundAction } from "../internal/bind-action.js";
+import {
+  bindAction,
+  type BoundExecuteHcaCalls,
+  type BoundWatchHcaExecution,
+  type BoundAction,
+} from "../internal/bind-action.js";
 
 export interface HcaActions {
   readonly predictHcaAddress: BoundAction<typeof predictHcaAddress>;
@@ -33,9 +39,10 @@ export interface HcaActions {
   readonly getHcaCapabilities: BoundAction<typeof getHcaCapabilities>;
   readonly deployHca: BoundAction<typeof deployHca>;
   readonly prepareHcaCalls: BoundAction<typeof prepareHcaCalls>;
-  readonly executeHcaCalls: BoundAction<typeof executeHcaCalls>;
+  readonly executeHcaCalls: BoundExecuteHcaCalls;
   readonly getHcaExecutionStatus: BoundAction<typeof getHcaExecutionStatus>;
   readonly waitForHcaExecution: BoundAction<typeof waitForHcaExecution>;
+  readonly watchHcaExecution: BoundWatchHcaExecution;
   readonly revokeHcaSessions: BoundAction<typeof revokeHcaSessions>;
 }
 
@@ -56,5 +63,6 @@ export const makeHcaActions = (config: EnsforgeConfig): HcaActions =>
     executeHcaCalls: bindAction(config, executeHcaCalls),
     getHcaExecutionStatus: bindAction(config, getHcaExecutionStatus),
     waitForHcaExecution: bindAction(config, waitForHcaExecution),
+    watchHcaExecution: bindAction(config, watchHcaExecution),
     revokeHcaSessions: bindAction(config, revokeHcaSessions),
   });

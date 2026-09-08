@@ -2,25 +2,20 @@ import { Effect, Schema } from "effect";
 
 import { isAddressEqual } from "viem";
 
-import { defineAction } from "../../action/action.js";
 import { defineReadAction } from "../../action/read-request.js";
 import { HcaError } from "../../errors/hca-error.js";
-import { provideConfig } from "../../internal/config/context.js";
 import { viemErrorToEffectError } from "../../internal/errors/viem-error.js";
 import { hcaRpc, resolveHcaProfile } from "../../internal/hca/context.js";
-import { WriteClient } from "../../internal/write/write-client.js";
 import { Hex } from "../../schemas/hex.js";
 import { EthereumAddress } from "../../schemas/identity.js";
 import type { WriteError } from "../../write/types.js";
+import { HcaExecutionOutcome } from "./execution-contract.js";
 import { fingerprintHcaCalls } from "./prepare.js";
-import type {
-  HcaExecutionStatus,
-  HcaExecutionStatusParameters,
-  WaitForHcaExecutionParameters,
-} from "./types.js";
+import type { HcaExecutionStatus, HcaExecutionStatusParameters } from "./types.js";
 
 const hash = Hex.check(Schema.isPattern(/^0x[0-9a-fA-F]{64}$/));
 const base = {
+  operationId: Schema.optional(Schema.NonEmptyString),
   chainId: Schema.Int,
   hca: EthereumAddress,
   profileId: Schema.String,
@@ -74,38 +69,32 @@ export const getHcaExecutionStatus = defineReadAction<
       if (
         !Schema.is(
           Schema.Struct({
-            status: Schema.Literals(["pending", "unknown", "succeeded", "failed"]),
+            status: Schema.Literals([
+              "pending",
+              "unknown",
+              "succeeded",
+              "failed",
+              "cancelled",
+              "expired",
+            ]),
             submission: submissionSchema,
           }),
-        )(result)
+        )(result) ||
+        !Schema.is(HcaExecutionOutcome)(result)
       )
         return yield* new HcaError({
           code: "INVALID_EXECUTION",
           message: "Adapter returned an invalid execution status",
         });
       if (
-        (result.status === "succeeded" || result.status === "failed") &&
-        !Schema.is(
-          Schema.Array(
-            Schema.Struct({
-              transactionHash: hash,
-              blockNumber: Schema.BigInt,
-              status: Schema.Literals(["success", "reverted"]),
-            }),
-          ),
-        )(result.receipts)
-      )
-        return yield* new HcaError({
-          code: "INVALID_EXECUTION",
-          message: "Adapter returned invalid destination receipts",
-        });
-      if (
         result.submission.kind !== "adapter" ||
         result.submission.reference !== submission.reference ||
+        result.submission.operationId !== submission.operationId ||
         result.submission.instanceId !== submission.instanceId ||
         result.submission.adapterId !== submission.adapterId ||
         result.submission.planFingerprint !== submission.planFingerprint ||
         result.submission.chainId !== submission.chainId ||
+        result.submission.profileId !== submission.profileId ||
         !isAddressEqual(result.submission.hca, submission.hca)
       )
         return yield* new HcaError({
@@ -167,62 +156,5 @@ export const getHcaExecutionStatus = defineReadAction<
       submission,
       receipts: [receipt],
     };
-  }),
-);
-
-const positive = Schema.Number.check(Schema.isFinite(), Schema.isGreaterThan(0));
-export const waitForHcaExecution = defineAction<
-  WaitForHcaExecutionParameters,
-  HcaExecutionStatus,
-  WriteError
->(
-  Effect.fn("ensforge.waitForHcaExecution")(function* (config, parameters) {
-    const policy = config.writes.confirmation;
-    const timeout =
-      parameters.timeout ?? (policy.type === "confirmed" ? policy.timeout : undefined) ?? 120_000;
-    const confirmations =
-      parameters.confirmations ??
-      (policy.type === "confirmed" ? policy.confirmations : undefined) ??
-      1;
-    const pollingInterval = parameters.pollingInterval ?? 1_000;
-    if (
-      ![timeout, confirmations, pollingInterval].every(Schema.is(positive)) ||
-      !Number.isInteger(confirmations)
-    )
-      return yield* new HcaError({
-        code: "INVALID_PARAMETERS",
-        message: "Wait options must be positive; confirmations must be an integer",
-      });
-    // Validate identity before waiting or invoking a provider.
-    const initial = yield* getHcaExecutionStatus.effect(config, parameters);
-    if (initial.status === "failed") return initial;
-    if (parameters.submission.kind === "transaction") {
-      const client = yield* provideConfig(config, WriteClient);
-      yield* client.waitForReceipt(parameters.submission.hash, { confirmations, timeout });
-      return yield* getHcaExecutionStatus.effect(config, parameters);
-    }
-    return yield* Effect.gen(function* () {
-      while (true) {
-        const status = yield* getHcaExecutionStatus.effect(config, parameters);
-        if (status.status === "failed") return status;
-        if (status.status === "succeeded") {
-          const client = yield* provideConfig(config, WriteClient);
-          for (const receipt of status.receipts)
-            yield* client.waitForReceipt(receipt.transactionHash, { confirmations, timeout });
-          return status;
-        }
-        yield* Effect.sleep(pollingInterval);
-      }
-    }).pipe(
-      Effect.timeout(timeout),
-      Effect.catchTag(
-        "TimeoutError",
-        () =>
-          new HcaError({
-            code: "INVALID_EXECUTION",
-            message: "Execution wait timed out; retain the submission handle to resume",
-          }),
-      ),
-    );
   }),
 );

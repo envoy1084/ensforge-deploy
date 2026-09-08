@@ -50,6 +50,8 @@ export type {
 } from "./groups/index.js";
 export type {
   BoundAction,
+  BoundExecuteHcaCalls,
+  BoundWatchHcaExecution,
   BoundNoParametersAction,
   BoundGetRecordsAction,
   BoundReadBatch,

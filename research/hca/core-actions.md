@@ -298,3 +298,6 @@ Before each phase completes, verify the corresponding owner/caller semantics, po
 flows, and exact deployed ABI encoding using the existing devnet/check tooling. Update SDK exports,
 package exports, types and user docs together. Keep every unimplemented action in this document marked
 proposed; the TODO ownership and exit gates are in the [main research plan](../hca-integration.md#8-phased-todos).
+
+P2 adds `watchHcaExecution` and typed provider submission inference to the existing SDK group.
+See the [adapter package](../../packages/hca/README.md) for the shipped lifecycle and persistence API.

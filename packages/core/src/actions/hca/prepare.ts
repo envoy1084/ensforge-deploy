@@ -53,6 +53,33 @@ export const prepareHcaCalls = defineAction<
     config,
     { consistency: "snapshot" },
     Effect.gen(function* () {
+      if (
+        parameters.requiredCapabilities !== undefined &&
+        !Schema.is(
+          Schema.Array(
+            Schema.Literals([
+              "ownerExecution",
+              "sessionExecution",
+              "counterfactualDeployment",
+              "atomicBatching",
+              "sponsorship",
+              "crossChainFunding",
+            ]),
+          ),
+        )(parameters.requiredCapabilities)
+      )
+        return yield* new HcaError({
+          code: "INVALID_PARAMETERS",
+          message: "Unknown execution capability requirement",
+        });
+      if (
+        parameters.operationId !== undefined &&
+        !Schema.is(Schema.NonEmptyString)(parameters.operationId)
+      )
+        return yield* new HcaError({
+          code: "INVALID_PARAMETERS",
+          message: "Operation ID must be nonempty",
+        });
       if (parameters.authorization?.kind !== "owner")
         return yield* new HcaError({
           code: "UNSUPPORTED_AUTHORIZATION",
@@ -111,7 +138,11 @@ export const prepareHcaCalls = defineAction<
         args: [calls.map((call) => ({ target: call.to, value: call.value, callData: call.data }))],
       });
       return Object.freeze({
-        account,
+        account: Object.freeze(account),
+        ...(parameters.operationId === undefined ? {} : { operationId: parameters.operationId }),
+        ...(parameters.requiredCapabilities === undefined
+          ? {}
+          : { requiredCapabilities: Object.freeze([...parameters.requiredCapabilities]) }),
         authorization: Object.freeze({ kind: "owner" as const }),
         calls: Object.freeze(calls.map((call) => Object.freeze(call))),
         data,

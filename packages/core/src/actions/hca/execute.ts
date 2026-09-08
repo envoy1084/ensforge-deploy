@@ -3,6 +3,7 @@ import { Effect } from "effect";
 import { isAddressEqual } from "viem";
 
 import { defineAction } from "../../action/action.js";
+import type { EnsforgeConfig } from "../../config/config.js";
 import { HcaError } from "../../errors/hca-error.js";
 import { provideConfig } from "../../internal/config/context.js";
 import { hcaRpc } from "../../internal/hca/context.js";
@@ -11,6 +12,7 @@ import { WriteClient } from "../../internal/write/write-client.js";
 import type { WriteError } from "../../write/types.js";
 import { prepareHcaCalls } from "./prepare.js";
 import { verifyHca } from "./reads.js";
+import type { HcaTransactionSubmission, PrepareHcaCallsParameters } from "./types.js";
 import type {
   ExecuteHcaCallsParameters,
   HcaExecutionSubmission,
@@ -25,6 +27,7 @@ export const checkHcaAdapterIdentity = (
   identity: HcaExecutionIdentity,
 ) => {
   if (
+    identity.operationId !== plan.operationId ||
     identity.adapterId !== execution.id ||
     identity.instanceId !== execution.instanceId ||
     identity.chainId !== plan.account.chainId ||
@@ -52,7 +55,38 @@ const checkIdentity = (
       }),
   });
 
-export const executeHcaCalls = defineAction<
+export interface ExecuteHcaCallsAction {
+  <Adapter extends ExecutionAdapter>(
+    config: EnsforgeConfig,
+    parameters: PrepareHcaCallsParameters & { readonly execution: Adapter },
+    options?: Effect.RunOptions,
+  ): Promise<Awaited<ReturnType<Adapter["submit"]>>>;
+  (
+    config: EnsforgeConfig,
+    parameters: PrepareHcaCallsParameters & { readonly execution?: never },
+    options?: Effect.RunOptions,
+  ): Promise<HcaTransactionSubmission>;
+  (
+    config: EnsforgeConfig,
+    parameters: ExecuteHcaCallsParameters,
+    options?: Effect.RunOptions,
+  ): Promise<HcaExecutionSubmission>;
+  readonly effect: {
+    <Adapter extends ExecutionAdapter>(
+      config: EnsforgeConfig,
+      parameters: PrepareHcaCallsParameters & { readonly execution: Adapter },
+    ): Effect.Effect<Awaited<ReturnType<Adapter["submit"]>>, WriteError>;
+    (
+      config: EnsforgeConfig,
+      parameters: PrepareHcaCallsParameters & { readonly execution?: never },
+    ): Effect.Effect<HcaTransactionSubmission, WriteError>;
+    (
+      config: EnsforgeConfig,
+      parameters: ExecuteHcaCallsParameters,
+    ): Effect.Effect<HcaExecutionSubmission, WriteError>;
+  };
+}
+export const executeHcaCalls: ExecuteHcaCallsAction = defineAction<
   ExecuteHcaCallsParameters,
   HcaExecutionSubmission,
   WriteError
@@ -60,6 +94,15 @@ export const executeHcaCalls = defineAction<
   Effect.fn("ensforge.executeHcaCalls")(function* (config, parameters) {
     const plan = yield* prepareHcaCalls.effect(config, parameters);
     const execution = parameters.execution;
+    if (
+      parameters.requiredCapabilities?.some(
+        (capability) => execution?.capabilities?.[capability] !== true,
+      )
+    )
+      return yield* new HcaError({
+        code: "UNSUPPORTED_CAPABILITY",
+        message: "Execution adapter does not provide every requested capability",
+      });
     if (execution !== undefined) {
       const support = yield* Effect.try({
         try: () => execution.supports(plan),
@@ -124,6 +167,7 @@ export const executeHcaCalls = defineAction<
     const hash = yield* client.sendTransaction(walletClient, call);
     return {
       kind: "transaction",
+      ...(plan.operationId === undefined ? {} : { operationId: plan.operationId }),
       chainId: config.chainId,
       hca: plan.account.address,
       owner: plan.account.owner,
@@ -132,4 +176,4 @@ export const executeHcaCalls = defineAction<
       planFingerprint: plan.fingerprint,
     };
   }),
-);
+) as ExecuteHcaCallsAction;

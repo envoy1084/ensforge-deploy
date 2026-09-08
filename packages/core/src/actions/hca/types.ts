@@ -1,14 +1,15 @@
-import { Schema } from "effect";
+import { Schema, type Effect } from "effect";
 
 import type { Address, Hex, TransactionReceipt } from "viem";
 
-import type { EnsAction } from "../../action/action.js";
 import type { BlockParameters } from "../../action/block.js";
 import type { EnsWriteIntent } from "../../action/write-intent.js";
+import type { EnsforgeConfig } from "../../config/config.js";
 import type { HcaError } from "../../errors/hca-error.js";
 import { Hex as HexSchema } from "../../schemas/hex.js";
 import { EthereumAddress } from "../../schemas/identity.js";
 import type { WalletOverrides, WriteError } from "../../write/types.js";
+import type { HcaExecutionCapabilities } from "./execution-contract.js";
 
 export const HcaSalt = Schema.BigInt.check(
   Schema.makeFilter<bigint>((value) =>
@@ -68,12 +69,16 @@ export type HcaAuthorization =
   | { readonly kind: "owner" }
   | { readonly kind: "session"; readonly permissionId: Hex };
 export interface PrepareHcaCallsParameters extends WalletOverrides {
+  readonly operationId?: string;
+  readonly requiredCapabilities?: readonly (keyof HcaExecutionCapabilities)[];
   readonly hca: Address;
   readonly salt?: bigint;
   readonly authorization: HcaAuthorization;
   readonly calls: readonly (HcaCall | EnsWriteIntent<unknown, WriteError>)[];
 }
 export interface PreparedHcaCalls {
+  readonly operationId?: string;
+  readonly requiredCapabilities?: readonly (keyof HcaExecutionCapabilities)[];
   readonly account: VerifiedHcaAccount;
   readonly authorization: { readonly kind: "owner" };
   readonly calls: readonly { readonly to: Address; readonly data: Hex; readonly value: bigint }[];
@@ -83,6 +88,7 @@ export interface PreparedHcaCalls {
   readonly simulation: "required";
 }
 export interface HcaExecutionIdentity {
+  readonly operationId?: string | undefined;
   readonly adapterId: string;
   readonly instanceId: string;
   readonly chainId: number;
@@ -90,19 +96,20 @@ export interface HcaExecutionIdentity {
   readonly profileId: string;
   readonly planFingerprint: Hex;
 }
-export interface PreparedHcaExecution extends HcaExecutionIdentity {
-  readonly payload: unknown;
+export interface PreparedHcaExecution<Payload = unknown> extends HcaExecutionIdentity {
+  readonly payload: Payload;
   readonly simulation: "succeeded";
 }
-export interface AuthorizedHcaExecution extends HcaExecutionIdentity {
-  readonly payload: unknown;
+export interface AuthorizedHcaExecution<Payload = unknown> extends HcaExecutionIdentity {
+  readonly payload: Payload;
 }
-export interface HcaAdapterSubmission extends HcaExecutionIdentity {
+export interface HcaAdapterSubmission<Payload = unknown> extends HcaExecutionIdentity {
   readonly kind: "adapter";
   readonly reference: string;
-  readonly payload: unknown;
+  readonly payload: Payload;
 }
 export interface HcaTransactionSubmission {
+  readonly operationId?: string;
   readonly kind: "transaction";
   readonly chainId: number;
   readonly hca: Address;
@@ -111,27 +118,55 @@ export interface HcaTransactionSubmission {
   readonly hash: Hex;
   readonly planFingerprint: Hex;
 }
-export type HcaExecutionSubmission = HcaTransactionSubmission | HcaAdapterSubmission;
-export type HcaExecutionStatus =
-  | { readonly status: "pending" | "unknown"; readonly submission: HcaExecutionSubmission }
+export type HcaExecutionSubmission<Payload = unknown> =
+  | HcaTransactionSubmission
+  | HcaAdapterSubmission<Payload>;
+export type HcaExecutionStatus<Payload = unknown> =
+  | {
+      readonly status: "cancelled" | "expired";
+      readonly reason: string;
+      readonly submission: HcaExecutionSubmission<Payload>;
+    }
+  | { readonly status: "pending" | "unknown"; readonly submission: HcaExecutionSubmission<Payload> }
   | {
       readonly status: "succeeded" | "failed";
-      readonly submission: HcaExecutionSubmission;
+      readonly submission: HcaExecutionSubmission<Payload>;
       readonly receipts: readonly TransactionReceipt[];
     };
 
-/** Provider delivery boundary; P1 supports owner authorization only. No provider packages in core. */
-export interface ExecutionAdapter {
+/** Runtime adapters validate opaque payloads before invoking typed provider callbacks. */
+export type HcaAdapterAction<Parameters, Success> = {
+  invoke(
+    config: EnsforgeConfig,
+    parameters: Parameters,
+    options?: Effect.RunOptions,
+  ): Promise<Success>;
+}["invoke"] & {
+  effect(config: EnsforgeConfig, parameters: Parameters): Effect.Effect<Success, HcaError>;
+};
+
+/** Core remains independent of provider packages. */
+export interface ExecutionAdapter<Prepared = unknown, Authorized = unknown, Submission = unknown> {
   readonly id: string;
   readonly instanceId: string;
+  readonly capabilities?: HcaExecutionCapabilities;
   readonly supports: (plan: PreparedHcaCalls) => {
     readonly supported: boolean;
     readonly reason?: string;
   };
-  readonly prepare: EnsAction<PreparedHcaCalls, PreparedHcaExecution, HcaError>;
-  readonly authorize: EnsAction<PreparedHcaExecution, AuthorizedHcaExecution, HcaError>;
-  readonly submit: EnsAction<AuthorizedHcaExecution, HcaAdapterSubmission, HcaError>;
-  readonly getStatus: EnsAction<HcaAdapterSubmission, HcaExecutionStatus, HcaError>;
+  readonly prepare: HcaAdapterAction<PreparedHcaCalls, PreparedHcaExecution<Prepared>>;
+  readonly authorize: HcaAdapterAction<
+    PreparedHcaExecution<Prepared>,
+    AuthorizedHcaExecution<Authorized>
+  >;
+  readonly submit: HcaAdapterAction<
+    AuthorizedHcaExecution<Authorized>,
+    HcaAdapterSubmission<Submission>
+  >;
+  readonly getStatus: HcaAdapterAction<
+    HcaAdapterSubmission<Submission>,
+    HcaExecutionStatus<Submission>
+  >;
 }
 export interface ExecuteHcaCallsParameters extends PrepareHcaCallsParameters {
   readonly execution?: ExecutionAdapter;
@@ -144,4 +179,5 @@ export interface WaitForHcaExecutionParameters extends HcaExecutionStatusParamet
   readonly confirmations?: number;
   readonly timeout?: number;
   readonly pollingInterval?: number;
+  readonly maxPollingInterval?: number;
 }

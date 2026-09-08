@@ -67,3 +67,6 @@ for parameters, adapter dispatch, caller semantics and current limitations.
 ## License
 
 Apache-2.0
+
+HCA execution also supports typed adapters, required capability checks, and `watchHcaExecution`.
+The optional [`@ensforge/hca`](../hca/README.md) package supplies adapter validation and submission codecs.

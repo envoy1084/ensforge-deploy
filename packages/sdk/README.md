@@ -98,3 +98,7 @@ later phases. See the [full action reference](../core/src/actions/hca/README.md)
 ## License
 
 Apache-2.0
+
+HCA adapters preserve concrete submission payload types through `sdk.hca.executeHcaCalls`.
+`sdk.hca.watchHcaExecution` supports callbacks or `.stream`, sharing bounded polling and confirmation
+checks with the wait action. See [`@ensforge/hca`](../hca/README.md) for provider contracts and persistence.
