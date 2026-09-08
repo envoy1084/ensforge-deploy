@@ -23,9 +23,21 @@ import { useWorkflows } from "@ensforge/react";
 ```tsx [component.tsx]
 import { useWorkflows } from "@ensforge/react";
 
-function Component(parameters: Parameters<typeof useWorkflows>[0]) {
-  const result = useWorkflows(parameters);
-  return <p>{result.isWaiting ? "Loading" : "Result available"}</p>;
+function Component() {
+  const result = useWorkflows({
+    status: "pending",
+    limit: 20,
+  });
+
+  return (
+    <pre>
+      {JSON.stringify(
+        result.data,
+        (_, value) => (typeof value === "bigint" ? value.toString() : value),
+        2,
+      )}
+    </pre>
+  );
 }
 ```
 
@@ -37,13 +49,9 @@ function Component(parameters: Parameters<typeof useWorkflows>[0]) {
 
 ## Parameters
 
-```ts
-type Input = Parameters<typeof useWorkflows>[0];
-```
-
 ### walletClient
 
-`Input["walletClient"]`
+`WalletClient | undefined`
 
 Viem wallet override. Defaults to the configured wallet resolver.
 
@@ -85,6 +93,7 @@ type Result = ReturnType<typeof useWorkflows>;
 
 ```ts
 import { listWorkflowsAtom } from "@ensforge/react/atoms";
+import { sdk } from "./client";
 
 const atom = listWorkflowsAtom(sdk, parameters, options);
 ```

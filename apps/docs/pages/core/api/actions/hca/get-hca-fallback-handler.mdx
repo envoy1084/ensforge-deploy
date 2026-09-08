@@ -5,6 +5,7 @@ description: Inspect the handler for a selector.
 
 import EffectGuide from "../../../../../shared/core/effect.mdx";
 import ErrorGuide from "../../../../../shared/core/error.mdx";
+import RequestGuide from "../../../../../shared/core/request.mdx";
 
 # getHcaFallbackHandler
 
@@ -24,13 +25,10 @@ import { getHcaFallbackHandler } from "@ensforge/core/hca";
 import { getHcaFallbackHandler } from "@ensforge/core/hca";
 import { config } from "./config";
 
-type Input = Parameters<typeof getHcaFallbackHandler>[1];
-const parameters: Input = {
-  hca: "0x0000000000000000000000000000000000000001",
-  selector: "0x00000000",
-};
-
-const result = await getHcaFallbackHandler(config, parameters);
+const result = await getHcaFallbackHandler(config, {
+  hca: "0x1234567890123456789012345678901234567890",
+  selector: "0xa9059cbb",
+});
 ```
 
 ```ts [config.ts]
@@ -42,20 +40,8 @@ const result = await getHcaFallbackHandler(config, parameters);
 ## Parameters
 
 ```ts
-type Input = Parameters<typeof getHcaFallbackHandler>[1];
+import type { HcaReadParameters } from "@ensforge/core/hca";
 ```
-
-### blockNumber
-
-`bigint | undefined`
-
-Block number to read. Cannot be combined with blockTag.
-
-### blockTag
-
-`BlockTag | undefined`
-
-Named block state to read. Cannot be combined with blockNumber.
 
 ### hca
 
@@ -69,11 +55,28 @@ HCA address to inspect or operate on.
 
 Function selector whose fallback handler is inspected.
 
+### blockNumber
+
+`bigint | undefined`
+
+Block number to read. Cannot be combined with blockTag.
+
+### blockTag
+
+`BlockTag | undefined`
+
+Named block state to read. Cannot be combined with blockNumber.
+
 ## Return Type
 
 ```ts
-type Result = Awaited<ReturnType<typeof getHcaFallbackHandler>>;
+type GetHcaFallbackHandlerResult = Awaited<ReturnType<typeof getHcaFallbackHandler>>;
 ```
+
+| Property   | Type                | Description                                 |
+| ---------- | ------------------- | ------------------------------------------- |
+| `callType` | `` `0x${string}` `` | Call mode used by the fallback handler.     |
+| `handler`  | `` `0x${string}` `` | Handler address for the requested selector. |
 
 Returns ``{ readonly callType: `0x${string}`; readonly handler: `0x${string}`; }``.
 
@@ -84,25 +87,31 @@ Returns ``{ readonly callType: `0x${string}`; readonly handler: `0x${string}`; }
 ```ts
 import { Effect } from "effect";
 
-const program = getHcaFallbackHandler.effect(config, parameters);
+const program = getHcaFallbackHandler.effect(config, {
+  hca: "0x1234567890123456789012345678901234567890",
+  selector: "0xa9059cbb",
+});
+
 type Success = Effect.Success<typeof program>;
 type Failure = Effect.Error<typeof program>;
+
 const result = await Effect.runPromise(program);
 ```
 
 ## Request
 
-```ts
-const request = getHcaFallbackHandler.request(parameters);
-```
+<RequestGuide />
 
-Requests compose with ENS read batching.
+```ts
+const request = getHcaFallbackHandler.request({
+  hca: "0x1234567890123456789012345678901234567890",
+  selector: "0xa9059cbb",
+});
+```
 
 ## Error
 
 <ErrorGuide />
-
-Deployment, account and authorization mismatches remain explicit errors. Reconcile uncertain submissions before retrying a write.
 
 ## Related
 

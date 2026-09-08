@@ -24,10 +24,9 @@ import { revokeHcaSessions } from "@ensforge/core/hca";
 import { revokeHcaSessions } from "@ensforge/core/hca";
 import { config } from "./config";
 
-type Input = Parameters<typeof revokeHcaSessions>[1];
-declare const parameters: Input;
-
-const result = await revokeHcaSessions(config, parameters);
+const result = await revokeHcaSessions(config, {
+  hca: "0x1234567890123456789012345678901234567890",
+});
 ```
 
 ```ts [config.ts]
@@ -39,7 +38,7 @@ const result = await revokeHcaSessions(config, parameters);
 ## Parameters
 
 ```ts
-type Input = Parameters<typeof revokeHcaSessions>[1];
+import type { RevokeHcaSessionsParameters } from "@ensforge/core/hca";
 ```
 
 ### hca
@@ -56,13 +55,13 @@ Account derivation salt. Defaults to the deployment profile canonical salt.
 
 ### confirmation
 
-`{ readonly type: "submitted"; } | { readonly type: "confirmed"; readonly timeout?: number | undefined; readonly confirmations?: number | undefined; }`
+`ConfirmationPolicy | undefined`
 
 Receipt confirmation policy.
 
 ### walletClient
 
-`Input["walletClient"]`
+`WalletClient | undefined`
 
 Viem wallet override. Defaults to the configured wallet resolver.
 
@@ -75,8 +74,14 @@ Wallet account override for the operation.
 ## Return Type
 
 ```ts
-type Result = Awaited<ReturnType<typeof revokeHcaSessions>>;
+type RevokeHcaSessionsResult = Awaited<ReturnType<typeof revokeHcaSessions>>;
 ```
+
+| Property       | Type                         | Description                                              |
+| -------------- | ---------------------------- | -------------------------------------------------------- |
+| `hash`         | `` `0x${string}` ``          | Submitted transaction hash.                              |
+| `receipt`      | `TransactionReceipt \| null` | Confirmed transaction receipt, when requested.           |
+| `sessionNonce` | `bigint \| null`             | Nonce used to invalidate previously authorized sessions. |
 
 Returns `RevokeHcaSessionsResult`.
 
@@ -87,17 +92,19 @@ Returns `RevokeHcaSessionsResult`.
 ```ts
 import { Effect } from "effect";
 
-const program = revokeHcaSessions.effect(config, parameters);
+const program = revokeHcaSessions.effect(config, {
+  hca: "0x1234567890123456789012345678901234567890",
+});
+
 type Success = Effect.Success<typeof program>;
 type Failure = Effect.Error<typeof program>;
+
 const result = await Effect.runPromise(program);
 ```
 
 ## Error
 
 <ErrorGuide />
-
-Deployment, account and authorization mismatches remain explicit errors. Reconcile uncertain submissions before retrying a write.
 
 ## Related
 

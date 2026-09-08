@@ -3,9 +3,12 @@ title: useCancelHcaRegistration
 description: Cancel eligible local progression
 ---
 
+import MutationOptions from "../../../../../shared/react/mutation-options.mdx";
+import MutationResult from "../../../../../shared/react/mutation-result.mdx";
+
 # useCancelHcaRegistration
 
-Cancel eligible local progression Uses the SDK from `EnsforgeProvider`.
+Cancel eligible local progression. Uses the SDK from `EnsforgeProvider`.
 
 ## Import
 
@@ -20,15 +23,19 @@ import { useCancelHcaRegistration } from "@ensforge/react";
 ```tsx [component.tsx]
 import { useCancelHcaRegistration } from "@ensforge/react";
 
-function Component({
-  parameters,
-}: {
-  parameters: Parameters<ReturnType<typeof useCancelHcaRegistration>["mutate"]>[0];
-}) {
+function Component() {
   const mutation = useCancelHcaRegistration();
+
   return (
-    <button disabled={mutation.isWaiting} onClick={() => mutation.mutate(parameters)}>
-      Run
+    <button
+      disabled={mutation.isWaiting}
+      onClick={() =>
+        mutation.mutate({
+          id: "registration-instance-id",
+        })
+      }
+    >
+      Cancel registration
     </button>
   );
 }
@@ -40,12 +47,12 @@ function Component({
 
 :::
 
-## Parameters
+<MutationOptions />
 
-Pass operation parameters to `mutate`, `mutateAsync` or `mutateEffect`. Hook options accept `onExit` and an explicit retry policy.
+## Mutation Parameters
 
 ```ts
-type Input = Parameters<ReturnType<typeof useCancelHcaRegistration>["mutate"]>[0];
+import type { GetHcaRegistrationParameters } from "@ensforge/sdk/hca";
 ```
 
 ### id
@@ -72,12 +79,13 @@ Compatible execution adapter. Omit for direct owner execution when supported.
 type Result = ReturnType<typeof useCancelHcaRegistration>;
 ```
 
-The mutation exposes `data`, `error`, `isWaiting`, `result`, execution methods, `reset` and `interrupt`. Interruption stops local work; it does not undo a broadcast or revoke a session. See [Mutation Hooks](/react/guides/mutations).
+<MutationResult />
 
 ## Effect Atom
 
 ```ts
 import { createCancelHcaRegistrationMutationAtom } from "@ensforge/react/atoms";
+import { sdk } from "./client";
 
 const atom = createCancelHcaRegistrationMutationAtom(sdk);
 ```

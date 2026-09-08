@@ -23,10 +23,10 @@ import { Ensforge } from "@ensforge/sdk";
 ```ts [index.ts]
 import { sdk } from "./client";
 
-type Input = Parameters<typeof sdk.hca.admin.transferHcaGovernanceOwnership>[0];
-declare const parameters: Input;
-
-const result = await sdk.hca.admin.transferHcaGovernanceOwnership(parameters);
+const result = await sdk.hca.admin.transferHcaGovernanceOwnership({
+  target: { kind: "factory" },
+  newOwner: "0x2345678901234567890123456789012345678901",
+});
 ```
 
 ```ts [client.ts]
@@ -40,26 +40,8 @@ This targets HCA governance contracts. It does not transfer or renounce the immu
 ## Parameters
 
 ```ts
-type Input = Parameters<typeof sdk.hca.admin.transferHcaGovernanceOwnership>[0];
+import type { HcaAdminWriteParameters } from "@ensforge/sdk/hca/admin";
 ```
-
-### confirmation
-
-`{ readonly type: "submitted"; } | { readonly type: "confirmed"; readonly timeout?: number | undefined; readonly confirmations?: number | undefined; }`
-
-Receipt confirmation policy.
-
-### walletClient
-
-`Input["walletClient"]`
-
-Viem wallet override. Defaults to the configured wallet resolver.
-
-### account
-
-`` `0x${string}` | Account | undefined ``
-
-Wallet account override for the operation.
 
 ### target
 
@@ -73,13 +55,34 @@ Governance contract to inspect or modify.
 
 New governance owner; this does not change the immutable HCA owner.
 
+### confirmation
+
+`ConfirmationPolicy | undefined`
+
+Receipt confirmation policy.
+
+### walletClient
+
+`WalletClient | undefined`
+
+Viem wallet override. Defaults to the configured wallet resolver.
+
+### account
+
+`` `0x${string}` | Account | undefined ``
+
+Wallet account override for the operation.
+
 ## Return Type
 
 ```ts
-type Result = Awaited<ReturnType<typeof sdk.hca.admin.transferHcaGovernanceOwnership>>;
+import type { HcaManagementResult } from "@ensforge/sdk/hca";
 ```
 
-Returns `HcaManagementResult`.
+| Property  | Type                         | Description                                    |
+| --------- | ---------------------------- | ---------------------------------------------- |
+| `hash`    | `` `0x${string}` ``          | Submitted transaction hash.                    |
+| `receipt` | `TransactionReceipt \| null` | Confirmed transaction receipt, when requested. |
 
 ## Effect
 
@@ -88,9 +91,14 @@ Returns `HcaManagementResult`.
 ```ts
 import { Effect } from "effect";
 
-const program = sdk.hca.admin.transferHcaGovernanceOwnership.effect(parameters);
+const program = sdk.hca.admin.transferHcaGovernanceOwnership.effect({
+  target: { kind: "factory" },
+  newOwner: "0x2345678901234567890123456789012345678901",
+});
+
 type Success = Effect.Success<typeof program>;
 type Failure = Effect.Error<typeof program>;
+
 const result = await Effect.runPromise(program);
 ```
 
@@ -98,9 +106,7 @@ const result = await Effect.runPromise(program);
 
 <ErrorGuide />
 
-Deployment, account and authorization mismatches remain explicit errors. Reconcile uncertain submissions before retrying a write.
-
-## Related
+## Action
 
 - [`transferHcaGovernanceOwnership`](/core/api/actions/hca/admin/transfer-hca-governance-ownership)
 - [Guide](/core/guides/hca)

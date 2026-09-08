@@ -23,15 +23,26 @@ import { enableHcaSession } from "@ensforge/core/hca";
 ```ts [index.ts]
 import { enableHcaSession } from "@ensforge/core/hca";
 import { config } from "./config";
+import { session } from "./session";
 
-type Input = Parameters<typeof enableHcaSession>[1];
-declare const parameters: Input;
-
-const result = await enableHcaSession(config, parameters);
+const result = await enableHcaSession(config, {
+  ...session.parameters,
+});
 ```
 
 ```ts [config.ts]
 // [!include ~/snippets/hca/config.ts]
+```
+
+```ts [session.ts]
+import { execution } from "./execution";
+import { config } from "./config";
+
+export const session = await execution.extensions.sessions.prepare(config, {
+  hca: "0x1234567890123456789012345678901234567890",
+  resolver: "0x3456789012345678901234567890123456789012",
+  validUntil: Math.floor(Date.now() / 1000) + 3600,
+});
 ```
 
 :::
@@ -39,7 +50,7 @@ const result = await enableHcaSession(config, parameters);
 ## Parameters
 
 ```ts
-type Input = Parameters<typeof enableHcaSession>[1];
+import type { EnableHcaSessionParameters } from "@ensforge/core/hca";
 ```
 
 ### hca
@@ -47,12 +58,6 @@ type Input = Parameters<typeof enableHcaSession>[1];
 `` `0x${string}` ``
 
 HCA address to inspect or operate on.
-
-### salt
-
-`bigint | undefined`
-
-Account derivation salt. Defaults to the deployment profile canonical salt.
 
 ### permissionId
 
@@ -78,9 +83,15 @@ Session expiry as a Unix timestamp in seconds.
 
 Resolver address used by the registration or session policy.
 
+### salt
+
+`bigint | undefined`
+
+Account derivation salt. Defaults to the deployment profile canonical salt.
+
 ### walletClient
 
-`Input["walletClient"]`
+`WalletClient | undefined`
 
 Viem wallet override. Defaults to the configured wallet resolver.
 
@@ -93,10 +104,8 @@ Wallet account override for the operation.
 ## Return Type
 
 ```ts
-type Result = Awaited<ReturnType<typeof enableHcaSession>>;
+import type { HcaTransactionSubmission } from "@ensforge/core/hca";
 ```
-
-Returns `HcaTransactionSubmission`.
 
 ## Effect
 
@@ -105,16 +114,22 @@ Returns `HcaTransactionSubmission`.
 ```ts
 import { Effect } from "effect";
 
-const program = enableHcaSession.effect(config, parameters);
+const program = enableHcaSession.effect(config, {
+  ...session.parameters,
+});
+
 type Success = Effect.Success<typeof program>;
 type Failure = Effect.Error<typeof program>;
+
 const result = await Effect.runPromise(program);
 ```
 
 ## Call
 
 ```ts
-const intent = enableHcaSession.call(parameters);
+const intent = enableHcaSession.call({
+  ...session.parameters,
+});
 ```
 
 Preparing an intent does not submit a transaction.
@@ -122,8 +137,6 @@ Preparing an intent does not submit a transaction.
 ## Error
 
 <ErrorGuide />
-
-Deployment, account and authorization mismatches remain explicit errors. Reconcile uncertain submissions before retrying a write.
 
 ## Related
 

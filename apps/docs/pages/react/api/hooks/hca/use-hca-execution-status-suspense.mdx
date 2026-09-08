@@ -8,7 +8,7 @@ import ResultGuide from "../../../../../shared/react/suspense-atom-result.mdx";
 
 # useHcaExecutionStatusSuspense
 
-Reconcile a tracking reference Uses the SDK from `EnsforgeProvider`.
+Reconcile a tracking reference. Uses the SDK from `EnsforgeProvider`.
 
 ## Import
 
@@ -22,10 +22,22 @@ import { useHcaExecutionStatusSuspense } from "@ensforge/react";
 
 ```tsx [component.tsx]
 import { useHcaExecutionStatusSuspense } from "@ensforge/react";
+import type { HcaExecutionSubmission } from "@ensforge/core/hca";
 
-function Component(parameters: Parameters<typeof useHcaExecutionStatusSuspense>[0]) {
-  const result = useHcaExecutionStatusSuspense(parameters);
-  return <p>{result.isWaiting ? "Loading" : "Result available"}</p>;
+function Component({ submission }: { submission: HcaExecutionSubmission }) {
+  const result = useHcaExecutionStatusSuspense({
+    submission,
+  });
+
+  return (
+    <pre>
+      {JSON.stringify(
+        result.data,
+        (_, value) => (typeof value === "bigint" ? value.toString() : value),
+        2,
+      )}
+    </pre>
+  );
 }
 ```
 
@@ -38,7 +50,8 @@ function Component(parameters: Parameters<typeof useHcaExecutionStatusSuspense>[
 ## Parameters
 
 ```ts
-type Input = Parameters<typeof useHcaExecutionStatusSuspense>[0];
+import type { UseEnsSuspenseAtomParameters } from "@ensforge/react";
+import type { HcaExecutionStatusParameters } from "@ensforge/sdk/hca";
 ```
 
 ### submission
@@ -67,6 +80,7 @@ type Result = ReturnType<typeof useHcaExecutionStatusSuspense>;
 
 ```ts
 import { getHcaExecutionStatusAtom } from "@ensforge/react/atoms";
+import { sdk } from "./client";
 
 const atom = getHcaExecutionStatusAtom(sdk, parameters, options);
 ```

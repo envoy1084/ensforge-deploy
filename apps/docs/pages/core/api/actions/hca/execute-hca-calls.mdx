@@ -24,10 +24,11 @@ import { executeHcaCalls } from "@ensforge/core/hca";
 import { executeHcaCalls } from "@ensforge/core/hca";
 import { config } from "./config";
 
-type Input = Parameters<typeof executeHcaCalls>[1];
-declare const parameters: Input;
-
-const result = await executeHcaCalls(config, parameters);
+const result = await executeHcaCalls(config, {
+  hca: "0x1234567890123456789012345678901234567890",
+  authorization: { kind: "owner" },
+  calls: [{ to: "0x2345678901234567890123456789012345678901", value: 0n, data: "0x" }],
+});
 ```
 
 ```ts [config.ts]
@@ -39,8 +40,20 @@ const result = await executeHcaCalls(config, parameters);
 ## Parameters
 
 ```ts
-type Input = Parameters<typeof executeHcaCalls>[1];
+import type { ExecuteHcaCallsParameters } from "@ensforge/core/hca";
 ```
+
+### hca
+
+`` `0x${string}` ``
+
+HCA address to inspect or operate on.
+
+### authorization
+
+`HcaAuthorization`
+
+Owner authorization or an enabled destination session.
 
 ### counterfactualOwner
 
@@ -60,23 +73,11 @@ Optional caller correlation identifier for execution tracking.
 
 Capabilities that the execution route must support.
 
-### hca
-
-`` `0x${string}` ``
-
-HCA address to inspect or operate on.
-
 ### salt
 
 `bigint | undefined`
 
 Account derivation salt. Defaults to the deployment profile canonical salt.
-
-### authorization
-
-`HcaAuthorization`
-
-Owner authorization or an enabled destination session.
 
 ### calls
 
@@ -86,7 +87,7 @@ Ordered raw contract calls or supported ENS .call intents.
 
 ### walletClient
 
-`Input["walletClient"]`
+`WalletClient | undefined`
 
 Viem wallet override. Defaults to the configured wallet resolver.
 
@@ -105,7 +106,7 @@ Compatible execution adapter. Omit for direct owner execution when supported.
 ## Return Type
 
 ```ts
-type Result = Awaited<ReturnType<typeof executeHcaCalls>>;
+type ExecuteHcaCallsResult = Awaited<ReturnType<typeof executeHcaCalls>>;
 ```
 
 Returns `Awaited<ReturnType<Adapter["submit"]>>`.
@@ -117,17 +118,21 @@ Returns `Awaited<ReturnType<Adapter["submit"]>>`.
 ```ts
 import { Effect } from "effect";
 
-const program = executeHcaCalls.effect(config, parameters);
+const program = executeHcaCalls.effect(config, {
+  hca: "0x1234567890123456789012345678901234567890",
+  authorization: { kind: "owner" },
+  calls: [{ to: "0x2345678901234567890123456789012345678901", value: 0n, data: "0x" }],
+});
+
 type Success = Effect.Success<typeof program>;
 type Failure = Effect.Error<typeof program>;
+
 const result = await Effect.runPromise(program);
 ```
 
 ## Error
 
 <ErrorGuide />
-
-Deployment, account and authorization mismatches remain explicit errors. Reconcile uncertain submissions before retrying a write.
 
 ## Related
 

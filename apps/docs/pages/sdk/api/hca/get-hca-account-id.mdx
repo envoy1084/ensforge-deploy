@@ -6,6 +6,7 @@ description: Read the account implementation identifier.
 import { ReadActionDemo } from "../../../../components/read-actions/read-action-demo.client.tsx";
 import EffectGuide from "../../../../shared/sdk/effect.mdx";
 import ErrorGuide from "../../../../shared/sdk/error.mdx";
+import RequestGuide from "../../../../shared/sdk/request.mdx";
 
 # getHcaAccountId
 
@@ -24,12 +25,9 @@ import { Ensforge } from "@ensforge/sdk";
 ```ts [index.ts]
 import { sdk } from "./client";
 
-type Input = Parameters<typeof sdk.hca.getHcaAccountId>[0];
-const parameters: Input = {
-  hca: "0x0000000000000000000000000000000000000001",
-};
-
-const result = await sdk.hca.getHcaAccountId(parameters);
+const result = await sdk.hca.getHcaAccountId({
+  hca: "0x1234567890123456789012345678901234567890",
+});
 ```
 
 ```ts [client.ts]
@@ -43,8 +41,14 @@ const result = await sdk.hca.getHcaAccountId(parameters);
 ## Parameters
 
 ```ts
-type Input = Parameters<typeof sdk.hca.getHcaAccountId>[0];
+import type { HcaReadParameters } from "@ensforge/sdk/hca";
 ```
+
+### hca
+
+`` `0x${string}` ``
+
+HCA address to inspect or operate on.
 
 ### blockNumber
 
@@ -58,16 +62,10 @@ Block number to read. Cannot be combined with blockTag.
 
 Named block state to read. Cannot be combined with blockNumber.
 
-### hca
-
-`` `0x${string}` ``
-
-HCA address to inspect or operate on.
-
 ## Return Type
 
 ```ts
-type Result = Awaited<ReturnType<typeof sdk.hca.getHcaAccountId>>;
+type GetHcaAccountIdResult = Awaited<ReturnType<typeof sdk.hca.getHcaAccountId>>;
 ```
 
 Returns `string | null`.
@@ -79,27 +77,31 @@ Returns `string | null`.
 ```ts
 import { Effect } from "effect";
 
-const program = sdk.hca.getHcaAccountId.effect(parameters);
+const program = sdk.hca.getHcaAccountId.effect({
+  hca: "0x1234567890123456789012345678901234567890",
+});
+
 type Success = Effect.Success<typeof program>;
 type Failure = Effect.Error<typeof program>;
+
 const result = await Effect.runPromise(program);
 ```
 
 ## Request
 
-```ts
-const request = sdk.hca.getHcaAccountId.request(parameters);
-```
+<RequestGuide />
 
-Requests compose with ENS read batching.
+```ts
+const request = sdk.hca.getHcaAccountId.request({
+  hca: "0x1234567890123456789012345678901234567890",
+});
+```
 
 ## Error
 
 <ErrorGuide />
 
-Deployment, account and authorization mismatches remain explicit errors. Reconcile uncertain submissions before retrying a write.
-
-## Related
+## Action
 
 - [`getHcaAccountId`](/core/api/actions/hca/get-hca-account-id)
 - [Guide](/core/guides/hca)

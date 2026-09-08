@@ -3,9 +3,12 @@ title: useResumeHcaRegistration
 description: Advance saved registration with explicit review/recovery inputs
 ---
 
+import MutationOptions from "../../../../../shared/react/mutation-options.mdx";
+import MutationResult from "../../../../../shared/react/mutation-result.mdx";
+
 # useResumeHcaRegistration
 
-Advance saved registration with explicit review/recovery inputs Uses the SDK from `EnsforgeProvider`.
+Advance saved registration with explicit review/recovery inputs. Uses the SDK from `EnsforgeProvider`.
 
 ## Import
 
@@ -20,15 +23,19 @@ import { useResumeHcaRegistration } from "@ensforge/react";
 ```tsx [component.tsx]
 import { useResumeHcaRegistration } from "@ensforge/react";
 
-function Component({
-  parameters,
-}: {
-  parameters: Parameters<ReturnType<typeof useResumeHcaRegistration>["mutate"]>[0];
-}) {
+function Component() {
   const mutation = useResumeHcaRegistration();
+
   return (
-    <button disabled={mutation.isWaiting} onClick={() => mutation.mutate(parameters)}>
-      Run
+    <button
+      disabled={mutation.isWaiting}
+      onClick={() =>
+        mutation.mutate({
+          id: "registration-instance-id",
+        })
+      }
+    >
+      Continue registration
     </button>
   );
 }
@@ -40,19 +47,25 @@ function Component({
 
 :::
 
-## Parameters
+<MutationOptions />
 
-Pass operation parameters to `mutate`, `mutateAsync` or `mutateEffect`. Hook options accept `onExit` and an explicit retry policy.
+## Mutation Parameters
 
 ```ts
-type Input = Parameters<ReturnType<typeof useResumeHcaRegistration>["mutate"]>[0];
+import type { ResumeHcaRegistrationParameters } from "@ensforge/sdk/hca";
 ```
 
 ### limits
 
-`Input["limits"]`
+`HcaRegistrationLimits`
 
 Accepted registration price and per-chain execution fee bounds.
+
+### id
+
+`string`
+
+Saved operation identifier. Start registration can generate it from matching unfinished work.
 
 ### authorization
 
@@ -72,12 +85,6 @@ Protected application reference used to resolve a persistent session signer.
 
 Previously returned or explicitly recovered execution submission.
 
-### id
-
-`string`
-
-Saved operation identifier. Start registration can generate it from matching unfinished work.
-
 ### storage
 
 `WorkflowStorage | HcaRegistrationStorage | undefined`
@@ -96,12 +103,13 @@ Compatible execution adapter. Omit for direct owner execution when supported.
 type Result = ReturnType<typeof useResumeHcaRegistration>;
 ```
 
-The mutation exposes `data`, `error`, `isWaiting`, `result`, execution methods, `reset` and `interrupt`. Interruption stops local work; it does not undo a broadcast or revoke a session. See [Mutation Hooks](/react/guides/mutations).
+<MutationResult />
 
 ## Effect Atom
 
 ```ts
 import { createResumeHcaRegistrationMutationAtom } from "@ensforge/react/atoms";
+import { sdk } from "./client";
 
 const atom = createResumeHcaRegistrationMutationAtom(sdk);
 ```

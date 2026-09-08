@@ -5,6 +5,7 @@ description: Inspect supported account and execution capabilities.
 
 import EffectGuide from "../../../../shared/sdk/effect.mdx";
 import ErrorGuide from "../../../../shared/sdk/error.mdx";
+import RequestGuide from "../../../../shared/sdk/request.mdx";
 
 # getHcaCapabilities
 
@@ -23,12 +24,9 @@ import { Ensforge } from "@ensforge/sdk";
 ```ts [index.ts]
 import { sdk } from "./client";
 
-type Input = Parameters<typeof sdk.hca.getHcaCapabilities>[0];
-const parameters: Input = {
-  hca: "0x0000000000000000000000000000000000000001",
-};
-
-const result = await sdk.hca.getHcaCapabilities(parameters);
+const result = await sdk.hca.getHcaCapabilities({
+  hca: "0x1234567890123456789012345678901234567890",
+});
 ```
 
 ```ts [client.ts]
@@ -40,20 +38,8 @@ const result = await sdk.hca.getHcaCapabilities(parameters);
 ## Parameters
 
 ```ts
-type Input = Parameters<typeof sdk.hca.getHcaCapabilities>[0];
+import type { HcaReadParameters } from "@ensforge/sdk/hca";
 ```
-
-### blockNumber
-
-`bigint | undefined`
-
-Block number to read. Cannot be combined with blockTag.
-
-### blockTag
-
-`BlockTag | undefined`
-
-Named block state to read. Cannot be combined with blockNumber.
 
 ### hca
 
@@ -85,13 +71,32 @@ Implementation used when deriving the account address, including an account that
 
 Allow a counterfactual account after verifying its derivation.
 
+### blockNumber
+
+`bigint | undefined`
+
+Block number to read. Cannot be combined with blockTag.
+
+### blockTag
+
+`BlockTag | undefined`
+
+Named block state to read. Cannot be combined with blockNumber.
+
 ## Return Type
 
 ```ts
-type Result = Awaited<ReturnType<typeof sdk.hca.getHcaCapabilities>>;
+import type { HcaCapabilities } from "@ensforge/sdk/hca";
 ```
 
-Returns `HcaCapabilities`.
+| Property             | Type                 | Description                                  |
+| -------------------- | -------------------- | -------------------------------------------- |
+| `account`            | `VerifiedHcaAccount` | Verified account and deployment details.     |
+| `ownerExecution`     | `true`               | Whether direct owner execution is supported. |
+| `sessionExecution`   | `true`               | Whether session execution is supported.      |
+| `moduleInstallation` | `false`              | Whether module installation is supported.    |
+| `delegatecall`       | `false`              | Whether delegatecall execution is supported. |
+| `reasons`            | `readonly string[]`  | Reasons for unavailable capabilities.        |
 
 ## Effect
 
@@ -100,27 +105,31 @@ Returns `HcaCapabilities`.
 ```ts
 import { Effect } from "effect";
 
-const program = sdk.hca.getHcaCapabilities.effect(parameters);
+const program = sdk.hca.getHcaCapabilities.effect({
+  hca: "0x1234567890123456789012345678901234567890",
+});
+
 type Success = Effect.Success<typeof program>;
 type Failure = Effect.Error<typeof program>;
+
 const result = await Effect.runPromise(program);
 ```
 
 ## Request
 
-```ts
-const request = sdk.hca.getHcaCapabilities.request(parameters);
-```
+<RequestGuide />
 
-Requests compose with ENS read batching.
+```ts
+const request = sdk.hca.getHcaCapabilities.request({
+  hca: "0x1234567890123456789012345678901234567890",
+});
+```
 
 ## Error
 
 <ErrorGuide />
 
-Deployment, account and authorization mismatches remain explicit errors. Reconcile uncertain submissions before retrying a write.
-
-## Related
+## Action
 
 - [`getHcaCapabilities`](/core/api/actions/hca/get-hca-capabilities)
 - [Guide](/core/guides/hca)

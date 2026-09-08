@@ -8,7 +8,7 @@ import ResultGuide from "../../../../../shared/react/suspense-atom-result.mdx";
 
 # useHcaRegistrationSuspense
 
-Inspect/reconcile saved registration Uses the SDK from `EnsforgeProvider`.
+Inspect/reconcile saved registration. Uses the SDK from `EnsforgeProvider`.
 
 ## Import
 
@@ -23,9 +23,13 @@ import { useHcaRegistrationSuspense } from "@ensforge/react";
 ```tsx [component.tsx]
 import { useHcaRegistrationSuspense } from "@ensforge/react";
 
-function Component(parameters: Parameters<typeof useHcaRegistrationSuspense>[0]) {
-  const result = useHcaRegistrationSuspense(parameters);
-  return <p>{result.isWaiting ? "Loading" : "Result available"}</p>;
+function Component() {
+  const result = useHcaRegistrationSuspense({
+    id: "registration-instance-id",
+  });
+
+  // The saved operation includes a commitment secret; only render its status.
+  return <p>{result.data?.progress.status ?? "Loading registration…"}</p>;
 }
 ```
 
@@ -38,7 +42,8 @@ function Component(parameters: Parameters<typeof useHcaRegistrationSuspense>[0])
 ## Parameters
 
 ```ts
-type Input = Parameters<typeof useHcaRegistrationSuspense>[0];
+import type { UseEnsSuspenseAtomParameters } from "@ensforge/react";
+import type { GetHcaRegistrationParameters } from "@ensforge/sdk/hca";
 ```
 
 ### id
@@ -73,6 +78,7 @@ type Result = ReturnType<typeof useHcaRegistrationSuspense>;
 
 ```ts
 import { getHcaRegistrationAtom } from "@ensforge/react/atoms";
+import { sdk } from "./client";
 
 const atom = getHcaRegistrationAtom(sdk, parameters, options);
 ```

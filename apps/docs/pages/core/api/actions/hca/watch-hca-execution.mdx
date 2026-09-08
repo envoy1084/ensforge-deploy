@@ -20,15 +20,23 @@ import { watchHcaExecution } from "@ensforge/core/hca";
 :::code-group
 
 ```ts [index.ts]
-import { watchHcaExecution } from "@ensforge/core/hca";
+import { executeHcaCalls, watchHcaExecution } from "@ensforge/core/hca";
 import { config } from "./config";
 
-type Input = Parameters<typeof watchHcaExecution>[1];
-declare const parameters: Input;
+const submission = await executeHcaCalls(config, {
+  hca: "0x1234567890123456789012345678901234567890",
+  authorization: { kind: "owner" },
+  calls: [{ to: "0x2345678901234567890123456789012345678901", value: 0n, data: "0x" }],
+});
 
-const stop = await watchHcaExecution(config, parameters, onStatus, onError);
-// Stop local observation when the view is disposed.
-stop();
+const stopWatching = await watchHcaExecution(
+  config,
+  { submission },
+  (status) => console.log(status.status),
+  (error) => console.error(error),
+);
+
+// Call stopWatching() when the screen or task is closed.
 ```
 
 ```ts [config.ts]
@@ -40,8 +48,14 @@ stop();
 ## Parameters
 
 ```ts
-type Input = Parameters<typeof watchHcaExecution>[1];
+import type { WaitForHcaExecutionParameters } from "@ensforge/core/hca";
 ```
+
+### submission
+
+`HcaExecutionSubmission<unknown>`
+
+Previously returned or explicitly recovered execution submission.
 
 ### confirmations
 
@@ -67,12 +81,6 @@ Initial status polling interval, in milliseconds.
 
 Upper bound for the status polling interval, in milliseconds.
 
-### submission
-
-`HcaExecutionSubmission<unknown>`
-
-Previously returned or explicitly recovered execution submission.
-
 ### execution
 
 `ExecutionAdapter<unknown, unknown, unknown> | undefined`
@@ -82,7 +90,7 @@ Compatible execution adapter. Omit for direct owner execution when supported.
 ## Return Type
 
 ```ts
-type Result = Awaited<ReturnType<typeof watchHcaExecution>>;
+type WatchHcaExecutionResult = Awaited<ReturnType<typeof watchHcaExecution>>;
 ```
 
 Returns `() => void`.
@@ -90,7 +98,7 @@ Returns `() => void`.
 ## Stream
 
 ```ts
-const stream = watchHcaExecution.stream(config, parameters);
+const stream = watchHcaExecution.stream(config, { submission });
 ```
 
 Observation does not resubmit an operation.
@@ -98,8 +106,6 @@ Observation does not resubmit an operation.
 ## Error
 
 <ErrorGuide />
-
-Deployment, account and authorization mismatches remain explicit errors. Reconcile uncertain submissions before retrying a write.
 
 ## Related
 

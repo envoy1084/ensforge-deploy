@@ -8,7 +8,7 @@ import ResultGuide from "../../../../../shared/react/atom-result.mdx";
 
 # useIsHcaImplementationTrusted
 
-Check trusted implementation membership Uses the SDK from `EnsforgeProvider`.
+Check trusted implementation membership. Uses the SDK from `EnsforgeProvider`.
 
 ## Import
 
@@ -23,9 +23,20 @@ import { useIsHcaImplementationTrusted } from "@ensforge/react";
 ```tsx [component.tsx]
 import { useIsHcaImplementationTrusted } from "@ensforge/react";
 
-function Component(parameters: Parameters<typeof useIsHcaImplementationTrusted>[0]) {
-  const result = useIsHcaImplementationTrusted(parameters);
-  return <p>{result.isWaiting ? "Loading" : "Result available"}</p>;
+function Component() {
+  const result = useIsHcaImplementationTrusted({
+    implementation: "0x5678901234567890123456789012345678901234",
+  });
+
+  return (
+    <pre>
+      {JSON.stringify(
+        result.data,
+        (_, value) => (typeof value === "bigint" ? value.toString() : value),
+        2,
+      )}
+    </pre>
+  );
 }
 ```
 
@@ -37,9 +48,11 @@ function Component(parameters: Parameters<typeof useIsHcaImplementationTrusted>[
 
 ## Parameters
 
-```ts
-type Input = Parameters<typeof useIsHcaImplementationTrusted>[0];
-```
+### implementation
+
+`` `0x${string}` ``
+
+Implementation address to inspect, approve or use for derivation.
 
 ### blockNumber
 
@@ -52,12 +65,6 @@ Block number to read. Cannot be combined with blockTag.
 `BlockTag | undefined`
 
 Named block state to read. Cannot be combined with blockNumber.
-
-### implementation
-
-`` `0x${string}` ``
-
-Implementation address to inspect, approve or use for derivation.
 
 <ParametersGuide />
 
@@ -77,6 +84,7 @@ Use [`useIsHcaImplementationTrustedSuspense`](/react/api/hooks/hca/use-is-hca-im
 
 ```ts
 import { isHcaImplementationTrustedAtom } from "@ensforge/react/atoms";
+import { sdk } from "./client";
 
 const atom = isHcaImplementationTrustedAtom(sdk, parameters, options);
 ```

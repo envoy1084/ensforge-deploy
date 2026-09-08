@@ -24,10 +24,10 @@ import { listWorkflows } from "@ensforge/core";
 import { listWorkflows } from "@ensforge/core";
 import { config } from "./config";
 
-type Input = Parameters<typeof listWorkflows>[1];
-declare const parameters: Input;
-
-const result = await listWorkflows(config, parameters);
+const result = await listWorkflows(config, {
+  status: "pending",
+  limit: 20,
+});
 ```
 
 ```ts [config.ts]
@@ -38,13 +38,9 @@ const result = await listWorkflows(config, parameters);
 
 ## Parameters
 
-```ts
-type Input = Parameters<typeof listWorkflows>[1];
-```
-
 ### walletClient
 
-`Input["walletClient"]`
+`WalletClient | undefined`
 
 Viem wallet override. Defaults to the configured wallet resolver.
 
@@ -75,7 +71,7 @@ Optional pending/completed workflow filter.
 ## Return Type
 
 ```ts
-type Result = Awaited<ReturnType<typeof listWorkflows>>;
+type ListWorkflowsResult = Awaited<ReturnType<typeof listWorkflows>>;
 ```
 
 Returns `{ readonly workflows: readonly { readonly workflowId: string; readonly operation: string; readonly status: "pending" | "completed"; }[]; readonly nextCursor: string | null; }`.
@@ -87,17 +83,20 @@ Returns `{ readonly workflows: readonly { readonly workflowId: string; readonly 
 ```ts
 import { Effect } from "effect";
 
-const program = listWorkflows.effect(config, parameters);
+const program = listWorkflows.effect(config, {
+  status: "pending",
+  limit: 20,
+});
+
 type Success = Effect.Success<typeof program>;
 type Failure = Effect.Error<typeof program>;
+
 const result = await Effect.runPromise(program);
 ```
 
 ## Error
 
 <ErrorGuide />
-
-Deployment, account and authorization mismatches remain explicit errors. Reconcile uncertain submissions before retrying a write.
 
 ## Related
 

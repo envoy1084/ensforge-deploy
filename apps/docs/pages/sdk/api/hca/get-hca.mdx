@@ -6,6 +6,7 @@ description: Inspect the account and deployment state.
 import { ReadActionDemo } from "../../../../components/read-actions/read-action-demo.client.tsx";
 import EffectGuide from "../../../../shared/sdk/effect.mdx";
 import ErrorGuide from "../../../../shared/sdk/error.mdx";
+import RequestGuide from "../../../../shared/sdk/request.mdx";
 
 # getHca
 
@@ -24,12 +25,9 @@ import { Ensforge } from "@ensforge/sdk";
 ```ts [index.ts]
 import { sdk } from "./client";
 
-type Input = Parameters<typeof sdk.hca.getHca>[0];
-const parameters: Input = {
-  hca: "0x0000000000000000000000000000000000000001",
-};
-
-const result = await sdk.hca.getHca(parameters);
+const result = await sdk.hca.getHca({
+  hca: "0x1234567890123456789012345678901234567890",
+});
 ```
 
 ```ts [client.ts]
@@ -43,8 +41,14 @@ const result = await sdk.hca.getHca(parameters);
 ## Parameters
 
 ```ts
-type Input = Parameters<typeof sdk.hca.getHca>[0];
+import type { HcaReadParameters } from "@ensforge/sdk/hca";
 ```
+
+### hca
+
+`` `0x${string}` ``
+
+HCA address to inspect or operate on.
 
 ### blockNumber
 
@@ -58,19 +62,20 @@ Block number to read. Cannot be combined with blockTag.
 
 Named block state to read. Cannot be combined with blockNumber.
 
-### hca
-
-`` `0x${string}` ``
-
-HCA address to inspect or operate on.
-
 ## Return Type
 
 ```ts
-type Result = Awaited<ReturnType<typeof sdk.hca.getHca>>;
+import type { HcaState } from "@ensforge/sdk/hca";
 ```
 
-Returns `HcaState`.
+| Property      | Type                         | Description                            |
+| ------------- | ---------------------------- | -------------------------------------- |
+| `status`      | `"deployed" \| "undeployed"` | Current deployment or execution state. |
+| `address`     | `` `0x${string}` ``          | HCA address.                           |
+| `chainId`     | `number`                     | Chain containing the account.          |
+| `blockNumber` | `bigint`                     | Block used for this read.              |
+
+When `status` is `"deployed"`, the result also contains `owner`, `implementation`, `accountId`, and `sessionNonce`.
 
 ## Effect
 
@@ -79,27 +84,31 @@ Returns `HcaState`.
 ```ts
 import { Effect } from "effect";
 
-const program = sdk.hca.getHca.effect(parameters);
+const program = sdk.hca.getHca.effect({
+  hca: "0x1234567890123456789012345678901234567890",
+});
+
 type Success = Effect.Success<typeof program>;
 type Failure = Effect.Error<typeof program>;
+
 const result = await Effect.runPromise(program);
 ```
 
 ## Request
 
-```ts
-const request = sdk.hca.getHca.request(parameters);
-```
+<RequestGuide />
 
-Requests compose with ENS read batching.
+```ts
+const request = sdk.hca.getHca.request({
+  hca: "0x1234567890123456789012345678901234567890",
+});
+```
 
 ## Error
 
 <ErrorGuide />
 
-Deployment, account and authorization mismatches remain explicit errors. Reconcile uncertain submissions before retrying a write.
-
-## Related
+## Action
 
 - [`getHca`](/core/api/actions/hca/get-hca)
 - [Guide](/core/guides/hca)

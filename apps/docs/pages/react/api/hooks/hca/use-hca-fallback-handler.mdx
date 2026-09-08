@@ -8,7 +8,7 @@ import ResultGuide from "../../../../../shared/react/atom-result.mdx";
 
 # useHcaFallbackHandler
 
-Inspect the handler for a selector Uses the SDK from `EnsforgeProvider`.
+Inspect the handler for a selector. Uses the SDK from `EnsforgeProvider`.
 
 ## Import
 
@@ -23,9 +23,21 @@ import { useHcaFallbackHandler } from "@ensforge/react";
 ```tsx [component.tsx]
 import { useHcaFallbackHandler } from "@ensforge/react";
 
-function Component(parameters: Parameters<typeof useHcaFallbackHandler>[0]) {
-  const result = useHcaFallbackHandler(parameters);
-  return <p>{result.isWaiting ? "Loading" : "Result available"}</p>;
+function Component() {
+  const result = useHcaFallbackHandler({
+    hca: "0x1234567890123456789012345678901234567890",
+    selector: "0xa9059cbb",
+  });
+
+  return (
+    <pre>
+      {JSON.stringify(
+        result.data,
+        (_, value) => (typeof value === "bigint" ? value.toString() : value),
+        2,
+      )}
+    </pre>
+  );
 }
 ```
 
@@ -38,20 +50,9 @@ function Component(parameters: Parameters<typeof useHcaFallbackHandler>[0]) {
 ## Parameters
 
 ```ts
-type Input = Parameters<typeof useHcaFallbackHandler>[0];
+import type { UseEnsAtomParameters } from "@ensforge/react";
+import type { HcaReadParameters } from "@ensforge/sdk/hca";
 ```
-
-### blockNumber
-
-`bigint | undefined`
-
-Block number to read. Cannot be combined with blockTag.
-
-### blockTag
-
-`BlockTag | undefined`
-
-Named block state to read. Cannot be combined with blockNumber.
 
 ### hca
 
@@ -64,6 +65,18 @@ HCA address to inspect or operate on.
 `` `0x${string}` ``
 
 Function selector whose fallback handler is inspected.
+
+### blockNumber
+
+`bigint | undefined`
+
+Block number to read. Cannot be combined with blockTag.
+
+### blockTag
+
+`BlockTag | undefined`
+
+Named block state to read. Cannot be combined with blockNumber.
 
 <ParametersGuide />
 
@@ -83,6 +96,7 @@ Use [`useHcaFallbackHandlerSuspense`](/react/api/hooks/hca/use-hca-fallback-hand
 
 ```ts
 import { getHcaFallbackHandlerAtom } from "@ensforge/react/atoms";
+import { sdk } from "./client";
 
 const atom = getHcaFallbackHandlerAtom(sdk, parameters, options);
 ```

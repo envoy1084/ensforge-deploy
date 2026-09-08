@@ -22,12 +22,19 @@ import { Ensforge } from "@ensforge/sdk";
 ```ts [index.ts]
 import { sdk } from "./client";
 
-type Input = Parameters<typeof sdk.hca.watchHcaExecution>[0];
-declare const parameters: Input;
+const submission = await sdk.hca.executeHcaCalls({
+  hca: "0x1234567890123456789012345678901234567890",
+  authorization: { kind: "owner" },
+  calls: [{ to: "0x2345678901234567890123456789012345678901", value: 0n, data: "0x" }],
+});
 
-const stop = await sdk.hca.watchHcaExecution(parameters, onStatus, onError);
-// Stop local observation when the view is disposed.
-stop();
+const stopWatching = await sdk.hca.watchHcaExecution(
+  { submission },
+  (status) => console.log(status.status),
+  (error) => console.error(error),
+);
+
+// Call stopWatching() when the screen or task is closed.
 ```
 
 ```ts [client.ts]
@@ -39,8 +46,14 @@ stop();
 ## Parameters
 
 ```ts
-type Input = Parameters<typeof sdk.hca.watchHcaExecution>[0];
+import type { WaitForHcaExecutionParameters } from "@ensforge/sdk/hca";
 ```
+
+### submission
+
+`HcaExecutionSubmission<unknown>`
+
+Previously returned or explicitly recovered execution submission.
 
 ### confirmations
 
@@ -66,12 +79,6 @@ Initial status polling interval, in milliseconds.
 
 Upper bound for the status polling interval, in milliseconds.
 
-### submission
-
-`HcaExecutionSubmission<unknown>`
-
-Previously returned or explicitly recovered execution submission.
-
 ### execution
 
 `ExecutionAdapter<unknown, unknown, unknown> | undefined`
@@ -81,7 +88,7 @@ Compatible execution adapter. Omit for direct owner execution when supported.
 ## Return Type
 
 ```ts
-type Result = Awaited<ReturnType<typeof sdk.hca.watchHcaExecution>>;
+type WatchHcaExecutionResult = Awaited<ReturnType<typeof sdk.hca.watchHcaExecution>>;
 ```
 
 Returns `() => void`.
@@ -89,7 +96,7 @@ Returns `() => void`.
 ## Stream
 
 ```ts
-const stream = sdk.hca.watchHcaExecution.stream(parameters);
+const stream = sdk.hca.watchHcaExecution.stream({ submission });
 ```
 
 Observation does not resubmit an operation.
@@ -98,9 +105,7 @@ Observation does not resubmit an operation.
 
 <ErrorGuide />
 
-Deployment, account and authorization mismatches remain explicit errors. Reconcile uncertain submissions before retrying a write.
-
-## Related
+## Action
 
 - [`watchHcaExecution`](/core/api/actions/hca/watch-hca-execution)
 - [Guide](/core/guides/hca)

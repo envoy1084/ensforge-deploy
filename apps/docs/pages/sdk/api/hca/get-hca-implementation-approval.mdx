@@ -5,6 +5,7 @@ description: Check factory implementation approval.
 
 import EffectGuide from "../../../../shared/sdk/effect.mdx";
 import ErrorGuide from "../../../../shared/sdk/error.mdx";
+import RequestGuide from "../../../../shared/sdk/request.mdx";
 
 # getHcaImplementationApproval
 
@@ -23,12 +24,9 @@ import { Ensforge } from "@ensforge/sdk";
 ```ts [index.ts]
 import { sdk } from "./client";
 
-type Input = Parameters<typeof sdk.hca.getHcaImplementationApproval>[0];
-const parameters: Input = {
-  implementation: "0x0000000000000000000000000000000000000001",
-};
-
-const result = await sdk.hca.getHcaImplementationApproval(parameters);
+const result = await sdk.hca.getHcaImplementationApproval({
+  implementation: "0x5678901234567890123456789012345678901234",
+});
 ```
 
 ```ts [client.ts]
@@ -39,9 +37,11 @@ const result = await sdk.hca.getHcaImplementationApproval(parameters);
 
 ## Parameters
 
-```ts
-type Input = Parameters<typeof sdk.hca.getHcaImplementationApproval>[0];
-```
+### implementation
+
+`` `0x${string}` ``
+
+Implementation address to inspect, approve or use for derivation.
 
 ### blockNumber
 
@@ -55,16 +55,12 @@ Block number to read. Cannot be combined with blockTag.
 
 Named block state to read. Cannot be combined with blockNumber.
 
-### implementation
-
-`` `0x${string}` ``
-
-Implementation address to inspect, approve or use for derivation.
-
 ## Return Type
 
 ```ts
-type Result = Awaited<ReturnType<typeof sdk.hca.getHcaImplementationApproval>>;
+type GetHcaImplementationApprovalResult = Awaited<
+  ReturnType<typeof sdk.hca.getHcaImplementationApproval>
+>;
 ```
 
 Returns `boolean`.
@@ -76,27 +72,31 @@ Returns `boolean`.
 ```ts
 import { Effect } from "effect";
 
-const program = sdk.hca.getHcaImplementationApproval.effect(parameters);
+const program = sdk.hca.getHcaImplementationApproval.effect({
+  implementation: "0x5678901234567890123456789012345678901234",
+});
+
 type Success = Effect.Success<typeof program>;
 type Failure = Effect.Error<typeof program>;
+
 const result = await Effect.runPromise(program);
 ```
 
 ## Request
 
-```ts
-const request = sdk.hca.getHcaImplementationApproval.request(parameters);
-```
+<RequestGuide />
 
-Requests compose with ENS read batching.
+```ts
+const request = sdk.hca.getHcaImplementationApproval.request({
+  implementation: "0x5678901234567890123456789012345678901234",
+});
+```
 
 ## Error
 
 <ErrorGuide />
 
-Deployment, account and authorization mismatches remain explicit errors. Reconcile uncertain submissions before retrying a write.
-
-## Related
+## Action
 
 - [`getHcaImplementationApproval`](/core/api/actions/hca/get-hca-implementation-approval)
 - [Guide](/core/guides/hca)

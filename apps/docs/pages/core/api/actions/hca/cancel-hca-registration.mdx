@@ -24,10 +24,9 @@ import { cancelHcaRegistration } from "@ensforge/core/hca";
 import { cancelHcaRegistration } from "@ensforge/core/hca";
 import { config } from "./config";
 
-type Input = Parameters<typeof cancelHcaRegistration>[1];
-declare const parameters: Input;
-
-const result = await cancelHcaRegistration(config, parameters);
+const result = await cancelHcaRegistration(config, {
+  id: "registration-instance-id",
+});
 ```
 
 ```ts [config.ts]
@@ -39,7 +38,7 @@ const result = await cancelHcaRegistration(config, parameters);
 ## Parameters
 
 ```ts
-type Input = Parameters<typeof cancelHcaRegistration>[1];
+import type { GetHcaRegistrationParameters } from "@ensforge/core/hca";
 ```
 
 ### id
@@ -63,29 +62,31 @@ Compatible execution adapter. Omit for direct owner execution when supported.
 ## Return Type
 
 ```ts
-type Result = Awaited<ReturnType<typeof cancelHcaRegistration>>;
+type CancelHcaRegistrationResult = Awaited<ReturnType<typeof cancelHcaRegistration>>;
 ```
 
-Common result properties are shown below. Narrow discriminated unions before accessing status-specific fields.
+Narrow discriminated unions before accessing fields specific to a status or execution route.
 
-- `authorization`: ``{ readonly kind: "owner"; } | { readonly kind: "session"; readonly permissionId: `0x${string}`; readonly enableTransactionHash: `0x${string}`; }``.
-- `id`: `string`.
-- `chainId`: `number`.
-- `owner`: `` `0x${string}` ``.
-- `profileId`: `string`.
-- `salt`: `bigint`.
-- `hca`: `` `0x${string}` ``.
-- `registration`: `Result["registration"]`.
-- `schemaVersion`: `1`.
-- `route`: `{ readonly kind: "owner"; } | { readonly kind: "adapter"; readonly id: string; readonly instanceId: string; }`.
-- `revision`: `number`.
-- `limits`: `Result["limits"]`.
-- `progress`: `Result["progress"]`.
-- `createdAt`: `bigint`.
-- `updatedAt`: `bigint`.
-- `signerReference`: `string | undefined`.
-- `commitmentSubmission`: `Result["commitmentSubmission"]`.
-- `registrationSubmission`: `Result["registrationSubmission"]`.
+| Property                 | Type                                                                                                                                                  |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `authorization`          | ``{ readonly kind: "owner"; } \| { readonly kind: "session"; readonly permissionId: `0x${string}`; readonly enableTransactionHash: `0x${string}`; }`` |
+| `id`                     | `string`                                                                                                                                              |
+| `chainId`                | `number`                                                                                                                                              |
+| `owner`                  | `` `0x${string}` ``                                                                                                                                   |
+| `profileId`              | `string`                                                                                                                                              |
+| `salt`                   | `bigint`                                                                                                                                              |
+| `hca`                    | `` `0x${string}` ``                                                                                                                                   |
+| `registration`           | `CancelHcaRegistrationResult["registration"]`                                                                                                         |
+| `schemaVersion`          | `1`                                                                                                                                                   |
+| `route`                  | `{ readonly kind: "owner"; } \| { readonly kind: "adapter"; readonly id: string; readonly instanceId: string; }`                                      |
+| `revision`               | `number`                                                                                                                                              |
+| `limits`                 | `CancelHcaRegistrationResult["limits"]`                                                                                                               |
+| `progress`               | `CancelHcaRegistrationResult["progress"]`                                                                                                             |
+| `createdAt`              | `bigint`                                                                                                                                              |
+| `updatedAt`              | `bigint`                                                                                                                                              |
+| `signerReference`        | `string \| undefined`                                                                                                                                 |
+| `commitmentSubmission`   | `CancelHcaRegistrationResult["commitmentSubmission"]`                                                                                                 |
+| `registrationSubmission` | `CancelHcaRegistrationResult["registrationSubmission"]`                                                                                               |
 
 Registration results contain a commitment secret. Do not log or render the whole operation. Use [remote progress](/hca/remote) for a public response.
 
@@ -96,17 +97,19 @@ Registration results contain a commitment secret. Do not log or render the whole
 ```ts
 import { Effect } from "effect";
 
-const program = cancelHcaRegistration.effect(config, parameters);
+const program = cancelHcaRegistration.effect(config, {
+  id: "registration-instance-id",
+});
+
 type Success = Effect.Success<typeof program>;
 type Failure = Effect.Error<typeof program>;
+
 const result = await Effect.runPromise(program);
 ```
 
 ## Error
 
 <ErrorGuide />
-
-Deployment, account and authorization mismatches remain explicit errors. Reconcile uncertain submissions before retrying a write.
 
 ## Related
 

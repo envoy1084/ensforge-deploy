@@ -5,6 +5,7 @@ description: Resolve the authorized owner through the account interface.
 
 import EffectGuide from "../../../../../shared/core/effect.mdx";
 import ErrorGuide from "../../../../../shared/core/error.mdx";
+import RequestGuide from "../../../../../shared/core/request.mdx";
 
 # getAuthorizedHcaOwner
 
@@ -24,12 +25,9 @@ import { getAuthorizedHcaOwner } from "@ensforge/core/hca";
 import { getAuthorizedHcaOwner } from "@ensforge/core/hca";
 import { config } from "./config";
 
-type Input = Parameters<typeof getAuthorizedHcaOwner>[1];
-const parameters: Input = {
-  hca: "0x0000000000000000000000000000000000000001",
-};
-
-const result = await getAuthorizedHcaOwner(config, parameters);
+const result = await getAuthorizedHcaOwner(config, {
+  hca: "0x1234567890123456789012345678901234567890",
+});
 ```
 
 ```ts [config.ts]
@@ -41,8 +39,14 @@ const result = await getAuthorizedHcaOwner(config, parameters);
 ## Parameters
 
 ```ts
-type Input = Parameters<typeof getAuthorizedHcaOwner>[1];
+import type { HcaReadParameters } from "@ensforge/core/hca";
 ```
+
+### hca
+
+`` `0x${string}` ``
+
+HCA address to inspect or operate on.
 
 ### blockNumber
 
@@ -56,16 +60,10 @@ Block number to read. Cannot be combined with blockTag.
 
 Named block state to read. Cannot be combined with blockNumber.
 
-### hca
-
-`` `0x${string}` ``
-
-HCA address to inspect or operate on.
-
 ## Return Type
 
 ```ts
-type Result = Awaited<ReturnType<typeof getAuthorizedHcaOwner>>;
+type GetAuthorizedHcaOwnerResult = Awaited<ReturnType<typeof getAuthorizedHcaOwner>>;
 ```
 
 Returns `` `0x${string}` | null ``.
@@ -77,25 +75,29 @@ Returns `` `0x${string}` | null ``.
 ```ts
 import { Effect } from "effect";
 
-const program = getAuthorizedHcaOwner.effect(config, parameters);
+const program = getAuthorizedHcaOwner.effect(config, {
+  hca: "0x1234567890123456789012345678901234567890",
+});
+
 type Success = Effect.Success<typeof program>;
 type Failure = Effect.Error<typeof program>;
+
 const result = await Effect.runPromise(program);
 ```
 
 ## Request
 
-```ts
-const request = getAuthorizedHcaOwner.request(parameters);
-```
+<RequestGuide />
 
-Requests compose with ENS read batching.
+```ts
+const request = getAuthorizedHcaOwner.request({
+  hca: "0x1234567890123456789012345678901234567890",
+});
+```
 
 ## Error
 
 <ErrorGuide />
-
-Deployment, account and authorization mismatches remain explicit errors. Reconcile uncertain submissions before retrying a write.
 
 ## Related
 

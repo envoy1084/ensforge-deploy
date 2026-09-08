@@ -8,7 +8,7 @@ import ResultGuide from "../../../../../shared/react/suspense-atom-result.mdx";
 
 # useHcaImplementationApprovalSuspense
 
-Check factory implementation approval Uses the SDK from `EnsforgeProvider`.
+Check factory implementation approval. Uses the SDK from `EnsforgeProvider`.
 
 ## Import
 
@@ -23,9 +23,20 @@ import { useHcaImplementationApprovalSuspense } from "@ensforge/react";
 ```tsx [component.tsx]
 import { useHcaImplementationApprovalSuspense } from "@ensforge/react";
 
-function Component(parameters: Parameters<typeof useHcaImplementationApprovalSuspense>[0]) {
-  const result = useHcaImplementationApprovalSuspense(parameters);
-  return <p>{result.isWaiting ? "Loading" : "Result available"}</p>;
+function Component() {
+  const result = useHcaImplementationApprovalSuspense({
+    implementation: "0x5678901234567890123456789012345678901234",
+  });
+
+  return (
+    <pre>
+      {JSON.stringify(
+        result.data,
+        (_, value) => (typeof value === "bigint" ? value.toString() : value),
+        2,
+      )}
+    </pre>
+  );
 }
 ```
 
@@ -37,9 +48,11 @@ function Component(parameters: Parameters<typeof useHcaImplementationApprovalSus
 
 ## Parameters
 
-```ts
-type Input = Parameters<typeof useHcaImplementationApprovalSuspense>[0];
-```
+### implementation
+
+`` `0x${string}` ``
+
+Implementation address to inspect, approve or use for derivation.
 
 ### blockNumber
 
@@ -52,12 +65,6 @@ Block number to read. Cannot be combined with blockTag.
 `BlockTag | undefined`
 
 Named block state to read. Cannot be combined with blockNumber.
-
-### implementation
-
-`` `0x${string}` ``
-
-Implementation address to inspect, approve or use for derivation.
 
 <ParametersGuide />
 
@@ -73,6 +80,7 @@ type Result = ReturnType<typeof useHcaImplementationApprovalSuspense>;
 
 ```ts
 import { getHcaImplementationApprovalAtom } from "@ensforge/react/atoms";
+import { sdk } from "./client";
 
 const atom = getHcaImplementationApprovalAtom(sdk, parameters, options);
 ```

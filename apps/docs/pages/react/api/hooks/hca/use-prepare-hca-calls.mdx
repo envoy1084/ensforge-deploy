@@ -3,9 +3,12 @@ title: usePrepareHcaCalls
 description: Validate raw calls or ENS intents into an HCA plan
 ---
 
+import MutationOptions from "../../../../../shared/react/mutation-options.mdx";
+import MutationResult from "../../../../../shared/react/mutation-result.mdx";
+
 # usePrepareHcaCalls
 
-Validate raw calls or ENS intents into an HCA plan Uses the SDK from `EnsforgeProvider`.
+Validate raw calls or ENS intents into an HCA plan. Uses the SDK from `EnsforgeProvider`.
 
 ## Import
 
@@ -20,15 +23,21 @@ import { usePrepareHcaCalls } from "@ensforge/react";
 ```tsx [component.tsx]
 import { usePrepareHcaCalls } from "@ensforge/react";
 
-function Component({
-  parameters,
-}: {
-  parameters: Parameters<ReturnType<typeof usePrepareHcaCalls>["mutate"]>[0];
-}) {
+function Component() {
   const mutation = usePrepareHcaCalls();
+
   return (
-    <button disabled={mutation.isWaiting} onClick={() => mutation.mutate(parameters)}>
-      Run
+    <button
+      disabled={mutation.isWaiting}
+      onClick={() =>
+        mutation.mutate({
+          hca: "0x1234567890123456789012345678901234567890",
+          authorization: { kind: "owner" },
+          calls: [{ to: "0x2345678901234567890123456789012345678901", value: 0n, data: "0x" }],
+        })
+      }
+    >
+      Submit
     </button>
   );
 }
@@ -40,13 +49,25 @@ function Component({
 
 :::
 
-## Parameters
+<MutationOptions />
 
-Pass operation parameters to `mutate`, `mutateAsync` or `mutateEffect`. Hook options accept `onExit` and an explicit retry policy.
+## Mutation Parameters
 
 ```ts
-type Input = Parameters<ReturnType<typeof usePrepareHcaCalls>["mutate"]>[0];
+import type { PrepareHcaCallsParameters } from "@ensforge/sdk/hca";
 ```
+
+### hca
+
+`` `0x${string}` ``
+
+HCA address to inspect or operate on.
+
+### authorization
+
+`HcaAuthorization`
+
+Owner authorization or an enabled destination session.
 
 ### counterfactualOwner
 
@@ -66,23 +87,11 @@ Optional caller correlation identifier for execution tracking.
 
 Capabilities that the execution route must support.
 
-### hca
-
-`` `0x${string}` ``
-
-HCA address to inspect or operate on.
-
 ### salt
 
 `bigint | undefined`
 
 Account derivation salt. Defaults to the deployment profile canonical salt.
-
-### authorization
-
-`HcaAuthorization`
-
-Owner authorization or an enabled destination session.
 
 ### calls
 
@@ -92,7 +101,7 @@ Ordered raw contract calls or supported ENS .call intents.
 
 ### walletClient
 
-`Input["walletClient"]`
+`WalletClient | undefined`
 
 Viem wallet override. Defaults to the configured wallet resolver.
 
@@ -108,12 +117,13 @@ Wallet account override for the operation.
 type Result = ReturnType<typeof usePrepareHcaCalls>;
 ```
 
-The mutation exposes `data`, `error`, `isWaiting`, `result`, execution methods, `reset` and `interrupt`. Interruption stops local work; it does not undo a broadcast or revoke a session. See [Mutation Hooks](/react/guides/mutations).
+<MutationResult />
 
 ## Effect Atom
 
 ```ts
 import { createPrepareHcaCallsMutationAtom } from "@ensforge/react/atoms";
+import { sdk } from "./client";
 
 const atom = createPrepareHcaCallsMutationAtom(sdk);
 ```

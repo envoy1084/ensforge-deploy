@@ -23,9 +23,20 @@ import { useWorkflow } from "@ensforge/react";
 ```tsx [component.tsx]
 import { useWorkflow } from "@ensforge/react";
 
-function Component(parameters: Parameters<typeof useWorkflow>[0]) {
-  const result = useWorkflow(parameters);
-  return <p>{result.isWaiting ? "Loading" : "Result available"}</p>;
+function Component() {
+  const result = useWorkflow({
+    workflowId: "saved-workflow-id",
+  });
+
+  return (
+    <pre>
+      {JSON.stringify(
+        result.data,
+        (_, value) => (typeof value === "bigint" ? value.toString() : value),
+        2,
+      )}
+    </pre>
+  );
 }
 ```
 
@@ -37,13 +48,15 @@ function Component(parameters: Parameters<typeof useWorkflow>[0]) {
 
 ## Parameters
 
-```ts
-type Input = Parameters<typeof useWorkflow>[0];
-```
+### workflowId
+
+`string`
+
+Existing saved workflow instance ID.
 
 ### walletClient
 
-`Input["walletClient"]`
+`WalletClient | undefined`
 
 Viem wallet override. Defaults to the configured wallet resolver.
 
@@ -52,12 +65,6 @@ Viem wallet override. Defaults to the configured wallet resolver.
 `` `0x${string}` | Account | undefined ``
 
 Wallet account override for the operation.
-
-### workflowId
-
-`string`
-
-Existing saved workflow instance ID.
 
 <ParametersGuide />
 
@@ -73,6 +80,7 @@ type Result = ReturnType<typeof useWorkflow>;
 
 ```ts
 import { getWorkflowAtom } from "@ensforge/react/atoms";
+import { sdk } from "./client";
 
 const atom = getWorkflowAtom(sdk, parameters, options);
 ```

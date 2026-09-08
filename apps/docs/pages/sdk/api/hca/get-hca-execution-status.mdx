@@ -5,6 +5,7 @@ description: Reconcile a tracking reference.
 
 import EffectGuide from "../../../../shared/sdk/effect.mdx";
 import ErrorGuide from "../../../../shared/sdk/error.mdx";
+import RequestGuide from "../../../../shared/sdk/request.mdx";
 
 # getHcaExecutionStatus
 
@@ -23,10 +24,15 @@ import { Ensforge } from "@ensforge/sdk";
 ```ts [index.ts]
 import { sdk } from "./client";
 
-type Input = Parameters<typeof sdk.hca.getHcaExecutionStatus>[0];
-declare const parameters: Input;
+const submission = await sdk.hca.executeHcaCalls({
+  hca: "0x1234567890123456789012345678901234567890",
+  authorization: { kind: "owner" },
+  calls: [{ to: "0x2345678901234567890123456789012345678901", value: 0n, data: "0x" }],
+});
 
-const result = await sdk.hca.getHcaExecutionStatus(parameters);
+const result = await sdk.hca.getHcaExecutionStatus({
+  submission,
+});
 ```
 
 ```ts [client.ts]
@@ -38,7 +44,7 @@ const result = await sdk.hca.getHcaExecutionStatus(parameters);
 ## Parameters
 
 ```ts
-type Input = Parameters<typeof sdk.hca.getHcaExecutionStatus>[0];
+import type { HcaExecutionStatusParameters } from "@ensforge/sdk/hca";
 ```
 
 ### submission
@@ -56,10 +62,8 @@ Compatible execution adapter. Omit for direct owner execution when supported.
 ## Return Type
 
 ```ts
-type Result = Awaited<ReturnType<typeof sdk.hca.getHcaExecutionStatus>>;
+import type { HcaExecutionStatus } from "@ensforge/sdk/hca";
 ```
-
-Returns `HcaExecutionStatus`.
 
 ## Effect
 
@@ -68,27 +72,31 @@ Returns `HcaExecutionStatus`.
 ```ts
 import { Effect } from "effect";
 
-const program = sdk.hca.getHcaExecutionStatus.effect(parameters);
+const program = sdk.hca.getHcaExecutionStatus.effect({
+  submission,
+});
+
 type Success = Effect.Success<typeof program>;
 type Failure = Effect.Error<typeof program>;
+
 const result = await Effect.runPromise(program);
 ```
 
 ## Request
 
-```ts
-const request = sdk.hca.getHcaExecutionStatus.request(parameters);
-```
+<RequestGuide />
 
-Requests compose with ENS read batching.
+```ts
+const request = sdk.hca.getHcaExecutionStatus.request({
+  submission,
+});
+```
 
 ## Error
 
 <ErrorGuide />
 
-Deployment, account and authorization mismatches remain explicit errors. Reconcile uncertain submissions before retrying a write.
-
-## Related
+## Action
 
 - [`getHcaExecutionStatus`](/core/api/actions/hca/get-hca-execution-status)
 - [Guide](/core/guides/hca)

@@ -5,6 +5,7 @@ description: Read an EntryPoint nonce for a nonce key.
 
 import EffectGuide from "../../../../../shared/core/effect.mdx";
 import ErrorGuide from "../../../../../shared/core/error.mdx";
+import RequestGuide from "../../../../../shared/core/request.mdx";
 
 # getHcaNonce
 
@@ -24,13 +25,10 @@ import { getHcaNonce } from "@ensforge/core/hca";
 import { getHcaNonce } from "@ensforge/core/hca";
 import { config } from "./config";
 
-type Input = Parameters<typeof getHcaNonce>[1];
-const parameters: Input = {
-  hca: "0x0000000000000000000000000000000000000001",
+const result = await getHcaNonce(config, {
+  hca: "0x1234567890123456789012345678901234567890",
   key: 0n,
-};
-
-const result = await getHcaNonce(config, parameters);
+});
 ```
 
 ```ts [config.ts]
@@ -42,20 +40,8 @@ const result = await getHcaNonce(config, parameters);
 ## Parameters
 
 ```ts
-type Input = Parameters<typeof getHcaNonce>[1];
+import type { HcaReadParameters } from "@ensforge/core/hca";
 ```
-
-### blockNumber
-
-`bigint | undefined`
-
-Block number to read. Cannot be combined with blockTag.
-
-### blockTag
-
-`BlockTag | undefined`
-
-Named block state to read. Cannot be combined with blockNumber.
 
 ### hca
 
@@ -69,10 +55,22 @@ HCA address to inspect or operate on.
 
 EntryPoint nonce key.
 
+### blockNumber
+
+`bigint | undefined`
+
+Block number to read. Cannot be combined with blockTag.
+
+### blockTag
+
+`BlockTag | undefined`
+
+Named block state to read. Cannot be combined with blockNumber.
+
 ## Return Type
 
 ```ts
-type Result = Awaited<ReturnType<typeof getHcaNonce>>;
+type GetHcaNonceResult = Awaited<ReturnType<typeof getHcaNonce>>;
 ```
 
 Returns `bigint`.
@@ -84,25 +82,31 @@ Returns `bigint`.
 ```ts
 import { Effect } from "effect";
 
-const program = getHcaNonce.effect(config, parameters);
+const program = getHcaNonce.effect(config, {
+  hca: "0x1234567890123456789012345678901234567890",
+  key: 0n,
+});
+
 type Success = Effect.Success<typeof program>;
 type Failure = Effect.Error<typeof program>;
+
 const result = await Effect.runPromise(program);
 ```
 
 ## Request
 
-```ts
-const request = getHcaNonce.request(parameters);
-```
+<RequestGuide />
 
-Requests compose with ENS read batching.
+```ts
+const request = getHcaNonce.request({
+  hca: "0x1234567890123456789012345678901234567890",
+  key: 0n,
+});
+```
 
 ## Error
 
 <ErrorGuide />
-
-Deployment, account and authorization mismatches remain explicit errors. Reconcile uncertain submissions before retrying a write.
 
 ## Related
 

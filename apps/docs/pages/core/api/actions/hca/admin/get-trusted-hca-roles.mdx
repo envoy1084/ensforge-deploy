@@ -5,6 +5,7 @@ description: Read resource roles on a trusted HCA set.
 
 import EffectGuide from "../../../../../../shared/core/effect.mdx";
 import ErrorGuide from "../../../../../../shared/core/error.mdx";
+import RequestGuide from "../../../../../../shared/core/request.mdx";
 
 # getTrustedHcaRoles
 
@@ -24,10 +25,9 @@ import { getTrustedHcaRoles } from "@ensforge/core/hca/admin";
 import { getTrustedHcaRoles } from "@ensforge/core/hca/admin";
 import { config } from "./config";
 
-type Input = Parameters<typeof getTrustedHcaRoles>[1];
-declare const parameters: Input;
-
-const result = await getTrustedHcaRoles(config, parameters);
+const result = await getTrustedHcaRoles(config, {
+  assignee: "0x2345678901234567890123456789012345678901",
+});
 ```
 
 ```ts [config.ts]
@@ -39,22 +39,6 @@ const result = await getTrustedHcaRoles(config, parameters);
 This targets HCA governance contracts. It does not transfer or renounce the immutable account owner.
 
 ## Parameters
-
-```ts
-type Input = Parameters<typeof getTrustedHcaRoles>[1];
-```
-
-### blockNumber
-
-`bigint | undefined`
-
-Block number to read. Cannot be combined with blockTag.
-
-### blockTag
-
-`BlockTag | undefined`
-
-Named block state to read. Cannot be combined with blockNumber.
 
 ### assignee
 
@@ -68,10 +52,22 @@ Address whose resource roles are read, granted or revoked.
 
 Resource identifier for the role operation.
 
+### blockNumber
+
+`bigint | undefined`
+
+Block number to read. Cannot be combined with blockTag.
+
+### blockTag
+
+`BlockTag | undefined`
+
+Named block state to read. Cannot be combined with blockNumber.
+
 ## Return Type
 
 ```ts
-type Result = Awaited<ReturnType<typeof getTrustedHcaRoles>>;
+type GetTrustedHcaRolesResult = Awaited<ReturnType<typeof getTrustedHcaRoles>>;
 ```
 
 Returns `bigint`.
@@ -83,25 +79,29 @@ Returns `bigint`.
 ```ts
 import { Effect } from "effect";
 
-const program = getTrustedHcaRoles.effect(config, parameters);
+const program = getTrustedHcaRoles.effect(config, {
+  assignee: "0x2345678901234567890123456789012345678901",
+});
+
 type Success = Effect.Success<typeof program>;
 type Failure = Effect.Error<typeof program>;
+
 const result = await Effect.runPromise(program);
 ```
 
 ## Request
 
-```ts
-const request = getTrustedHcaRoles.request(parameters);
-```
+<RequestGuide />
 
-Requests compose with ENS read batching.
+```ts
+const request = getTrustedHcaRoles.request({
+  assignee: "0x2345678901234567890123456789012345678901",
+});
+```
 
 ## Error
 
 <ErrorGuide />
-
-Deployment, account and authorization mismatches remain explicit errors. Reconcile uncertain submissions before retrying a write.
 
 ## Related
 

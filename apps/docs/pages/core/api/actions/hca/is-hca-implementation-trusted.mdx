@@ -5,6 +5,7 @@ description: Check trusted implementation membership.
 
 import EffectGuide from "../../../../../shared/core/effect.mdx";
 import ErrorGuide from "../../../../../shared/core/error.mdx";
+import RequestGuide from "../../../../../shared/core/request.mdx";
 
 # isHcaImplementationTrusted
 
@@ -24,12 +25,9 @@ import { isHcaImplementationTrusted } from "@ensforge/core/hca";
 import { isHcaImplementationTrusted } from "@ensforge/core/hca";
 import { config } from "./config";
 
-type Input = Parameters<typeof isHcaImplementationTrusted>[1];
-const parameters: Input = {
-  implementation: "0x0000000000000000000000000000000000000001",
-};
-
-const result = await isHcaImplementationTrusted(config, parameters);
+const result = await isHcaImplementationTrusted(config, {
+  implementation: "0x5678901234567890123456789012345678901234",
+});
 ```
 
 ```ts [config.ts]
@@ -40,9 +38,11 @@ const result = await isHcaImplementationTrusted(config, parameters);
 
 ## Parameters
 
-```ts
-type Input = Parameters<typeof isHcaImplementationTrusted>[1];
-```
+### implementation
+
+`` `0x${string}` ``
+
+Implementation address to inspect, approve or use for derivation.
 
 ### blockNumber
 
@@ -56,16 +56,10 @@ Block number to read. Cannot be combined with blockTag.
 
 Named block state to read. Cannot be combined with blockNumber.
 
-### implementation
-
-`` `0x${string}` ``
-
-Implementation address to inspect, approve or use for derivation.
-
 ## Return Type
 
 ```ts
-type Result = Awaited<ReturnType<typeof isHcaImplementationTrusted>>;
+type IsHcaImplementationTrustedResult = Awaited<ReturnType<typeof isHcaImplementationTrusted>>;
 ```
 
 Returns `boolean`.
@@ -77,25 +71,29 @@ Returns `boolean`.
 ```ts
 import { Effect } from "effect";
 
-const program = isHcaImplementationTrusted.effect(config, parameters);
+const program = isHcaImplementationTrusted.effect(config, {
+  implementation: "0x5678901234567890123456789012345678901234",
+});
+
 type Success = Effect.Success<typeof program>;
 type Failure = Effect.Error<typeof program>;
+
 const result = await Effect.runPromise(program);
 ```
 
 ## Request
 
-```ts
-const request = isHcaImplementationTrusted.request(parameters);
-```
+<RequestGuide />
 
-Requests compose with ENS read batching.
+```ts
+const request = isHcaImplementationTrusted.request({
+  implementation: "0x5678901234567890123456789012345678901234",
+});
+```
 
 ## Error
 
 <ErrorGuide />
-
-Deployment, account and authorization mismatches remain explicit errors. Reconcile uncertain submissions before retrying a write.
 
 ## Related
 

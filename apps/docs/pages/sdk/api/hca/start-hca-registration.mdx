@@ -23,10 +23,18 @@ import { Ensforge } from "@ensforge/sdk";
 ```ts [index.ts]
 import { sdk } from "./client";
 
-type Input = Parameters<typeof sdk.hca.startHcaRegistration>[0];
-declare const parameters: Input;
-
-const result = await sdk.hca.startHcaRegistration(parameters);
+const result = await sdk.hca.startHcaRegistration({
+  hca: "0x1234567890123456789012345678901234567890",
+  name: "example.eth",
+  duration: 31_536_000n,
+  resolver: "0x3456789012345678901234567890123456789012",
+  paymentToken: "0x4567890123456789012345678901234567890123",
+  authorization: { kind: "owner" },
+  limits: {
+    registrationPrice: 10_000_000n,
+    fees: [],
+  },
+});
 ```
 
 ```ts [client.ts]
@@ -38,26 +46,14 @@ const result = await sdk.hca.startHcaRegistration(parameters);
 ## Parameters
 
 ```ts
-type Input = Parameters<typeof sdk.hca.startHcaRegistration>[0];
+import type { StartHcaRegistrationParameters } from "@ensforge/sdk/hca";
 ```
-
-### id
-
-`string | undefined`
-
-Saved operation identifier. Start registration can generate it from matching unfinished work.
 
 ### hca
 
 `` `0x${string}` ``
 
 HCA address to inspect or operate on.
-
-### salt
-
-`bigint | undefined`
-
-Account derivation salt. Defaults to the deployment profile canonical salt.
 
 ### name
 
@@ -83,6 +79,30 @@ Resolver address used by the registration or session policy.
 
 Registration payment token. Amounts use its base units.
 
+### authorization
+
+``{ readonly kind: "owner"; } | { readonly kind: "session"; readonly permissionId: `0x${string}`; readonly enableTransactionHash: `0x${string}`; }``
+
+Owner authorization or an enabled destination session.
+
+### limits
+
+`HcaRegistrationLimits`
+
+Accepted registration price and per-chain execution fee bounds.
+
+### id
+
+`string | undefined`
+
+Saved operation identifier. Start registration can generate it from matching unfinished work.
+
+### salt
+
+`bigint | undefined`
+
+Account derivation salt. Defaults to the deployment profile canonical salt.
+
 ### subregistry
 
 `` `0x${string}` | undefined ``
@@ -101,23 +121,11 @@ Protocol referral identifier.
 
 Whether to include the supported primary-name operation.
 
-### authorization
-
-``{ readonly kind: "owner"; } | { readonly kind: "session"; readonly permissionId: `0x${string}`; readonly enableTransactionHash: `0x${string}`; }``
-
-Owner authorization or an enabled destination session.
-
 ### signerReference
 
 `string | undefined`
 
 Protected application reference used to resolve a persistent session signer.
-
-### limits
-
-`Input["limits"]`
-
-Accepted registration price and per-chain execution fee bounds.
 
 ### storage
 
@@ -134,29 +142,31 @@ Compatible execution adapter. Omit for direct owner execution when supported.
 ## Return Type
 
 ```ts
-type Result = Awaited<ReturnType<typeof sdk.hca.startHcaRegistration>>;
+type StartHcaRegistrationResult = Awaited<ReturnType<typeof sdk.hca.startHcaRegistration>>;
 ```
 
-Common result properties are shown below. Narrow discriminated unions before accessing status-specific fields.
+Narrow discriminated unions before accessing fields specific to a status or execution route.
 
-- `authorization`: ``{ readonly kind: "owner"; } | { readonly kind: "session"; readonly permissionId: `0x${string}`; readonly enableTransactionHash: `0x${string}`; }``.
-- `id`: `string`.
-- `chainId`: `number`.
-- `owner`: `` `0x${string}` ``.
-- `profileId`: `string`.
-- `salt`: `bigint`.
-- `hca`: `` `0x${string}` ``.
-- `registration`: `Result["registration"]`.
-- `schemaVersion`: `1`.
-- `route`: `{ readonly kind: "owner"; } | { readonly kind: "adapter"; readonly id: string; readonly instanceId: string; }`.
-- `revision`: `number`.
-- `limits`: `Result["limits"]`.
-- `progress`: `Result["progress"]`.
-- `createdAt`: `bigint`.
-- `updatedAt`: `bigint`.
-- `signerReference`: `string | undefined`.
-- `commitmentSubmission`: `Result["commitmentSubmission"]`.
-- `registrationSubmission`: `Result["registrationSubmission"]`.
+| Property                 | Type                                                                                                                                                  |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `authorization`          | ``{ readonly kind: "owner"; } \| { readonly kind: "session"; readonly permissionId: `0x${string}`; readonly enableTransactionHash: `0x${string}`; }`` |
+| `id`                     | `string`                                                                                                                                              |
+| `chainId`                | `number`                                                                                                                                              |
+| `owner`                  | `` `0x${string}` ``                                                                                                                                   |
+| `profileId`              | `string`                                                                                                                                              |
+| `salt`                   | `bigint`                                                                                                                                              |
+| `hca`                    | `` `0x${string}` ``                                                                                                                                   |
+| `registration`           | `StartHcaRegistrationResult["registration"]`                                                                                                          |
+| `schemaVersion`          | `1`                                                                                                                                                   |
+| `route`                  | `{ readonly kind: "owner"; } \| { readonly kind: "adapter"; readonly id: string; readonly instanceId: string; }`                                      |
+| `revision`               | `number`                                                                                                                                              |
+| `limits`                 | `StartHcaRegistrationResult["limits"]`                                                                                                                |
+| `progress`               | `StartHcaRegistrationResult["progress"]`                                                                                                              |
+| `createdAt`              | `bigint`                                                                                                                                              |
+| `updatedAt`              | `bigint`                                                                                                                                              |
+| `signerReference`        | `string \| undefined`                                                                                                                                 |
+| `commitmentSubmission`   | `StartHcaRegistrationResult["commitmentSubmission"]`                                                                                                  |
+| `registrationSubmission` | `StartHcaRegistrationResult["registrationSubmission"]`                                                                                                |
 
 Registration results contain a commitment secret. Do not log or render the whole operation. Use [remote progress](/hca/remote) for a public response.
 
@@ -167,9 +177,22 @@ Registration results contain a commitment secret. Do not log or render the whole
 ```ts
 import { Effect } from "effect";
 
-const program = sdk.hca.startHcaRegistration.effect(parameters);
+const program = sdk.hca.startHcaRegistration.effect({
+  hca: "0x1234567890123456789012345678901234567890",
+  name: "example.eth",
+  duration: 31_536_000n,
+  resolver: "0x3456789012345678901234567890123456789012",
+  paymentToken: "0x4567890123456789012345678901234567890123",
+  authorization: { kind: "owner" },
+  limits: {
+    registrationPrice: 10_000_000n,
+    fees: [],
+  },
+});
+
 type Success = Effect.Success<typeof program>;
 type Failure = Effect.Error<typeof program>;
+
 const result = await Effect.runPromise(program);
 ```
 
@@ -177,9 +200,7 @@ const result = await Effect.runPromise(program);
 
 <ErrorGuide />
 
-Deployment, account and authorization mismatches remain explicit errors. Reconcile uncertain submissions before retrying a write.
-
-## Related
+## Action
 
 - [`startHcaRegistration`](/core/api/actions/hca/start-hca-registration)
 - [Guide](/core/guides/hca-registration)

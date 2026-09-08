@@ -5,6 +5,7 @@ description: Check trusted implementation membership.
 
 import EffectGuide from "../../../../shared/sdk/effect.mdx";
 import ErrorGuide from "../../../../shared/sdk/error.mdx";
+import RequestGuide from "../../../../shared/sdk/request.mdx";
 
 # isHcaImplementationTrusted
 
@@ -23,12 +24,9 @@ import { Ensforge } from "@ensforge/sdk";
 ```ts [index.ts]
 import { sdk } from "./client";
 
-type Input = Parameters<typeof sdk.hca.isHcaImplementationTrusted>[0];
-const parameters: Input = {
-  implementation: "0x0000000000000000000000000000000000000001",
-};
-
-const result = await sdk.hca.isHcaImplementationTrusted(parameters);
+const result = await sdk.hca.isHcaImplementationTrusted({
+  implementation: "0x5678901234567890123456789012345678901234",
+});
 ```
 
 ```ts [client.ts]
@@ -39,9 +37,11 @@ const result = await sdk.hca.isHcaImplementationTrusted(parameters);
 
 ## Parameters
 
-```ts
-type Input = Parameters<typeof sdk.hca.isHcaImplementationTrusted>[0];
-```
+### implementation
+
+`` `0x${string}` ``
+
+Implementation address to inspect, approve or use for derivation.
 
 ### blockNumber
 
@@ -55,16 +55,12 @@ Block number to read. Cannot be combined with blockTag.
 
 Named block state to read. Cannot be combined with blockNumber.
 
-### implementation
-
-`` `0x${string}` ``
-
-Implementation address to inspect, approve or use for derivation.
-
 ## Return Type
 
 ```ts
-type Result = Awaited<ReturnType<typeof sdk.hca.isHcaImplementationTrusted>>;
+type IsHcaImplementationTrustedResult = Awaited<
+  ReturnType<typeof sdk.hca.isHcaImplementationTrusted>
+>;
 ```
 
 Returns `boolean`.
@@ -76,27 +72,31 @@ Returns `boolean`.
 ```ts
 import { Effect } from "effect";
 
-const program = sdk.hca.isHcaImplementationTrusted.effect(parameters);
+const program = sdk.hca.isHcaImplementationTrusted.effect({
+  implementation: "0x5678901234567890123456789012345678901234",
+});
+
 type Success = Effect.Success<typeof program>;
 type Failure = Effect.Error<typeof program>;
+
 const result = await Effect.runPromise(program);
 ```
 
 ## Request
 
-```ts
-const request = sdk.hca.isHcaImplementationTrusted.request(parameters);
-```
+<RequestGuide />
 
-Requests compose with ENS read batching.
+```ts
+const request = sdk.hca.isHcaImplementationTrusted.request({
+  implementation: "0x5678901234567890123456789012345678901234",
+});
+```
 
 ## Error
 
 <ErrorGuide />
 
-Deployment, account and authorization mismatches remain explicit errors. Reconcile uncertain submissions before retrying a write.
-
-## Related
+## Action
 
 - [`isHcaImplementationTrusted`](/core/api/actions/hca/is-hca-implementation-trusted)
 - [Guide](/core/guides/hca)

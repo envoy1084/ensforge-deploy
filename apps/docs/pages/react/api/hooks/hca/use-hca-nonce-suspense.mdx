@@ -8,7 +8,7 @@ import ResultGuide from "../../../../../shared/react/suspense-atom-result.mdx";
 
 # useHcaNonceSuspense
 
-Read an EntryPoint nonce for a nonce key Uses the SDK from `EnsforgeProvider`.
+Read an EntryPoint nonce for a nonce key. Uses the SDK from `EnsforgeProvider`.
 
 ## Import
 
@@ -23,9 +23,21 @@ import { useHcaNonceSuspense } from "@ensforge/react";
 ```tsx [component.tsx]
 import { useHcaNonceSuspense } from "@ensforge/react";
 
-function Component(parameters: Parameters<typeof useHcaNonceSuspense>[0]) {
-  const result = useHcaNonceSuspense(parameters);
-  return <p>{result.isWaiting ? "Loading" : "Result available"}</p>;
+function Component() {
+  const result = useHcaNonceSuspense({
+    hca: "0x1234567890123456789012345678901234567890",
+    key: 0n,
+  });
+
+  return (
+    <pre>
+      {JSON.stringify(
+        result.data,
+        (_, value) => (typeof value === "bigint" ? value.toString() : value),
+        2,
+      )}
+    </pre>
+  );
 }
 ```
 
@@ -38,20 +50,9 @@ function Component(parameters: Parameters<typeof useHcaNonceSuspense>[0]) {
 ## Parameters
 
 ```ts
-type Input = Parameters<typeof useHcaNonceSuspense>[0];
+import type { UseEnsSuspenseAtomParameters } from "@ensforge/react";
+import type { HcaReadParameters } from "@ensforge/sdk/hca";
 ```
-
-### blockNumber
-
-`bigint | undefined`
-
-Block number to read. Cannot be combined with blockTag.
-
-### blockTag
-
-`BlockTag | undefined`
-
-Named block state to read. Cannot be combined with blockNumber.
 
 ### hca
 
@@ -64,6 +65,18 @@ HCA address to inspect or operate on.
 `bigint`
 
 EntryPoint nonce key.
+
+### blockNumber
+
+`bigint | undefined`
+
+Block number to read. Cannot be combined with blockTag.
+
+### blockTag
+
+`BlockTag | undefined`
+
+Named block state to read. Cannot be combined with blockNumber.
 
 <ParametersGuide />
 
@@ -79,6 +92,7 @@ type Result = ReturnType<typeof useHcaNonceSuspense>;
 
 ```ts
 import { getHcaNonceAtom } from "@ensforge/react/atoms";
+import { sdk } from "./client";
 
 const atom = getHcaNonceAtom(sdk, parameters, options);
 ```

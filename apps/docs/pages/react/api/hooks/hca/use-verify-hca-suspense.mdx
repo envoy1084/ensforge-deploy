@@ -8,7 +8,7 @@ import ResultGuide from "../../../../../shared/react/suspense-atom-result.mdx";
 
 # useVerifyHcaSuspense
 
-Verify account identity, profile, ownership and deployment wiring Uses the SDK from `EnsforgeProvider`.
+Verify account identity, profile, ownership and deployment wiring. Uses the SDK from `EnsforgeProvider`.
 
 ## Import
 
@@ -23,9 +23,20 @@ import { useVerifyHcaSuspense } from "@ensforge/react";
 ```tsx [component.tsx]
 import { useVerifyHcaSuspense } from "@ensforge/react";
 
-function Component(parameters: Parameters<typeof useVerifyHcaSuspense>[0]) {
-  const result = useVerifyHcaSuspense(parameters);
-  return <p>{result.isWaiting ? "Loading" : "Result available"}</p>;
+function Component() {
+  const result = useVerifyHcaSuspense({
+    hca: "0x1234567890123456789012345678901234567890",
+  });
+
+  return (
+    <pre>
+      {JSON.stringify(
+        result.data,
+        (_, value) => (typeof value === "bigint" ? value.toString() : value),
+        2,
+      )}
+    </pre>
+  );
 }
 ```
 
@@ -38,20 +49,9 @@ function Component(parameters: Parameters<typeof useVerifyHcaSuspense>[0]) {
 ## Parameters
 
 ```ts
-type Input = Parameters<typeof useVerifyHcaSuspense>[0];
+import type { UseEnsSuspenseAtomParameters } from "@ensforge/react";
+import type { VerifyHcaParameters } from "@ensforge/sdk/hca";
 ```
-
-### blockNumber
-
-`bigint | undefined`
-
-Block number to read. Cannot be combined with blockTag.
-
-### blockTag
-
-`BlockTag | undefined`
-
-Named block state to read. Cannot be combined with blockNumber.
 
 ### hca
 
@@ -83,6 +83,18 @@ Implementation used when deriving the account address, including an account that
 
 Allow a counterfactual account after verifying its derivation.
 
+### blockNumber
+
+`bigint | undefined`
+
+Block number to read. Cannot be combined with blockTag.
+
+### blockTag
+
+`BlockTag | undefined`
+
+Named block state to read. Cannot be combined with blockNumber.
+
 <ParametersGuide />
 
 ## Return Type
@@ -97,6 +109,7 @@ type Result = ReturnType<typeof useVerifyHcaSuspense>;
 
 ```ts
 import { verifyHcaAtom } from "@ensforge/react/atoms";
+import { sdk } from "./client";
 
 const atom = verifyHcaAtom(sdk, parameters, options);
 ```

@@ -23,10 +23,9 @@ import { Ensforge } from "@ensforge/sdk";
 ```ts [index.ts]
 import { sdk } from "./client";
 
-type Input = Parameters<typeof sdk.hca.getHcaRegistration>[0];
-declare const parameters: Input;
-
-const result = await sdk.hca.getHcaRegistration(parameters);
+const result = await sdk.hca.getHcaRegistration({
+  id: "registration-instance-id",
+});
 ```
 
 ```ts [client.ts]
@@ -38,7 +37,7 @@ const result = await sdk.hca.getHcaRegistration(parameters);
 ## Parameters
 
 ```ts
-type Input = Parameters<typeof sdk.hca.getHcaRegistration>[0];
+import type { GetHcaRegistrationParameters } from "@ensforge/sdk/hca";
 ```
 
 ### id
@@ -62,29 +61,31 @@ Compatible execution adapter. Omit for direct owner execution when supported.
 ## Return Type
 
 ```ts
-type Result = Awaited<ReturnType<typeof sdk.hca.getHcaRegistration>>;
+type GetHcaRegistrationResult = Awaited<ReturnType<typeof sdk.hca.getHcaRegistration>>;
 ```
 
-Common result properties are shown below. Narrow discriminated unions before accessing status-specific fields.
+Narrow discriminated unions before accessing fields specific to a status or execution route.
 
-- `authorization`: ``{ readonly kind: "owner"; } | { readonly kind: "session"; readonly permissionId: `0x${string}`; readonly enableTransactionHash: `0x${string}`; }``.
-- `id`: `string`.
-- `chainId`: `number`.
-- `owner`: `` `0x${string}` ``.
-- `profileId`: `string`.
-- `salt`: `bigint`.
-- `hca`: `` `0x${string}` ``.
-- `registration`: `Result["registration"]`.
-- `schemaVersion`: `1`.
-- `route`: `{ readonly kind: "owner"; } | { readonly kind: "adapter"; readonly id: string; readonly instanceId: string; }`.
-- `revision`: `number`.
-- `limits`: `Result["limits"]`.
-- `progress`: `Result["progress"]`.
-- `createdAt`: `bigint`.
-- `updatedAt`: `bigint`.
-- `signerReference`: `string | undefined`.
-- `commitmentSubmission`: `Result["commitmentSubmission"]`.
-- `registrationSubmission`: `Result["registrationSubmission"]`.
+| Property                 | Type                                                                                                                                                  |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `authorization`          | ``{ readonly kind: "owner"; } \| { readonly kind: "session"; readonly permissionId: `0x${string}`; readonly enableTransactionHash: `0x${string}`; }`` |
+| `id`                     | `string`                                                                                                                                              |
+| `chainId`                | `number`                                                                                                                                              |
+| `owner`                  | `` `0x${string}` ``                                                                                                                                   |
+| `profileId`              | `string`                                                                                                                                              |
+| `salt`                   | `bigint`                                                                                                                                              |
+| `hca`                    | `` `0x${string}` ``                                                                                                                                   |
+| `registration`           | `GetHcaRegistrationResult["registration"]`                                                                                                            |
+| `schemaVersion`          | `1`                                                                                                                                                   |
+| `route`                  | `{ readonly kind: "owner"; } \| { readonly kind: "adapter"; readonly id: string; readonly instanceId: string; }`                                      |
+| `revision`               | `number`                                                                                                                                              |
+| `limits`                 | `GetHcaRegistrationResult["limits"]`                                                                                                                  |
+| `progress`               | `GetHcaRegistrationResult["progress"]`                                                                                                                |
+| `createdAt`              | `bigint`                                                                                                                                              |
+| `updatedAt`              | `bigint`                                                                                                                                              |
+| `signerReference`        | `string \| undefined`                                                                                                                                 |
+| `commitmentSubmission`   | `GetHcaRegistrationResult["commitmentSubmission"]`                                                                                                    |
+| `registrationSubmission` | `GetHcaRegistrationResult["registrationSubmission"]`                                                                                                  |
 
 Registration results contain a commitment secret. Do not log or render the whole operation. Use [remote progress](/hca/remote) for a public response.
 
@@ -95,9 +96,13 @@ Registration results contain a commitment secret. Do not log or render the whole
 ```ts
 import { Effect } from "effect";
 
-const program = sdk.hca.getHcaRegistration.effect(parameters);
+const program = sdk.hca.getHcaRegistration.effect({
+  id: "registration-instance-id",
+});
+
 type Success = Effect.Success<typeof program>;
 type Failure = Effect.Error<typeof program>;
+
 const result = await Effect.runPromise(program);
 ```
 
@@ -105,9 +110,7 @@ const result = await Effect.runPromise(program);
 
 <ErrorGuide />
 
-Deployment, account and authorization mismatches remain explicit errors. Reconcile uncertain submissions before retrying a write.
-
-## Related
+## Action
 
 - [`getHcaRegistration`](/core/api/actions/hca/get-hca-registration)
 - [Guide](/core/guides/hca-registration)

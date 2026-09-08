@@ -24,10 +24,10 @@ import { upgradeHca } from "@ensforge/core/hca";
 import { upgradeHca } from "@ensforge/core/hca";
 import { config } from "./config";
 
-type Input = Parameters<typeof upgradeHca>[1];
-declare const parameters: Input;
-
-const result = await upgradeHca(config, parameters);
+const result = await upgradeHca(config, {
+  hca: "0x1234567890123456789012345678901234567890",
+  implementation: "0x5678901234567890123456789012345678901234",
+});
 ```
 
 ```ts [config.ts]
@@ -39,7 +39,7 @@ const result = await upgradeHca(config, parameters);
 ## Parameters
 
 ```ts
-type Input = Parameters<typeof upgradeHca>[1];
+import type { HcaManagementParameters } from "@ensforge/core/hca";
 ```
 
 ### hca
@@ -47,6 +47,12 @@ type Input = Parameters<typeof upgradeHca>[1];
 `` `0x${string}` ``
 
 HCA address to inspect or operate on.
+
+### implementation
+
+`` `0x${string}` ``
+
+Implementation address to inspect, approve or use for derivation.
 
 ### salt
 
@@ -56,13 +62,13 @@ Account derivation salt. Defaults to the deployment profile canonical salt.
 
 ### confirmation
 
-`{ readonly type: "submitted"; } | { readonly type: "confirmed"; readonly timeout?: number | undefined; readonly confirmations?: number | undefined; }`
+`ConfirmationPolicy | undefined`
 
 Receipt confirmation policy.
 
 ### walletClient
 
-`Input["walletClient"]`
+`WalletClient | undefined`
 
 Viem wallet override. Defaults to the configured wallet resolver.
 
@@ -71,12 +77,6 @@ Viem wallet override. Defaults to the configured wallet resolver.
 `` `0x${string}` | Account | undefined ``
 
 Wallet account override for the operation.
-
-### implementation
-
-`` `0x${string}` ``
-
-Implementation address to inspect, approve or use for derivation.
 
 ### data
 
@@ -87,10 +87,13 @@ Encoded initialization or operation data.
 ## Return Type
 
 ```ts
-type Result = Awaited<ReturnType<typeof upgradeHca>>;
+import type { HcaManagementResult } from "@ensforge/core/hca";
 ```
 
-Returns `HcaManagementResult`.
+| Property  | Type                         | Description                                    |
+| --------- | ---------------------------- | ---------------------------------------------- |
+| `hash`    | `` `0x${string}` ``          | Submitted transaction hash.                    |
+| `receipt` | `TransactionReceipt \| null` | Confirmed transaction receipt, when requested. |
 
 ## Effect
 
@@ -99,17 +102,20 @@ Returns `HcaManagementResult`.
 ```ts
 import { Effect } from "effect";
 
-const program = upgradeHca.effect(config, parameters);
+const program = upgradeHca.effect(config, {
+  hca: "0x1234567890123456789012345678901234567890",
+  implementation: "0x5678901234567890123456789012345678901234",
+});
+
 type Success = Effect.Success<typeof program>;
 type Failure = Effect.Error<typeof program>;
+
 const result = await Effect.runPromise(program);
 ```
 
 ## Error
 
 <ErrorGuide />
-
-Deployment, account and authorization mismatches remain explicit errors. Reconcile uncertain submissions before retrying a write.
 
 ## Related
 

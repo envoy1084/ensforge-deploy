@@ -5,6 +5,7 @@ description: Inspect validators with pagination.
 
 import EffectGuide from "../../../../../shared/core/effect.mdx";
 import ErrorGuide from "../../../../../shared/core/error.mdx";
+import RequestGuide from "../../../../../shared/core/request.mdx";
 
 # getHcaValidators
 
@@ -24,12 +25,9 @@ import { getHcaValidators } from "@ensforge/core/hca";
 import { getHcaValidators } from "@ensforge/core/hca";
 import { config } from "./config";
 
-type Input = Parameters<typeof getHcaValidators>[1];
-const parameters: Input = {
-  hca: "0x0000000000000000000000000000000000000001",
-};
-
-const result = await getHcaValidators(config, parameters);
+const result = await getHcaValidators(config, {
+  hca: "0x1234567890123456789012345678901234567890",
+});
 ```
 
 ```ts [config.ts]
@@ -41,20 +39,8 @@ const result = await getHcaValidators(config, parameters);
 ## Parameters
 
 ```ts
-type Input = Parameters<typeof getHcaValidators>[1];
+import type { HcaReadParameters } from "@ensforge/core/hca";
 ```
-
-### blockNumber
-
-`bigint | undefined`
-
-Block number to read. Cannot be combined with blockTag.
-
-### blockTag
-
-`BlockTag | undefined`
-
-Named block state to read. Cannot be combined with blockNumber.
 
 ### hca
 
@@ -74,13 +60,28 @@ Starting address for module pagination.
 
 Maximum number of module entries to return.
 
+### blockNumber
+
+`bigint | undefined`
+
+Block number to read. Cannot be combined with blockTag.
+
+### blockTag
+
+`BlockTag | undefined`
+
+Named block state to read. Cannot be combined with blockNumber.
+
 ## Return Type
 
 ```ts
-type Result = Awaited<ReturnType<typeof getHcaValidators>>;
+import type { HcaModulePage } from "@ensforge/core/hca";
 ```
 
-Returns `HcaModulePage`.
+| Property     | Type                         | Description                              |
+| ------------ | ---------------------------- | ---------------------------------------- |
+| `modules`    | ``readonly `0x${string}`[]`` | Installed module addresses in this page. |
+| `nextCursor` | `` `0x${string}` ``          | Cursor for the next page.                |
 
 ## Effect
 
@@ -89,25 +90,29 @@ Returns `HcaModulePage`.
 ```ts
 import { Effect } from "effect";
 
-const program = getHcaValidators.effect(config, parameters);
+const program = getHcaValidators.effect(config, {
+  hca: "0x1234567890123456789012345678901234567890",
+});
+
 type Success = Effect.Success<typeof program>;
 type Failure = Effect.Error<typeof program>;
+
 const result = await Effect.runPromise(program);
 ```
 
 ## Request
 
-```ts
-const request = getHcaValidators.request(parameters);
-```
+<RequestGuide />
 
-Requests compose with ENS read batching.
+```ts
+const request = getHcaValidators.request({
+  hca: "0x1234567890123456789012345678901234567890",
+});
+```
 
 ## Error
 
 <ErrorGuide />
-
-Deployment, account and authorization mismatches remain explicit errors. Reconcile uncertain submissions before retrying a write.
 
 ## Related
 

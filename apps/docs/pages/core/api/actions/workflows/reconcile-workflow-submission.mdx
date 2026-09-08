@@ -24,10 +24,11 @@ import { reconcileWorkflowSubmission } from "@ensforge/core";
 import { reconcileWorkflowSubmission } from "@ensforge/core";
 import { config } from "./config";
 
-type Input = Parameters<typeof reconcileWorkflowSubmission>[1];
-declare const parameters: Input;
-
-const result = await reconcileWorkflowSubmission(config, parameters);
+const result = await reconcileWorkflowSubmission(config, {
+  workflowId: "saved-workflow-id",
+  submissionId: "pending-submission-id",
+  transactionHash: "0x1111111111111111111111111111111111111111111111111111111111111111",
+});
 ```
 
 ```ts [config.ts]
@@ -37,22 +38,6 @@ const result = await reconcileWorkflowSubmission(config, parameters);
 :::
 
 ## Parameters
-
-```ts
-type Input = Parameters<typeof reconcileWorkflowSubmission>[1];
-```
-
-### walletClient
-
-`Input["walletClient"]`
-
-Viem wallet override. Defaults to the configured wallet resolver.
-
-### account
-
-`` `0x${string}` | Account | undefined ``
-
-Wallet account override for the operation.
 
 ### workflowId
 
@@ -72,10 +57,22 @@ Submission key from getWorkflow().submissions.
 
 Recovered on-chain transaction hash to verify.
 
+### walletClient
+
+`WalletClient | undefined`
+
+Viem wallet override. Defaults to the configured wallet resolver.
+
+### account
+
+`` `0x${string}` | Account | undefined ``
+
+Wallet account override for the operation.
+
 ## Return Type
 
 ```ts
-type Result = Awaited<ReturnType<typeof reconcileWorkflowSubmission>>;
+type ReconcileWorkflowSubmissionResult = Awaited<ReturnType<typeof reconcileWorkflowSubmission>>;
 ```
 
 Returns `void`.
@@ -87,17 +84,21 @@ Returns `void`.
 ```ts
 import { Effect } from "effect";
 
-const program = reconcileWorkflowSubmission.effect(config, parameters);
+const program = reconcileWorkflowSubmission.effect(config, {
+  workflowId: "saved-workflow-id",
+  submissionId: "pending-submission-id",
+  transactionHash: "0x1111111111111111111111111111111111111111111111111111111111111111",
+});
+
 type Success = Effect.Success<typeof program>;
 type Failure = Effect.Error<typeof program>;
+
 const result = await Effect.runPromise(program);
 ```
 
 ## Error
 
 <ErrorGuide />
-
-Deployment, account and authorization mismatches remain explicit errors. Reconcile uncertain submissions before retrying a write.
 
 ## Related
 

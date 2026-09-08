@@ -5,6 +5,7 @@ description: Check an execution mode.
 
 import EffectGuide from "../../../../shared/sdk/effect.mdx";
 import ErrorGuide from "../../../../shared/sdk/error.mdx";
+import RequestGuide from "../../../../shared/sdk/request.mdx";
 
 # supportsHcaExecutionMode
 
@@ -23,10 +24,10 @@ import { Ensforge } from "@ensforge/sdk";
 ```ts [index.ts]
 import { sdk } from "./client";
 
-type Input = Parameters<typeof sdk.hca.supportsHcaExecutionMode>[0];
-declare const parameters: Input;
-
-const result = await sdk.hca.supportsHcaExecutionMode(parameters);
+const result = await sdk.hca.supportsHcaExecutionMode({
+  hca: "0x1234567890123456789012345678901234567890",
+  mode: "0x0000000000000000000000000000000000000000000000000000000000000000",
+});
 ```
 
 ```ts [client.ts]
@@ -38,20 +39,8 @@ const result = await sdk.hca.supportsHcaExecutionMode(parameters);
 ## Parameters
 
 ```ts
-type Input = Parameters<typeof sdk.hca.supportsHcaExecutionMode>[0];
+import type { HcaReadParameters } from "@ensforge/sdk/hca";
 ```
-
-### blockNumber
-
-`bigint | undefined`
-
-Block number to read. Cannot be combined with blockTag.
-
-### blockTag
-
-`BlockTag | undefined`
-
-Named block state to read. Cannot be combined with blockNumber.
 
 ### hca
 
@@ -65,10 +54,22 @@ HCA address to inspect or operate on.
 
 Encoded execution mode to check.
 
+### blockNumber
+
+`bigint | undefined`
+
+Block number to read. Cannot be combined with blockTag.
+
+### blockTag
+
+`BlockTag | undefined`
+
+Named block state to read. Cannot be combined with blockNumber.
+
 ## Return Type
 
 ```ts
-type Result = Awaited<ReturnType<typeof sdk.hca.supportsHcaExecutionMode>>;
+type SupportsHcaExecutionModeResult = Awaited<ReturnType<typeof sdk.hca.supportsHcaExecutionMode>>;
 ```
 
 Returns `boolean`.
@@ -80,27 +81,33 @@ Returns `boolean`.
 ```ts
 import { Effect } from "effect";
 
-const program = sdk.hca.supportsHcaExecutionMode.effect(parameters);
+const program = sdk.hca.supportsHcaExecutionMode.effect({
+  hca: "0x1234567890123456789012345678901234567890",
+  mode: "0x0000000000000000000000000000000000000000000000000000000000000000",
+});
+
 type Success = Effect.Success<typeof program>;
 type Failure = Effect.Error<typeof program>;
+
 const result = await Effect.runPromise(program);
 ```
 
 ## Request
 
-```ts
-const request = sdk.hca.supportsHcaExecutionMode.request(parameters);
-```
+<RequestGuide />
 
-Requests compose with ENS read batching.
+```ts
+const request = sdk.hca.supportsHcaExecutionMode.request({
+  hca: "0x1234567890123456789012345678901234567890",
+  mode: "0x0000000000000000000000000000000000000000000000000000000000000000",
+});
+```
 
 ## Error
 
 <ErrorGuide />
 
-Deployment, account and authorization mismatches remain explicit errors. Reconcile uncertain submissions before retrying a write.
-
-## Related
+## Action
 
 - [`supportsHcaExecutionMode`](/core/api/actions/hca/supports-hca-execution-mode)
 - [Guide](/core/guides/hca)

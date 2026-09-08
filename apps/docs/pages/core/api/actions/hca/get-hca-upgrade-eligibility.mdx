@@ -5,6 +5,7 @@ description: Check the candidate implementation and both upgrade gates.
 
 import EffectGuide from "../../../../../shared/core/effect.mdx";
 import ErrorGuide from "../../../../../shared/core/error.mdx";
+import RequestGuide from "../../../../../shared/core/request.mdx";
 
 # getHcaUpgradeEligibility
 
@@ -24,13 +25,10 @@ import { getHcaUpgradeEligibility } from "@ensforge/core/hca";
 import { getHcaUpgradeEligibility } from "@ensforge/core/hca";
 import { config } from "./config";
 
-type Input = Parameters<typeof getHcaUpgradeEligibility>[1];
-const parameters: Input = {
-  hca: "0x0000000000000000000000000000000000000001",
-  implementation: "0x0000000000000000000000000000000000000001",
-};
-
-const result = await getHcaUpgradeEligibility(config, parameters);
+const result = await getHcaUpgradeEligibility(config, {
+  hca: "0x1234567890123456789012345678901234567890",
+  implementation: "0x5678901234567890123456789012345678901234",
+});
 ```
 
 ```ts [config.ts]
@@ -42,20 +40,8 @@ const result = await getHcaUpgradeEligibility(config, parameters);
 ## Parameters
 
 ```ts
-type Input = Parameters<typeof getHcaUpgradeEligibility>[1];
+import type { HcaReadParameters } from "@ensforge/core/hca";
 ```
-
-### blockNumber
-
-`bigint | undefined`
-
-Block number to read. Cannot be combined with blockTag.
-
-### blockTag
-
-`BlockTag | undefined`
-
-Named block state to read. Cannot be combined with blockNumber.
 
 ### hca
 
@@ -75,13 +61,23 @@ Implementation address to inspect, approve or use for derivation.
 
 Account derivation salt. Defaults to the deployment profile canonical salt.
 
+### blockNumber
+
+`bigint | undefined`
+
+Block number to read. Cannot be combined with blockTag.
+
+### blockTag
+
+`BlockTag | undefined`
+
+Named block state to read. Cannot be combined with blockNumber.
+
 ## Return Type
 
 ```ts
-type Result = Awaited<ReturnType<typeof getHcaUpgradeEligibility>>;
+import type { HcaUpgradeEligibility } from "@ensforge/core/hca";
 ```
-
-Returns `HcaUpgradeEligibility`.
 
 ## Effect
 
@@ -90,25 +86,31 @@ Returns `HcaUpgradeEligibility`.
 ```ts
 import { Effect } from "effect";
 
-const program = getHcaUpgradeEligibility.effect(config, parameters);
+const program = getHcaUpgradeEligibility.effect(config, {
+  hca: "0x1234567890123456789012345678901234567890",
+  implementation: "0x5678901234567890123456789012345678901234",
+});
+
 type Success = Effect.Success<typeof program>;
 type Failure = Effect.Error<typeof program>;
+
 const result = await Effect.runPromise(program);
 ```
 
 ## Request
 
-```ts
-const request = getHcaUpgradeEligibility.request(parameters);
-```
+<RequestGuide />
 
-Requests compose with ENS read batching.
+```ts
+const request = getHcaUpgradeEligibility.request({
+  hca: "0x1234567890123456789012345678901234567890",
+  implementation: "0x5678901234567890123456789012345678901234",
+});
+```
 
 ## Error
 
 <ErrorGuide />
-
-Deployment, account and authorization mismatches remain explicit errors. Reconcile uncertain submissions before retrying a write.
 
 ## Related
 

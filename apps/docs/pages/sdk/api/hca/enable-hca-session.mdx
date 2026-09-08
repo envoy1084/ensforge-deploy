@@ -22,15 +22,26 @@ import { Ensforge } from "@ensforge/sdk";
 
 ```ts [index.ts]
 import { sdk } from "./client";
+import { session } from "./session";
 
-type Input = Parameters<typeof sdk.hca.enableHcaSession>[0];
-declare const parameters: Input;
-
-const result = await sdk.hca.enableHcaSession(parameters);
+const result = await sdk.hca.enableHcaSession({
+  ...session.parameters,
+});
 ```
 
 ```ts [client.ts]
 // [!include ~/snippets/hca/client.ts]
+```
+
+```ts [session.ts]
+import { execution } from "./execution";
+import { sdk } from "./client";
+
+export const session = await execution.extensions.sessions.prepare(sdk.config, {
+  hca: "0x1234567890123456789012345678901234567890",
+  resolver: "0x3456789012345678901234567890123456789012",
+  validUntil: Math.floor(Date.now() / 1000) + 3600,
+});
 ```
 
 :::
@@ -38,7 +49,7 @@ const result = await sdk.hca.enableHcaSession(parameters);
 ## Parameters
 
 ```ts
-type Input = Parameters<typeof sdk.hca.enableHcaSession>[0];
+import type { EnableHcaSessionParameters } from "@ensforge/sdk/hca";
 ```
 
 ### hca
@@ -46,12 +57,6 @@ type Input = Parameters<typeof sdk.hca.enableHcaSession>[0];
 `` `0x${string}` ``
 
 HCA address to inspect or operate on.
-
-### salt
-
-`bigint | undefined`
-
-Account derivation salt. Defaults to the deployment profile canonical salt.
 
 ### permissionId
 
@@ -77,9 +82,15 @@ Session expiry as a Unix timestamp in seconds.
 
 Resolver address used by the registration or session policy.
 
+### salt
+
+`bigint | undefined`
+
+Account derivation salt. Defaults to the deployment profile canonical salt.
+
 ### walletClient
 
-`Input["walletClient"]`
+`WalletClient | undefined`
 
 Viem wallet override. Defaults to the configured wallet resolver.
 
@@ -92,10 +103,8 @@ Wallet account override for the operation.
 ## Return Type
 
 ```ts
-type Result = Awaited<ReturnType<typeof sdk.hca.enableHcaSession>>;
+import type { HcaTransactionSubmission } from "@ensforge/sdk/hca";
 ```
-
-Returns `HcaTransactionSubmission`.
 
 ## Effect
 
@@ -104,16 +113,22 @@ Returns `HcaTransactionSubmission`.
 ```ts
 import { Effect } from "effect";
 
-const program = sdk.hca.enableHcaSession.effect(parameters);
+const program = sdk.hca.enableHcaSession.effect({
+  ...session.parameters,
+});
+
 type Success = Effect.Success<typeof program>;
 type Failure = Effect.Error<typeof program>;
+
 const result = await Effect.runPromise(program);
 ```
 
 ## Call
 
 ```ts
-const intent = sdk.hca.enableHcaSession.call(parameters);
+const intent = sdk.hca.enableHcaSession.call({
+  ...session.parameters,
+});
 ```
 
 Preparing an intent does not submit a transaction.
@@ -122,9 +137,7 @@ Preparing an intent does not submit a transaction.
 
 <ErrorGuide />
 
-Deployment, account and authorization mismatches remain explicit errors. Reconcile uncertain submissions before retrying a write.
-
-## Related
+## Action
 
 - [`enableHcaSession`](/core/api/actions/hca/enable-hca-session)
 - [Guide](/core/guides/hca)

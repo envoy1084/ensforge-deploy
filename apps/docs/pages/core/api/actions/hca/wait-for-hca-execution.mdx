@@ -23,11 +23,17 @@ import { waitForHcaExecution } from "@ensforge/core/hca";
 ```ts [index.ts]
 import { waitForHcaExecution } from "@ensforge/core/hca";
 import { config } from "./config";
+import { executeHcaCalls } from "@ensforge/core/hca";
 
-type Input = Parameters<typeof waitForHcaExecution>[1];
-declare const parameters: Input;
+const submission = await executeHcaCalls(config, {
+  hca: "0x1234567890123456789012345678901234567890",
+  authorization: { kind: "owner" },
+  calls: [{ to: "0x2345678901234567890123456789012345678901", value: 0n, data: "0x" }],
+});
 
-const result = await waitForHcaExecution(config, parameters);
+const result = await waitForHcaExecution(config, {
+  submission,
+});
 ```
 
 ```ts [config.ts]
@@ -39,8 +45,14 @@ const result = await waitForHcaExecution(config, parameters);
 ## Parameters
 
 ```ts
-type Input = Parameters<typeof waitForHcaExecution>[1];
+import type { WaitForHcaExecutionParameters } from "@ensforge/core/hca";
 ```
+
+### submission
+
+`HcaExecutionSubmission<unknown>`
+
+Previously returned or explicitly recovered execution submission.
 
 ### confirmations
 
@@ -66,12 +78,6 @@ Initial status polling interval, in milliseconds.
 
 Upper bound for the status polling interval, in milliseconds.
 
-### submission
-
-`HcaExecutionSubmission<unknown>`
-
-Previously returned or explicitly recovered execution submission.
-
 ### execution
 
 `ExecutionAdapter<unknown, unknown, unknown> | undefined`
@@ -81,10 +87,8 @@ Compatible execution adapter. Omit for direct owner execution when supported.
 ## Return Type
 
 ```ts
-type Result = Awaited<ReturnType<typeof waitForHcaExecution>>;
+import type { HcaExecutionStatus } from "@ensforge/core/hca";
 ```
-
-Returns `HcaExecutionStatus`.
 
 ## Effect
 
@@ -93,17 +97,19 @@ Returns `HcaExecutionStatus`.
 ```ts
 import { Effect } from "effect";
 
-const program = waitForHcaExecution.effect(config, parameters);
+const program = waitForHcaExecution.effect(config, {
+  submission,
+});
+
 type Success = Effect.Success<typeof program>;
 type Failure = Effect.Error<typeof program>;
+
 const result = await Effect.runPromise(program);
 ```
 
 ## Error
 
 <ErrorGuide />
-
-Deployment, account and authorization mismatches remain explicit errors. Reconcile uncertain submissions before retrying a write.
 
 ## Related
 

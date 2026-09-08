@@ -8,7 +8,7 @@ import ResultGuide from "../../../../../shared/react/suspense-atom-result.mdx";
 
 # useVerifyHcaSignatureSuspense
 
-Validate a signature; RPC failures remain errors Uses the SDK from `EnsforgeProvider`.
+Validate a signature; RPC failures remain errors. Uses the SDK from `EnsforgeProvider`.
 
 ## Import
 
@@ -22,10 +22,24 @@ import { useVerifyHcaSignatureSuspense } from "@ensforge/react";
 
 ```tsx [component.tsx]
 import { useVerifyHcaSignatureSuspense } from "@ensforge/react";
+import type { Hex } from "viem";
 
-function Component(parameters: Parameters<typeof useVerifyHcaSignatureSuspense>[0]) {
-  const result = useVerifyHcaSignatureSuspense(parameters);
-  return <p>{result.isWaiting ? "Loading" : "Result available"}</p>;
+function Component({ hash, signature }: { hash: Hex; signature: Hex }) {
+  const result = useVerifyHcaSignatureSuspense({
+    hca: "0x1234567890123456789012345678901234567890",
+    hash,
+    signature,
+  });
+
+  return (
+    <pre>
+      {JSON.stringify(
+        result.data,
+        (_, value) => (typeof value === "bigint" ? value.toString() : value),
+        2,
+      )}
+    </pre>
+  );
 }
 ```
 
@@ -38,20 +52,9 @@ function Component(parameters: Parameters<typeof useVerifyHcaSignatureSuspense>[
 ## Parameters
 
 ```ts
-type Input = Parameters<typeof useVerifyHcaSignatureSuspense>[0];
+import type { UseEnsSuspenseAtomParameters } from "@ensforge/react";
+import type { HcaReadParameters } from "@ensforge/sdk/hca";
 ```
-
-### blockNumber
-
-`bigint | undefined`
-
-Block number to read. Cannot be combined with blockTag.
-
-### blockTag
-
-`BlockTag | undefined`
-
-Named block state to read. Cannot be combined with blockNumber.
 
 ### hca
 
@@ -77,6 +80,18 @@ Encoded signature to validate.
 
 Caller address used during signature verification.
 
+### blockNumber
+
+`bigint | undefined`
+
+Block number to read. Cannot be combined with blockTag.
+
+### blockTag
+
+`BlockTag | undefined`
+
+Named block state to read. Cannot be combined with blockNumber.
+
 <ParametersGuide />
 
 ## Return Type
@@ -91,6 +106,7 @@ type Result = ReturnType<typeof useVerifyHcaSignatureSuspense>;
 
 ```ts
 import { verifyHcaSignatureAtom } from "@ensforge/react/atoms";
+import { sdk } from "./client";
 
 const atom = verifyHcaSignatureAtom(sdk, parameters, options);
 ```

@@ -24,10 +24,9 @@ import { getWorkflow } from "@ensforge/core";
 import { getWorkflow } from "@ensforge/core";
 import { config } from "./config";
 
-type Input = Parameters<typeof getWorkflow>[1];
-declare const parameters: Input;
-
-const result = await getWorkflow(config, parameters);
+const result = await getWorkflow(config, {
+  workflowId: "saved-workflow-id",
+});
 ```
 
 ```ts [config.ts]
@@ -38,13 +37,15 @@ const result = await getWorkflow(config, parameters);
 
 ## Parameters
 
-```ts
-type Input = Parameters<typeof getWorkflow>[1];
-```
+### workflowId
+
+`string`
+
+Existing saved workflow instance ID.
 
 ### walletClient
 
-`Input["walletClient"]`
+`WalletClient | undefined`
 
 Viem wallet override. Defaults to the configured wallet resolver.
 
@@ -54,16 +55,10 @@ Viem wallet override. Defaults to the configured wallet resolver.
 
 Wallet account override for the operation.
 
-### workflowId
-
-`string`
-
-Existing saved workflow instance ID.
-
 ## Return Type
 
 ```ts
-type Result = Awaited<ReturnType<typeof getWorkflow>>;
+type GetWorkflowResult = Awaited<ReturnType<typeof getWorkflow>>;
 ```
 
 Returns `WorkflowSnapshot`.
@@ -75,17 +70,19 @@ Returns `WorkflowSnapshot`.
 ```ts
 import { Effect } from "effect";
 
-const program = getWorkflow.effect(config, parameters);
+const program = getWorkflow.effect(config, {
+  workflowId: "saved-workflow-id",
+});
+
 type Success = Effect.Success<typeof program>;
 type Failure = Effect.Error<typeof program>;
+
 const result = await Effect.runPromise(program);
 ```
 
 ## Error
 
 <ErrorGuide />
-
-Deployment, account and authorization mismatches remain explicit errors. Reconcile uncertain submissions before retrying a write.
 
 ## Related
 
