@@ -7,6 +7,8 @@ import {
 
 import {
   makeBatchActions,
+  makeWorkflowActions,
+  type WorkflowActions,
   makeHcaActions,
   type HcaActions,
   makeCapabilitiesActions,
@@ -44,6 +46,7 @@ export class Ensforge {
   readonly config: EnsforgeConfig;
   readonly hca: HcaActions;
   readonly batch: BatchActions;
+  readonly workflows: WorkflowActions;
   readonly capabilities: CapabilitiesActions;
   readonly dns: DnsActions;
   readonly events: EventsActions;
@@ -65,6 +68,7 @@ export class Ensforge {
     this.config = config;
     this.hca = makeHcaActions(config);
     this.batch = makeBatchActions(config);
+    this.workflows = makeWorkflowActions(config);
     this.capabilities = makeCapabilitiesActions(config);
     this.dns = makeDnsActions(config);
     this.events = makeEventsActions(config);

@@ -12,6 +12,7 @@ import type { EnsforgeConfig } from "../../../config/config.js";
 import { ContractError } from "../../../errors/contract-error.js";
 import { provideConfig } from "../../../internal/config/context.js";
 import { resolveWalletContext } from "../../../internal/services/wallet-client.js";
+import { withWorkflow } from "../../../internal/workflows/run.js";
 import { namehash } from "../../../names/hashes.js";
 import { EthereumAddress } from "../../../schemas/identity.js";
 import type { WritePlan } from "../../../write/types.js";
@@ -232,7 +233,7 @@ export const createSubname = defineAction<
   CreateSubnameParameters,
   CreateSubnameResult,
   SubnameError
->(createSubnameEffect);
+>(withWorkflow("createSubname", createSubnameEffect));
 
 export type {
   CreateSubnameParameters,

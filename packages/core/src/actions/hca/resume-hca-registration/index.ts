@@ -29,8 +29,10 @@ export const resumeHcaRegistration = defineAction<
   ResumeHcaRegistrationParameters,
   HcaRegistrationOperation,
   HcaError
->((config, parameters) =>
-  Effect.tryPromise({
+>((config, provided) => {
+  const storage = provided.storage ?? config.storage;
+  const parameters = { ...provided, ...(storage === undefined ? {} : { storage }) };
+  return Effect.tryPromise({
     try: async (signal) => {
       let operation = await loadOperation(config, parameters, parameters.id);
 
@@ -262,5 +264,5 @@ export const resumeHcaRegistration = defineAction<
             message: "HCA registration could not progress; saved state is retained",
             cause,
           }),
-  }),
-);
+  });
+});

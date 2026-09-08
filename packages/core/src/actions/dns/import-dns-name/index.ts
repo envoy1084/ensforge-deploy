@@ -5,6 +5,7 @@ import { keccak256, stringToHex } from "viem";
 import { defineAction } from "../../../action/action.js";
 import type { EnsforgeConfig } from "../../../config/config.js";
 import { DnsImportError } from "../../../errors/dns-import-error.js";
+import { withWorkflow } from "../../../internal/workflows/run.js";
 import { normalizeName } from "../../../names/normalize.js";
 import type { WriteError, WritePlan } from "../../../write/types.js";
 import { executeWritePlan } from "../../batch/execute-write-plan.js";
@@ -113,7 +114,7 @@ const importDnsNameEffect = Effect.fn("ensforge.importDnsName")(function* (
 });
 
 export const importDnsName = defineAction<ImportDnsNameParameters, ImportDnsNameResult, WriteError>(
-  importDnsNameEffect,
+  withWorkflow("importDnsName", importDnsNameEffect),
 );
 
 export type { ImportDnsNameError, ImportDnsNameParameters, ImportDnsNameResult } from "../types.js";

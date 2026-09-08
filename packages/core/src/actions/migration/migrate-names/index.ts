@@ -12,6 +12,7 @@ import { MigrationError } from "../../../errors/migration-error.js";
 import { provideConfig } from "../../../internal/config/context.js";
 import { viemErrorToEffectError } from "../../../internal/errors/viem-error.js";
 import { resolveWalletContext } from "../../../internal/services/wallet-client.js";
+import { withWorkflow } from "../../../internal/workflows/run.js";
 import { normalizeName } from "../../../names/normalize.js";
 import type { EthereumAddress } from "../../../schemas/identity.js";
 import type { WriteError, WritePlan } from "../../../write/types.js";
@@ -358,7 +359,7 @@ export const migrateNames = defineAction<
   MigrateNamesParameters,
   MigrationBatchProgress,
   WriteError
->(migrateNamesEffect);
+>(withWorkflow("migrateNames", migrateNamesEffect));
 
 export type {
   MigrateNamesParameters,

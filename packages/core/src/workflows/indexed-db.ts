@@ -1,5 +1,6 @@
 import { WorkflowError } from "../errors/workflow-error.js";
 import type {
+  WorkflowKeyRange,
   WorkflowDatabase,
   WorkflowIndexedDb,
 } from "../internal/workflows/indexed-db-types.js";
@@ -112,6 +113,44 @@ export const createIndexedDbWorkflowStorage = (
       (await transact(namespace, record.id, record)) as boolean,
     get: async ({ namespace, id }) =>
       (await transact(namespace, id)) as WorkflowStoredRecord | null,
+    async list({ namespace, after, limit }) {
+      if (!Number.isSafeInteger(limit) || limit < 1 || limit > 100)
+        throw new WorkflowError({
+          code: "INVALID_STATE",
+          message: "Workflow page size must be between 1 and 100",
+        });
+      const database = await open();
+      const keyRange = (globalThis as typeof globalThis & { IDBKeyRange?: WorkflowKeyRange })
+        .IDBKeyRange;
+      if (!keyRange)
+        throw new WorkflowError({
+          code: "STORAGE_FAILED",
+          message: "IndexedDB key ranges are unavailable",
+        });
+      const prefix = `${JSON.stringify([namespace]).slice(0, -1)},`;
+      return new Promise<ReadonlyArray<WorkflowStoredRecord>>((resolve, reject) => {
+        const transaction = database.transaction("records", "readonly");
+        const request = transaction
+          .objectStore("records")
+          .openCursor(
+            keyRange.bound(
+              after === undefined ? prefix : JSON.stringify([namespace, after]),
+              `${prefix}\uffff`,
+              after !== undefined,
+            ),
+          );
+        const records: WorkflowStoredRecord[] = [];
+        request.onsuccess = () => {
+          const cursor = request.result;
+          if (!cursor || records.length >= limit) return;
+          records.push(cursor.value as WorkflowStoredRecord);
+          if (records.length < limit) cursor.continue();
+        };
+        transaction.oncomplete = () => resolve(records);
+        transaction.addEventListener("error", () => reject(transaction.error));
+        transaction.addEventListener("abort", () => reject(transaction.error));
+      });
+    },
     compareAndSwap: async ({ namespace, id, expectedRevision, record }) =>
       (await transact(namespace, id, record, expectedRevision)) as boolean,
     async close() {

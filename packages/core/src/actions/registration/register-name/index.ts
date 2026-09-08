@@ -6,9 +6,11 @@ import { keccak256, stringToHex } from "viem";
 import { defineAction } from "../../../action/action.js";
 import type { EnsforgeConfig } from "../../../config/config.js";
 import { RegistrationError } from "../../../errors/registration-error.js";
+import { WorkflowError } from "../../../errors/workflow-error.js";
 import { provideConfig } from "../../../internal/config/context.js";
 import { viemErrorToEffectError } from "../../../internal/errors/viem-error.js";
 import { resolveWalletContext } from "../../../internal/services/wallet-client.js";
+import { withWorkflow } from "../../../internal/workflows/run.js";
 import { normalizeName } from "../../../names/normalize.js";
 import type { WriteError, WritePlan, WritePlanProgress } from "../../../write/types.js";
 import { executeWritePlan } from "../../batch/execute-write-plan.js";
@@ -122,7 +124,7 @@ const registrationPlanId = (
   })}`;
 
 const redactFailure = (failure: WriteError | null, name: string): WriteError | null =>
-  failure === null || failure instanceof RegistrationError
+  failure === null || failure instanceof RegistrationError || failure instanceof WorkflowError
     ? failure
     : new RegistrationError({
         code: "REGISTRATION_FAILED",
@@ -150,12 +152,13 @@ const registerNameEffect = Effect.fn("ensforge.registerName")(function* (
     const commitment = yield* makeRegistrationCommitment
       .effect(config, commitmentParameters(parameters))
       .pipe(
-        Effect.mapError(
-          () =>
-            new RegistrationError({
-              code: "REGISTRATION_FAILED",
-              message: "Unable to validate registration resume data",
-            }),
+        Effect.mapError((error) =>
+          error instanceof WorkflowError
+            ? error
+            : new RegistrationError({
+                code: "REGISTRATION_FAILED",
+                message: "Unable to validate registration resume data",
+              }),
         ),
       );
 
@@ -238,12 +241,13 @@ const registerNameEffect = Effect.fn("ensforge.registerName")(function* (
         ...(parameters.account === undefined ? {} : { account: parameters.account }),
       })
       .pipe(
-        Effect.mapError(
-          () =>
-            new RegistrationError({
-              code: "REGISTRATION_FAILED",
-              message: `Unable to resume registration for ${name}`,
-            }),
+        Effect.mapError((error) =>
+          error instanceof WorkflowError
+            ? error
+            : new RegistrationError({
+                code: "REGISTRATION_FAILED",
+                message: `Unable to resume registration for ${name}`,
+              }),
         ),
       );
 
@@ -341,12 +345,13 @@ const registerNameEffect = Effect.fn("ensforge.registerName")(function* (
         ...(parameters.account === undefined ? {} : { account: parameters.account }),
       })
       .pipe(
-        Effect.mapError(
-          () =>
-            new RegistrationError({
-              code: "REGISTRATION_FAILED",
-              message: `Unable to submit the commitment for ${registrationPlan.name}`,
-            }),
+        Effect.mapError((error) =>
+          error instanceof WorkflowError
+            ? error
+            : new RegistrationError({
+                code: "REGISTRATION_FAILED",
+                message: `Unable to submit the commitment for ${registrationPlan.name}`,
+              }),
         ),
       );
 
@@ -354,12 +359,13 @@ const registerNameEffect = Effect.fn("ensforge.registerName")(function* (
       .effect(config, commitmentParameters(parameters))
       .pipe(
         Effect.flatMap(requireActionablePlan),
-        Effect.mapError(
-          () =>
-            new RegistrationError({
-              code: "REGISTRATION_FAILED",
-              message: `Unable to verify the commitment for ${registrationPlan.name}`,
-            }),
+        Effect.mapError((error) =>
+          error instanceof WorkflowError
+            ? error
+            : new RegistrationError({
+                code: "REGISTRATION_FAILED",
+                message: `Unable to verify the commitment for ${registrationPlan.name}`,
+              }),
         ),
       );
   }
@@ -518,7 +524,7 @@ const registerNameEffect = Effect.fn("ensforge.registerName")(function* (
 });
 
 export const registerName = defineAction<RegisterNameParameters, RegisterNameResult, WriteError>(
-  registerNameEffect,
+  withWorkflow("registerName", registerNameEffect),
 );
 
 export type { RegisterNameParameters, RegisterNameResult } from "../types.js";

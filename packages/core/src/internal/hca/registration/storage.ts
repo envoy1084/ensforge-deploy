@@ -11,13 +11,19 @@ import { HcaError } from "../../../errors/hca-error.js";
 
 const registrationJson = Schema.fromJsonString(Schema.toCodecJson(HcaRegistrationOperation));
 
-export const registrationStorage = (context: HcaRegistrationContext) =>
-  "kind" in context.storage
+export const registrationStorage = (context: HcaRegistrationContext) => {
+  if (!context.storage)
+    throw new HcaError({
+      code: "INVALID_PARAMETERS",
+      message: "Configure workflow storage or pass registration storage explicitly",
+    });
+  return "kind" in context.storage
     ? scopeHcaStorage(context.storage, "ens/registration", {
         encode: Schema.encodeSync(registrationJson),
         decode: Schema.decodeUnknownSync(registrationJson, { onExcessProperty: "error" }),
       })
     : context.storage;
+};
 
 export const loadOperation = async (
   config: EnsforgeConfig,

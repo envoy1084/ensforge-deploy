@@ -65,3 +65,18 @@ export type {
   VerifiedHcaAccount,
   PreparedHcaCalls,
 } from "@ensforge/core/hca";
+export {
+  createMemoryWorkflowStorage,
+  createIndexedDbWorkflowStorage,
+  WorkflowError,
+} from "@ensforge/core";
+export type {
+  WorkflowStorage,
+  WorkflowStoredRecord,
+  WorkflowParameters,
+  WorkflowProgress,
+  WorkflowSnapshot,
+} from "@ensforge/core";
+export type { WorkflowActions } from "./groups/workflows.js";
+
+export type { EnsAction } from "@ensforge/core";

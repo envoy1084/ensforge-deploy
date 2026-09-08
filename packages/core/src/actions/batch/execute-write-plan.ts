@@ -2,10 +2,12 @@ import { Effect, Result } from "effect";
 
 import { defineAction } from "../../action/action.js";
 import type { EnsforgeConfig } from "../../config/config.js";
+import { WorkflowError } from "../../errors/workflow-error.js";
 import { WritePlanError } from "../../errors/write-plan-error.js";
 import { provideConfig } from "../../internal/config/context.js";
 import { viemErrorToEffectError } from "../../internal/errors/viem-error.js";
 import { PublicClientService } from "../../internal/services/public-client.js";
+import { ActiveWorkflow, WorkflowStep } from "../../internal/workflows/session.js";
 import { executeSequential } from "../../internal/write/execute-sequential.js";
 import { resumeSequentialConfirmations } from "../../internal/write/resume-sequential.js";
 import type {
@@ -91,8 +93,14 @@ const stageParameters = (
 
 const executeWritePlanEffect = Effect.fn("ensforge.executeWritePlan")(function* (
   config: EnsforgeConfig,
-  parameters: ExecuteWritePlanParameters,
+  input: ExecuteWritePlanParameters,
 ): Effect.fn.Return<WritePlanProgress, WriteError> {
+  const workflow = yield* ActiveWorkflow;
+  const workflowStep = yield* WorkflowStep;
+  const checkpointKey = `${workflowStep}/${input.plan.id}`;
+  const saved = workflow?.record.plans[checkpointKey] as WritePlanProgress | undefined;
+  const parameters = saved && input.resume === undefined ? { ...input, resume: saved } : input;
+
   const invalid = validatePlan(parameters);
 
   if (invalid !== undefined) return yield* invalid;
@@ -178,7 +186,7 @@ const executeWritePlanEffect = Effect.fn("ensforge.executeWritePlan")(function* 
     const remainingCalls = stage.calls.slice(confirmed.length);
 
     const execution = yield* Effect.result(
-      submittedBatch !== undefined
+      (submittedBatch !== undefined
         ? resumeCalls.effect(config, {
             batch: submittedBatch,
             confirmation: stage.confirmation ?? config.writes.confirmation,
@@ -201,7 +209,10 @@ const executeWritePlanEffect = Effect.fn("ensforge.executeWritePlan")(function* 
                 calls: [...confirmed, ...resumed.calls] as ReadonlyArray<CallExecutionResult>,
                 failure: resumed.failure,
               })),
-            ),
+            )
+      ).pipe(
+        Effect.provideService(WorkflowStep, `${workflowStep}/${parameters.plan.id}/${stage.id}`),
+      ),
     );
 
     if (Result.isFailure(execution)) {
@@ -222,6 +233,33 @@ const executeWritePlanEffect = Effect.fn("ensforge.executeWritePlan")(function* 
 
     if (previousIndex === -1) completed.push(stageResult);
     else completed[previousIndex] = stageResult;
+
+    if (workflow) {
+      const checkpoint: WritePlanProgress = {
+        planId: parameters.plan.id,
+        status: "partial",
+        completedStages: [...completed],
+        currentStage: stage.id,
+        nextActionAt: null,
+        failure: null,
+      };
+      yield* Effect.tryPromise({
+        try: () =>
+          workflow.update((record) => ({
+            ...record,
+            plans: { ...record.plans, [checkpointKey]: checkpoint },
+          })),
+        catch: (cause) =>
+          cause instanceof WorkflowError
+            ? cause
+            : new WorkflowError({
+                code: "STORAGE_FAILED",
+                message: "Unable to checkpoint write stage",
+                workflowId: workflow.record.id,
+                cause,
+              }),
+      });
+    }
 
     if (result.mode === "sequential" && result.status === "partial") {
       return {

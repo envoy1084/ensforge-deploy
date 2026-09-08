@@ -86,7 +86,7 @@ export const createFund = (context: FundingContext): RhinestoneCrossChain["fund"
             message: "Confirm source funding/approval and use an unused Permit2 nonce",
           });
 
-        if (!(await fundingStorage(storage).create(record)))
+        if (!(await fundingStorage(storage ?? config.storage).create(record)))
           throw new HcaError({
             code: "INVALID_EXECUTION",
             message: "Funding ID already exists; no signature or submission was made",
@@ -130,7 +130,7 @@ export const createFund = (context: FundingContext): RhinestoneCrossChain["fund"
 
         // Never release this claim on a timeout: the provider may have accepted the signed intent.
         if (
-          !(await fundingStorage(storage).compareAndSwap({
+          !(await fundingStorage(storage ?? config.storage).compareAndSwap({
             id: record.id,
             expectedRevision: 0,
             operation: submitting,
@@ -161,7 +161,7 @@ export const createFund = (context: FundingContext): RhinestoneCrossChain["fund"
         };
 
         if (
-          !(await fundingStorage(storage).compareAndSwap({
+          !(await fundingStorage(storage ?? config.storage).compareAndSwap({
             id: record.id,
             expectedRevision: 1,
             operation: submitted,

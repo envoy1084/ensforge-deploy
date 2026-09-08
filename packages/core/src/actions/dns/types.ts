@@ -12,6 +12,7 @@ import { DnsEncodedName } from "../../schemas/dns.js";
 import { Hex } from "../../schemas/hex.js";
 import { EthereumAddress } from "../../schemas/identity.js";
 import { NormalizedName } from "../../schemas/name.js";
+import type { WorkflowParameters, WorkflowProgress } from "../../workflows/types.js";
 import type {
   CallExecutionResult,
   ConfirmationPolicy,
@@ -53,12 +54,12 @@ export type ClaimDnsNameError = WriteError;
 
 export type ClaimDnsNameIntent = EnsWriteIntent<ClaimDnsNameResult, ClaimDnsNameError>;
 
-export type ImportDnsNameParameters = ClaimDnsNameParameters &
+type ImportDnsNameParametersState = ClaimDnsNameParameters &
   DnsWriteWalletParameters & {
     readonly resume?: ImportDnsNameResult;
   };
 
-export type ImportDnsNameResult =
+type ImportDnsNameResultState =
   | {
       readonly status: "completed" | "not-required";
       readonly name: NormalizedName;
@@ -177,3 +178,7 @@ export const DnsImportPlan = Schema.Union([
   }),
 ]);
 export type DnsImportPlan = typeof DnsImportPlan.Type;
+
+export type ImportDnsNameParameters = ImportDnsNameParametersState & WorkflowParameters;
+
+export type ImportDnsNameResult = ImportDnsNameResultState & WorkflowProgress;

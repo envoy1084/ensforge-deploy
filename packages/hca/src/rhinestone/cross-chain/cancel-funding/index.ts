@@ -28,7 +28,7 @@ export const createCancelFunding = (
         };
 
         if (
-          !(await fundingStorage(input.storage).compareAndSwap({
+          !(await fundingStorage(input.storage ?? config.storage).compareAndSwap({
             id: record.id,
             expectedRevision: record.revision,
             operation: cancelled,

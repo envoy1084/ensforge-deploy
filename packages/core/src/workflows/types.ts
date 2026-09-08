@@ -17,7 +17,7 @@ export interface WorkflowSnapshot {
   readonly status: "pending" | "completed";
   readonly busyUntil: number | null;
   readonly progress: unknown;
-  readonly pendingSubmissions: ReadonlyArray<{
+  readonly submissions: ReadonlyArray<{
     readonly id: string;
     readonly kind: "transaction" | "batch";
     readonly reference: string | null;

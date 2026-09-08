@@ -31,8 +31,14 @@ export const restoreRhinestoneFunding = (serialized: string): RhinestoneFundingR
   }
 };
 
-export const fundingStorage = (storage: HcaStorage) =>
-  scopeHcaStorage(storage, "rhinestone/funding", {
+export const fundingStorage = (storage: HcaStorage | undefined) => {
+  if (!storage)
+    throw new HcaError({
+      code: "INVALID_PARAMETERS",
+      message: "Configure workflow storage or pass funding storage explicitly",
+    });
+  return scopeHcaStorage(storage, "rhinestone/funding", {
     encode: serializeRhinestoneFunding,
     decode: restoreRhinestoneFunding,
   });
+};

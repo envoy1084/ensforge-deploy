@@ -96,7 +96,7 @@ export interface RhinestoneFundingQuote {
 
 export interface RhinestoneFundingReference {
   readonly id: string;
-  readonly storage: HcaStorage;
+  readonly storage?: HcaStorage;
 }
 
 export interface RhinestoneFundingStatus {
@@ -123,7 +123,7 @@ export interface RhinestoneCrossChain {
     HcaError
   >;
   readonly fund: EnsAction<
-    { readonly quote: RhinestoneFundingQuote; readonly storage: HcaStorage },
+    { readonly quote: RhinestoneFundingQuote; readonly storage?: HcaStorage },
     RhinestoneFundingRecord,
     HcaError
   >;

@@ -3,6 +3,7 @@ import { Effect } from "effect";
 import { defineAction } from "../../../action/action.js";
 import type { EnsforgeConfig } from "../../../config/config.js";
 import { RegistrationError } from "../../../errors/registration-error.js";
+import { withWorkflow } from "../../../internal/workflows/run.js";
 import { normalizeName } from "../../../names/normalize.js";
 import type { WriteError } from "../../../write/types.js";
 import { registerName } from "../register-name/index.js";
@@ -65,7 +66,7 @@ const registerNamesEffect = Effect.fn("ensforge.registerNames")(function* (
 });
 
 export const registerNames = defineAction<RegisterNamesParameters, RegisterNamesResult, WriteError>(
-  registerNamesEffect,
+  withWorkflow("registerNames", registerNamesEffect),
 );
 
 export type { RegisterNamesParameters, RegisterNamesResult } from "../types.js";

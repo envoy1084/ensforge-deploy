@@ -3,6 +3,7 @@ import type { Account, Address, WalletClient } from "viem";
 import type { BlockParameters } from "../../action/block.js";
 import type { EnsWriteIntent } from "../../action/write-intent.js";
 import type { EthereumAddress } from "../../schemas/identity.js";
+import type { WorkflowParameters, WorkflowProgress } from "../../workflows/types.js";
 import type {
   CallExecutionResult,
   ConfirmationPolicy,
@@ -52,7 +53,7 @@ interface WalletWriteParameters {
   readonly account?: Account | Address;
 }
 
-export interface WrapNameParameters extends WalletWriteParameters {
+export interface WrapNameParameters extends WorkflowParameters, WalletWriteParameters {
   readonly name: string;
   readonly owner: string;
   readonly resolver?: string;
@@ -62,7 +63,7 @@ export interface WrapNameParameters extends WalletWriteParameters {
   readonly resume?: WrapNameResult;
 }
 
-export interface WrapNameResult {
+export interface WrapNameResult extends WorkflowProgress {
   readonly name: string;
   readonly protocol: "v1";
   readonly strategy: "eth-2ld" | "registry";

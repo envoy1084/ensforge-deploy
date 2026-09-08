@@ -11,6 +11,8 @@ import type {
 } from "../../write/types.js";
 import { provideConfig } from "../config/context.js";
 import { resolveWalletContext } from "../services/wallet-client.js";
+import { journalKey } from "../workflows/journal.js";
+import { ActiveWorkflow, WorkflowStep } from "../workflows/session.js";
 import { confirmNativeBatch } from "./confirm-native-batch.js";
 import { prepareWriteIntents } from "./prepare-write-intents.js";
 import { simulatePreparedCalls } from "./simulate-prepared-calls.js";
@@ -45,7 +47,11 @@ export const executeNativeBatch = Effect.fn("executeNativeBatch")(function* (
 
   const calls = yield* prepareWriteIntents(config, parameters);
 
-  if ((parameters.simulation ?? config.writes.simulation) === "required") {
+  const workflow = yield* ActiveWorkflow;
+  const step = yield* WorkflowStep;
+  const submitted = workflow?.record.submissions[journalKey("batch", calls, step).key]?.reference;
+
+  if (!submitted && (parameters.simulation ?? config.writes.simulation) === "required") {
     yield* provideConfig(config, simulatePreparedCalls(calls, config.reads.concurrency));
   }
 

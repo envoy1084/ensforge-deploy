@@ -7,6 +7,7 @@ import type { EnsforgeConfig } from "../../../config/config.js";
 import { MigrationError } from "../../../errors/migration-error.js";
 import { provideConfig } from "../../../internal/config/context.js";
 import { resolveWalletContext } from "../../../internal/services/wallet-client.js";
+import { withWorkflow } from "../../../internal/workflows/run.js";
 import { normalizeName } from "../../../names/normalize.js";
 import type { EthereumAddress } from "../../../schemas/identity.js";
 import type { WriteError, WritePlan } from "../../../write/types.js";
@@ -208,7 +209,7 @@ const migrateNameEffect = Effect.fn("ensforge.migrateName")(function* (
 });
 
 const action = defineExtendedAction<MigrateNameParameters, MigrateNameResult, WriteError>(
-  migrateNameEffect,
+  withWorkflow("migrateName", migrateNameEffect),
 );
 
 export const migrateName = Object.freeze(

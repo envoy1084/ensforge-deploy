@@ -6,6 +6,7 @@ import { defineAction } from "../../../action/action.js";
 import type { EnsforgeConfig } from "../../../config/config.js";
 import { CodecError } from "../../../errors/codec-error.js";
 import { WritePlanError } from "../../../errors/write-plan-error.js";
+import { withWorkflow } from "../../../internal/workflows/run.js";
 import { namehash } from "../../../names/hashes.js";
 import { normalizeName } from "../../../names/normalize.js";
 import { EthereumAddress } from "../../../schemas/identity.js";
@@ -242,7 +243,7 @@ export const setResolverAndRecords = defineAction<
   SetResolverAndRecordsParameters,
   SetResolverAndRecordsResult,
   SetResolverAndRecordsError
->(implementation);
+>(withWorkflow("setResolverAndRecords", implementation));
 
 export type {
   ResolverSource,

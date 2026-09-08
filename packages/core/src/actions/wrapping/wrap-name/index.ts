@@ -5,6 +5,7 @@ import { isAddressEqual, keccak256, stringToHex, zeroAddress } from "viem";
 import { defineAction } from "../../../action/action.js";
 import type { EnsforgeConfig } from "../../../config/config.js";
 import { AuthorizationError } from "../../../errors/authorization-error.js";
+import { withWorkflow } from "../../../internal/workflows/run.js";
 import { dnsEncodeName } from "../../../names/dns.js";
 import { labelhash } from "../../../names/hashes.js";
 import type { WritePlan } from "../../../write/types.js";
@@ -213,7 +214,7 @@ const wrapNameEffect = Effect.fn("ensforge.wrapName")(function* (
 });
 
 export const wrapName = defineAction<WrapNameParameters, WrapNameResult, WrapperWriteError>(
-  wrapNameEffect,
+  withWorkflow("wrapName", wrapNameEffect),
 );
 
 export type {

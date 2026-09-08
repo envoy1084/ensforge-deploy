@@ -137,7 +137,7 @@ export interface HcaRegistrationExecution extends ExecutionAdapter {
 }
 
 export interface HcaRegistrationContext {
-  readonly storage: HcaStorage | HcaRegistrationStorage;
+  readonly storage?: HcaStorage | HcaRegistrationStorage;
   readonly execution?: HcaRegistrationExecution;
 }
 export interface GetHcaRegistrationParameters extends HcaRegistrationContext {
@@ -153,8 +153,8 @@ export interface ResumeHcaRegistrationParameters extends GetHcaRegistrationParam
   readonly submission?: HcaExecutionSubmission;
 }
 export interface StartHcaRegistrationParameters extends HcaRegistrationContext {
-  /** Application-generated idempotency key. Existing IDs are rejected without sending. */
-  readonly id: string;
+  /** Optional explicit ID. Otherwise matching unfinished registrations are resumed. */
+  readonly id?: string;
   readonly hca: `0x${string}`;
   readonly salt?: bigint;
   readonly name: string;

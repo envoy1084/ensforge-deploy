@@ -7,6 +7,7 @@ import type { BlockParameters } from "../../action/block.js";
 import type { EnsWriteIntent } from "../../action/write-intent.js";
 import { EthereumAddress } from "../../schemas/identity.js";
 import { NormalizedName } from "../../schemas/name.js";
+import type { WorkflowParameters, WorkflowProgress } from "../../workflows/types.js";
 import type {
   CallExecutionResult,
   ConfirmationPolicy,
@@ -181,7 +182,7 @@ export interface MigrationWalletParameters {
   readonly confirmation?: ConfirmationPolicy;
 }
 
-export interface MigrationNameProgress {
+export interface MigrationNameProgress extends WorkflowProgress {
   readonly status: "completed" | "partial";
   readonly name: string;
   readonly route: Extract<MigrationTarget, { readonly supported: true }>["route"];
@@ -193,7 +194,7 @@ export interface MigrationNameProgress {
   readonly finalState: NameState | null;
 }
 
-export type MigrateNameResult =
+type MigrateNameResultState =
   | MigrationNameProgress
   | {
       readonly status: "not-required";
@@ -204,7 +205,7 @@ export type MigrateNameResult =
     };
 
 export interface MigrateNameParameters
-  extends MigrateNameCallParameters, MigrationWalletParameters {
+  extends WorkflowParameters, MigrateNameCallParameters, MigrationWalletParameters {
   readonly migrateParent?: boolean;
   readonly resume?: MigrationNameProgress;
 }
@@ -233,7 +234,7 @@ export interface MigrationBatchEntry {
   readonly finalState: NameState | null;
 }
 
-export interface MigrationBatchProgress {
+export interface MigrationBatchProgress extends WorkflowProgress {
   readonly status: "completed" | "partial";
   readonly strategy: "helper" | "sequential";
   readonly migrations: ReadonlyArray<MigrationBatchEntry>;
@@ -245,7 +246,7 @@ export interface MigrationBatchProgress {
   readonly write: WritePlanProgress;
 }
 
-export interface MigrateNamesParameters extends MigrationWalletParameters {
+export interface MigrateNamesParameters extends WorkflowParameters, MigrationWalletParameters {
   readonly migrations: ReadonlyArray<MigrateNameCallParameters>;
   readonly resume?: MigrationBatchProgress;
 }
@@ -253,3 +254,5 @@ export interface MigrateNamesParameters extends MigrationWalletParameters {
 export type ApproveMigrationResult = CallExecutionResult;
 
 export type MigrationWriteError = WriteError;
+
+export type MigrateNameResult = MigrateNameResultState & WorkflowProgress;

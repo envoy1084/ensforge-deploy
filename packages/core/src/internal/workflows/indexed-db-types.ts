@@ -6,7 +6,12 @@ interface Request<Result> {
   addEventListener(event: string, listener: () => void): void;
 }
 
+interface Cursor {
+  readonly value: unknown;
+  continue(): void;
+}
 interface Store {
+  openCursor(range: unknown): Request<Cursor | null>;
   get(key: string): Request<unknown>;
   put(value: unknown, key: string): unknown;
 }
@@ -33,4 +38,8 @@ export interface WorkflowIndexedDb {
     onupgradeneeded: (() => void) | null;
     onblocked: (() => void) | null;
   };
+}
+
+export interface WorkflowKeyRange {
+  bound(lower: string, upper: string, lowerOpen?: boolean): unknown;
 }

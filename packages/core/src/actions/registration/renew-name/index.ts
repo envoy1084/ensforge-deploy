@@ -9,6 +9,7 @@ import { RenewalError } from "../../../errors/renewal-error.js";
 import { provideConfig } from "../../../internal/config/context.js";
 import { viemErrorToEffectError } from "../../../internal/errors/viem-error.js";
 import { resolveWalletContext } from "../../../internal/services/wallet-client.js";
+import { withWorkflow } from "../../../internal/workflows/run.js";
 import { normalizeName } from "../../../names/normalize.js";
 import type { WriteError, WritePlan } from "../../../write/types.js";
 import { executeWritePlan } from "../../batch/execute-write-plan.js";
@@ -219,7 +220,7 @@ const renewNameEffect = Effect.fn("ensforge.renewName")(function* (
 });
 
 const action = defineExtendedAction<RenewNameParameters, RenewNameResult, WriteError>(
-  renewNameEffect,
+  withWorkflow("renewName", renewNameEffect),
 );
 
 export const renewName = Object.freeze(

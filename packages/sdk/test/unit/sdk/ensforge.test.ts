@@ -9,6 +9,7 @@ import { createEnsforge } from "../../../src/wagmi.js";
 import { makeMainnetPublicClient, testTransport } from "../fixtures/clients.js";
 
 const actionNames = {
+  workflows: ["getWorkflow", "listWorkflows", "reconcileWorkflowSubmission"],
   batch: [
     "estimateCalls",
     "executeWritePlan",
@@ -296,7 +297,7 @@ describe("Ensforge", () => {
       }
     }
 
-    expect(Object.values(actionNames).flat()).toHaveLength(215);
+    expect(Object.values(actionNames).flat()).toHaveLength(218);
   });
 
   it("accepts a Wagmi config", () => {

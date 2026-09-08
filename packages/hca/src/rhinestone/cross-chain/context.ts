@@ -142,7 +142,7 @@ export const loadFunding = async (
   config: EnsforgeConfig,
   input: RhinestoneFundingReference,
 ) => {
-  const saved = await fundingStorage(input.storage).get(input.id);
+  const saved = await fundingStorage(input.storage ?? config.storage).get(input.id);
 
   if (!saved)
     throw new HcaError({ code: "INVALID_PARAMETERS", message: "Funding operation does not exist" });

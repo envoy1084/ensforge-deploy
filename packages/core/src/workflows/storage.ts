@@ -16,6 +16,12 @@ export interface WorkflowStorage {
     readonly namespace: string;
     readonly id: string;
   }): Promise<WorkflowStoredRecord | null>;
+  /** Optional enumeration for pending-workflow UIs. Return records ordered by ID. */
+  list?(input: {
+    readonly namespace: string;
+    readonly after?: string;
+    readonly limit: number;
+  }): Promise<ReadonlyArray<WorkflowStoredRecord>>;
   compareAndSwap(input: {
     readonly namespace: string;
     readonly id: string;

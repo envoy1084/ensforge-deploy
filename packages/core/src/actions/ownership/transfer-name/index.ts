@@ -6,6 +6,7 @@ import { defineAction } from "../../../action/action.js";
 import type { EnsforgeConfig } from "../../../config/config.js";
 import { AuthorizationError } from "../../../errors/authorization-error.js";
 import { WritePlanError } from "../../../errors/write-plan-error.js";
+import { withWorkflow } from "../../../internal/workflows/run.js";
 import { normalizeName } from "../../../names/normalize.js";
 import type { EthereumAddress } from "../../../schemas/identity.js";
 import type { EnsProtocol } from "../../../schemas/protocol.js";
@@ -175,7 +176,7 @@ export const transferName = defineAction<
   TransferNameParameters,
   TransferNameResult,
   TransferNameError
->(implementation);
+>(withWorkflow("transferName", implementation));
 
 export type {
   TransferNameError,

@@ -18,9 +18,12 @@ import type { ContractError } from "../../errors/contract-error.js";
 import type { RpcError } from "../../errors/rpc-error.js";
 import { TransactionError } from "../../errors/transaction-error.js";
 import type { WalletError } from "../../errors/wallet-error.js";
+import type { WorkflowError } from "../../errors/workflow-error.js";
 import type { FeeEstimate, PreparedWriteCall } from "../../write/types.js";
 import { findViemErrorCause, viemErrorToEffectError } from "../errors/viem-error.js";
 import { batchStatusError, receiptWaitError, walletRequestError } from "../errors/write-error.js";
+import { journalSubmission, journalKey } from "../workflows/journal.js";
+import { ActiveWorkflow, WorkflowStep } from "../workflows/session.js";
 
 export interface WaitForReceiptOptions {
   readonly confirmations?: number;
@@ -44,7 +47,7 @@ export interface WriteClientService {
   readonly sendTransaction: (
     walletClient: WalletClient,
     call: PreparedWriteCall,
-  ) => Effect.Effect<Hex, ContractError | RpcError | WalletError>;
+  ) => Effect.Effect<Hex, ContractError | RpcError | WalletError | WorkflowError>;
   readonly waitForReceipt: (
     hash: Hex,
     options: WaitForReceiptOptions,
@@ -59,7 +62,7 @@ export interface WriteClientService {
     account: Account | Address,
     calls: ReadonlyArray<PreparedWriteCall>,
     options: SendNativeCallsOptions,
-  ) => Effect.Effect<SendCallsReturnType, WalletError>;
+  ) => Effect.Effect<SendCallsReturnType, WalletError | WorkflowError>;
   readonly waitForCallsStatus: (
     walletClient: WalletClient,
     id: string,
@@ -80,8 +83,13 @@ export const makeWriteClient = (
   readSemaphore = Semaphore.makeUnsafe(defaultReadOptions.concurrency),
 ): WriteClientService =>
   WriteClient.of({
-    simulate: Effect.fn("WriteClient.simulate")((call) =>
-      readSemaphore.withPermit(
+    simulate: Effect.fn("WriteClient.simulate")(function* (call) {
+      const session = yield* ActiveWorkflow;
+      const step = yield* WorkflowStep;
+      const saved = session?.record.submissions[journalKey("transaction", [call], step).key];
+      if (saved?.reference) return { data: undefined };
+
+      return yield* readSemaphore.withPermit(
         Effect.tryPromise({
           try: () =>
             publicClient.call({
@@ -92,8 +100,8 @@ export const makeWriteClient = (
             }),
           catch: (cause) => viemErrorToEffectError(cause, "simulateContract"),
         }),
-      ),
-    ),
+      );
+    }),
     estimateGas: Effect.fn("WriteClient.estimateGas")((call, blockNumber) =>
       readSemaphore.withPermit(
         Effect.tryPromise({
@@ -132,17 +140,24 @@ export const makeWriteClient = (
       ),
     ),
     sendTransaction: Effect.fn("WriteClient.sendTransaction")((walletClient, call) =>
-      Effect.tryPromise({
-        try: () =>
-          walletClient.sendTransaction({
-            account: call.account,
-            chain: walletClient.chain,
-            to: call.to,
-            ...(call.data === undefined ? {} : { data: call.data }),
-            ...(call.value === 0n ? {} : { value: call.value }),
+      journalSubmission(
+        "transaction",
+        [call],
+        () =>
+          Effect.tryPromise({
+            try: () =>
+              walletClient.sendTransaction({
+                account: call.account,
+                chain: walletClient.chain,
+                to: call.to,
+                ...(call.data === undefined ? {} : { data: call.data }),
+                ...(call.value === 0n ? {} : { value: call.value }),
+              }),
+            catch: (cause) => walletRequestError(cause, "sendTransaction"),
           }),
-        catch: (cause) => walletRequestError(cause, "sendTransaction"),
-      }),
+        (hash) => hash,
+        (hash) => hash as Hex,
+      ),
     ),
     waitForReceipt: Effect.fn("WriteClient.waitForReceipt")((hash, options) =>
       Effect.tryPromise({
@@ -177,21 +192,30 @@ export const makeWriteClient = (
       }),
     ),
     sendCalls: Effect.fn("WriteClient.sendCalls")((walletClient, account, calls, options) =>
-      Effect.tryPromise({
-        try: () =>
-          walletClient.sendCalls({
-            account,
-            chain: walletClient.chain,
-            calls: calls.map((call) => ({
-              to: call.to,
-              ...(call.data === undefined ? {} : { data: call.data }),
-              ...(call.value === 0n ? {} : { value: call.value }),
-            })),
-            forceAtomic: options.forceAtomic,
-            ...(options.capabilities === undefined ? {} : { capabilities: options.capabilities }),
+      journalSubmission(
+        "batch",
+        calls,
+        () =>
+          Effect.tryPromise({
+            try: () =>
+              walletClient.sendCalls({
+                account,
+                chain: walletClient.chain,
+                calls: calls.map((call) => ({
+                  to: call.to,
+                  ...(call.data === undefined ? {} : { data: call.data }),
+                  ...(call.value === 0n ? {} : { value: call.value }),
+                })),
+                forceAtomic: options.forceAtomic,
+                ...(options.capabilities === undefined
+                  ? {}
+                  : { capabilities: options.capabilities }),
+              }),
+            catch: (cause) => walletRequestError(cause, "sendCalls"),
           }),
-        catch: (cause) => walletRequestError(cause, "sendCalls"),
-      }),
+        (batch) => batch.id,
+        (id) => ({ id }),
+      ),
     ),
     waitForCallsStatus: Effect.fn("WriteClient.waitForCallsStatus")((walletClient, id, options) =>
       Effect.tryPromise({

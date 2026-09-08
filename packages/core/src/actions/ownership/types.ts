@@ -2,6 +2,7 @@ import type { Account, Address, WalletClient } from "viem";
 
 import type { EthereumAddress } from "../../schemas/identity.js";
 import type { EnsProtocol } from "../../schemas/protocol.js";
+import type { WorkflowParameters, WorkflowProgress } from "../../workflows/types.js";
 import type {
   CallExecutionResult,
   ConfirmationPolicy,
@@ -45,7 +46,7 @@ export type TransferNameStrategy =
   | "name-wrapper"
   | "v2-registry";
 
-export interface TransferNameProgress {
+export interface TransferNameProgress extends WorkflowProgress {
   readonly name: string;
   readonly protocol: EnsProtocol;
   readonly strategy: TransferNameStrategy;
@@ -55,7 +56,7 @@ export interface TransferNameProgress {
   readonly finalState: NameState | null;
 }
 
-export interface TransferNameParameters {
+export interface TransferNameParameters extends WorkflowParameters {
   readonly name: string;
   readonly to: string;
   readonly walletClient?: WalletClient;

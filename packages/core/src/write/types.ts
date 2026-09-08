@@ -23,6 +23,7 @@ import type { ReverseNameError } from "../errors/reverse-name-error.js";
 import type { RpcError } from "../errors/rpc-error.js";
 import type { TransactionError } from "../errors/transaction-error.js";
 import type { WalletError } from "../errors/wallet-error.js";
+import type { WorkflowError } from "../errors/workflow-error.js";
 import type { WritePlanError } from "../errors/write-plan-error.js";
 import type { EnsProtocol } from "../schemas/protocol.js";
 
@@ -35,6 +36,7 @@ export const WriteAtomicity = Schema.Literals(["none", "preferred", "required"])
 export type WriteAtomicity = typeof WriteAtomicity.Type;
 
 export type WriteError =
+  | WorkflowError
   | HcaError
   | AuthorizationError
   | CodecError
