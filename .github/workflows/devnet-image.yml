@@ -12,7 +12,8 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  CONTRACTS_COMMIT: 09bf3ac64a6fb1b215573c019b17e8c501bb3ca0
+  # Pinned post-audit-2 source; the Dockerfile compiles this revision.
+  CONTRACTS_COMMIT: d0c902eeb388c7fbde3f95d9eaf6076eeedff1d7
 
 jobs:
   publish:
@@ -79,6 +80,7 @@ jobs:
           {
             echo "## ENS devnet image published"
             echo
+            echo "- Contracts source commit: \`${CONTRACTS_COMMIT}\`"
             echo "- Tag: \`${IMAGE}:v2-${SHORT_COMMIT}\`"
             echo "- Digest: \`${DIGEST}\`"
             echo "- Immutable image: \`${IMAGE}@${DIGEST}\`"
