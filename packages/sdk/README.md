@@ -74,6 +74,27 @@ const sdk = createEnsforge({
 
 Add a wallet client—or use a Wagmi config with an active connection—to execute write actions.
 
+## HCA owner execution
+
+Use the same SDK instance and config:
+
+```ts
+const deployment = await sdk.hca.deployHca({ owner: walletAddress, salt: 0n });
+const submission = await sdk.hca.executeHcaCalls({
+  hca: deployment.address,
+  authorization: { kind: "owner" },
+  calls: [
+    sdk.records.setText.call({ name: "alice.eth", key: "url", value: "https://alice.example" }),
+  ],
+});
+await sdk.hca.waitForHcaExecution({ submission });
+```
+
+The HCA needs resolver permission before this record update. Without `execution`, the owner wallet
+submits an atomic HCA transaction. Supplying an `ExecutionAdapter` selects that adapter's lifecycle,
+with no fallback to the wallet. P1 supports owner execution; session/provider integrations follow in
+later phases. See the [full action reference](../core/src/actions/hca/README.md).
+
 ## License
 
 Apache-2.0

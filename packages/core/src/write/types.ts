@@ -14,6 +14,7 @@ import type { CodecError } from "../errors/codec-error.js";
 import type { ConfigError } from "../errors/config-error.js";
 import type { ContractError } from "../errors/contract-error.js";
 import type { DnsImportError } from "../errors/dns-import-error.js";
+import type { HcaError } from "../errors/hca-error.js";
 import type { MigrationError } from "../errors/migration-error.js";
 import type { NameError } from "../errors/name-error.js";
 import type { RegistrationError } from "../errors/registration-error.js";
@@ -34,6 +35,7 @@ export const WriteAtomicity = Schema.Literals(["none", "preferred", "required"])
 export type WriteAtomicity = typeof WriteAtomicity.Type;
 
 export type WriteError =
+  | HcaError
   | AuthorizationError
   | CodecError
   | ConfigError

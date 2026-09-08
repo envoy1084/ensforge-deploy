@@ -58,6 +58,12 @@ const profile = await readBatch(config, {
 });
 ```
 
+## HCA actions
+
+The HCA namespace provides 16 account, deployment, owner-execution and tracking actions using the
+recorded Sepolia profile or explicit matching devnet profile. See the [P1 action reference](src/actions/hca/README.md)
+for parameters, adapter dispatch, caller semantics and current limitations.
+
 ## License
 
 Apache-2.0

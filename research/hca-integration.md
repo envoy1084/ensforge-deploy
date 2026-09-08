@@ -1,6 +1,6 @@
 # HCA integration: research and implementation plan
 
-Status: accepted architecture direction; APIs below are proposals, not shipped features.
+Status: P0 and P1 implemented; provider packages, session workflows and later APIs remain proposals.
 Last reviewed: 2026-09-08. Scope: the recorded ENSv2 Sepolia deployment, followed by separately
 verified provider integrations. No Mainnet support is implied.
 
@@ -46,7 +46,7 @@ The phased implementation checklist is at the end of this document.
 | Matching Docker/source revision     | `09bf3ac64a6fb1b215573c019b17e8c501bb3ca0`                                                                     |
 | Local image                         | `ghcr.io/envoy1084/ensforge-devnet@sha256:63415642daad6f3486d305b5660a0b9c659203fc20194bafb50b6b1e1bedeef3`    |
 | CI image                            | `ghcr.io/thenamespace/ensforge-devnet@sha256:0a62a0ee9225c2ed457daca15a9f6fff4db7b8094ed19ca3ad611f35291d2015` |
-| Local support currently implemented | Contracts metadata and ABI exports; no core HCA actions or HCA package                                         |
+| Local support currently implemented | Contracts profiles/ABIs, core HCA owner actions and `sdk.hca`; no provider package                             |
 
 The repository investigation compared all 790 source entries across the five saved Sepolia compiler
 inputs with the clean `09bf3ac6` checkout: every entry matched, including dependencies. This is source
@@ -117,7 +117,7 @@ There are three different routes:
 
 | Route               | Caller/authorization                      | Infrastructure                                     | Current confidence                                                             |
 | ------------------- | ----------------------------------------- | -------------------------------------------------- | ------------------------------------------------------------------------------ |
-| Owner transaction   | Wallet calls `executeByOwner`             | RPC + owner wallet                                 | Contract path verified in source; Ensforge action not implemented              |
+| Owner transaction   | Wallet calls `executeByOwner`             | RPC + owner wallet                                 | Implemented in P1; local owner execution and rejection paths verified          |
 | Owner UserOperation | EntryPoint and fixed owner validator      | Compatible bundler; optional paymaster             | Contract supports it; Pimlico/Alchemy proofs pending                           |
 | ENS session intent  | Fixed IntentExecutor and scoped validator | Compatible Rhinestone SDK and route infrastructure | Upstream guide describes proofs; exact Ensforge profile/provider proof pending |
 
@@ -387,14 +387,29 @@ Exit achieved: one reproducible HCA account generation, with unsupported public 
 
 ### P1 — core actions and existing SDK group
 
-- [ ] Implement prediction, focused reads, verification, capabilities and account descriptor schemas.
-- [ ] Add `sdk.hca` using existing binders; expose `.effect`, `.request`, and safe `.call` descriptors.
-- [ ] Add owner deployment and atomic execution, plus direct owner session revocation.
-- [ ] Implement HCA caller context for existing ENS call intents without mutating global config.
-- [ ] Handle deployment races, wrong-owner accounts, and unsupported implementation/version errors.
-- [ ] Verify representative owner batches and failure rollback against the matching devnet.
+- [x] Implement prediction, focused reads, verification, capabilities and account descriptor schemas.
+- [x] Add `sdk.hca` using existing binders; expose `.effect`, `.request`, and safe `.call` descriptors.
+- [x] Add owner deployment and atomic execution, plus direct owner session revocation.
+- [x] Implement HCA caller context for existing ENS call intents without mutating global config.
+- [x] Handle deployment races, wrong-owner accounts, and unsupported implementation/version errors.
+- [x] Verify representative owner batches and failure rollback against the matching devnet.
 
-Exit: useful HCA interaction with an ordinary wallet, no provider dependency and no new client.
+Implemented: all 16 P1 actions, existing SDK binding conventions, automatic Sepolia profile selection,
+explicit local profile configuration, direct atomic owner calls, adapter dispatch without fallback,
+submission tracking and owner-only revocation. See the [shipped P1 API](../packages/core/src/actions/hca/README.md).
+
+Direct execution always simulates the complete batch. Adapter execution requires a successful full
+simulation from its preparation step and consistent account/plan/adapter identities. Sessions remain
+rejected until P4. The current adapter envelope is the P1 owner-delivery boundary; P2 adds richer
+provider typing, persistence, expiry/fee policies and extensions. ENS semantic preparers currently
+retain their existing configured-wallet requirement; raw adapter calls do not need a wallet.
+
+Verified locally: prediction, existing/new deployment, owner/factory checks, delegated ENS intents,
+pre-broadcast rejection of a reverting batch, nonce revocation, read requests, adapter lifecycle,
+tracking and instance mismatch rejection. A local adapter harness proves dispatch, not provider
+compatibility. `test-env verify` now exercises owner execution/revocation and checkpoint restoration.
+
+Exit achieved: useful HCA interaction with an ordinary wallet, no provider dependency and no new client.
 
 ### P2 — optional package and execution contracts
 

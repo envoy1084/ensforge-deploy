@@ -1,8 +1,12 @@
 # HCA core actions and SDK API
 
-Status: implementation specification; none of these HCA actions are shipped yet.
+Status: P1 owner actions implemented; later session, account and governance APIs remain proposed.
 Parent: [HCA research and phased TODOs](../hca-integration.md).
 Provider contract: [Execution adapters](execution-adapters.md).
+
+The shipped 16-action P1 surface and exact return types are documented in the
+[P1 API reference](../../packages/core/src/actions/hca/README.md). The inventory below also includes
+future phases; it is not a claim that all listed methods are available.
 
 ## 1. Conventions and boundaries
 

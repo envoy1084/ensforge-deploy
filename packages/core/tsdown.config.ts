@@ -8,6 +8,7 @@ export default defineConfig({
     capabilities: "src/actions/capabilities/index.ts",
     dns: "src/actions/dns/index.ts",
     events: "src/actions/events/index.ts",
+    hca: "src/actions/hca/index.ts",
     index: "src/index.ts",
     indexer: "src/actions/indexer/index.ts",
     "indexer/history": "src/actions/indexer/history/index.ts",

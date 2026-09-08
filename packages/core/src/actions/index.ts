@@ -12,3 +12,4 @@ export * from "./resolution/index.js";
 export * from "./reverse/index.js";
 export * from "./subnames/index.js";
 export * from "./wrapping/index.js";
+export * from "./hca/index.js";

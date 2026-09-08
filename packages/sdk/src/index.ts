@@ -31,6 +31,7 @@ export {
 
 export { Ensforge } from "./ensforge.js";
 export type {
+  HcaActions,
   BatchActions,
   CapabilitiesActions,
   DnsActions,
@@ -55,3 +56,10 @@ export type {
   BoundReadBatchSettled,
   BoundWatchEnsEvents,
 } from "./internal/bind-action.js";
+export type {
+  ExecutionAdapter,
+  HcaExecutionSubmission,
+  HcaExecutionStatus,
+  VerifiedHcaAccount,
+  PreparedHcaCalls,
+} from "@ensforge/core/hca";

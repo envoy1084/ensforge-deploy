@@ -49,6 +49,10 @@
       "workspace-source": "./src/entrypoints/events.ts",
       "default": "./dist/events.js"
     },
+    "./hca": {
+      "workspace-source": "./src/entrypoints/hca.ts",
+      "default": "./dist/hca.js"
+    },
     "./indexer": {
       "workspace-source": "./src/entrypoints/indexer.ts",
       "default": "./dist/indexer.js"
@@ -109,6 +113,7 @@
       "./capabilities": "./dist/capabilities.js",
       "./dns": "./dist/dns.js",
       "./events": "./dist/events.js",
+      "./hca": "./dist/hca.js",
       "./indexer": "./dist/indexer.js",
       "./migration": "./dist/migration.js",
       "./name": "./dist/name.js",

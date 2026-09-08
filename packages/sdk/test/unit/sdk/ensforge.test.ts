@@ -198,6 +198,24 @@ const actionNames = {
     "setSubnameResolver",
     "transferSubname",
   ],
+  hca: [
+    "predictHcaAddress",
+    "getHca",
+    "getHcaOwner",
+    "getHcaImplementation",
+    "getHcaAccountId",
+    "getHcaSessionNonce",
+    "getAuthorizedHcaOwner",
+    "getHcaImplementationApproval",
+    "verifyHca",
+    "getHcaCapabilities",
+    "deployHca",
+    "prepareHcaCalls",
+    "executeHcaCalls",
+    "getHcaExecutionStatus",
+    "waitForHcaExecution",
+    "revokeHcaSessions",
+  ],
   wrapping: [
     "extendSubnameExpiry",
     "getFuses",
@@ -229,7 +247,7 @@ describe("Ensforge", () => {
       }
     }
 
-    expect(Object.values(actionNames).flat()).toHaveLength(172);
+    expect(Object.values(actionNames).flat()).toHaveLength(188);
   });
 
   it("accepts a Wagmi config", () => {

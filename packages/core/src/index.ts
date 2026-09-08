@@ -123,3 +123,4 @@ export {
   RegistryResource,
 } from "./schemas/index.js";
 export * from "./write/index.js";
+export { HcaError, HcaErrorCode } from "./errors/hca-error.js";

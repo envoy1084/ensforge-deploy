@@ -1,8 +1,12 @@
 # Execution adapters for HCA
 
-Status: proposed implementation contract, reviewed 2026-09-08.
+Status: P1 ships an owner-delivery interface; this document describes the broader P2+ design.
 Parent: [HCA integration and phased TODOs](../hca-integration.md).
 Core APIs: [HCA actions](core-actions.md).
+
+The current core-owned `ExecutionAdapter` and its limits are described in the
+[shipped P1 API reference](../../packages/core/src/actions/hca/README.md). Provider factories and
+generic payload types below remain planned.
 
 ## 1. Accepted public shape
 

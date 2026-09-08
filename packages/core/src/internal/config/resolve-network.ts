@@ -14,7 +14,7 @@ interface ResolvedNetwork {
 }
 
 // Freeze the owned snapshot so routing cannot change after configuration validation.
-const freezeDeployment = <T extends object>(value: T): T => {
+export const freezeDeployment = <T extends object>(value: T): T => {
   for (const child of Object.values(value)) {
     if (child !== null && typeof child === "object") freezeDeployment(child);
   }

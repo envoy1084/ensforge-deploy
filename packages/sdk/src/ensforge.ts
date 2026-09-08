@@ -7,6 +7,8 @@ import {
 
 import {
   makeBatchActions,
+  makeHcaActions,
+  type HcaActions,
   makeCapabilitiesActions,
   makeDnsActions,
   makeEventsActions,
@@ -40,6 +42,7 @@ import {
 
 export class Ensforge {
   readonly config: EnsforgeConfig;
+  readonly hca: HcaActions;
   readonly batch: BatchActions;
   readonly capabilities: CapabilitiesActions;
   readonly dns: DnsActions;
@@ -60,6 +63,7 @@ export class Ensforge {
     const config = EnsforgeConfigTypeId in parameters ? parameters : createConfig(parameters);
 
     this.config = config;
+    this.hca = makeHcaActions(config);
     this.batch = makeBatchActions(config);
     this.capabilities = makeCapabilitiesActions(config);
     this.dns = makeDnsActions(config);

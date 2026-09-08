@@ -13,3 +13,4 @@ export { makeResolutionActions, type ResolutionActions } from "./resolution.js";
 export { makeReverseActions, type ReverseActions } from "./reverse.js";
 export { makeSubnameActions, type SubnameActions } from "./subnames.js";
 export { makeWrappingActions, type WrappingActions } from "./wrapping.js";
+export * from "./hca.js";

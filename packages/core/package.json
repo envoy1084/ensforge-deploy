@@ -49,6 +49,10 @@
       "workspace-source": "./src/actions/events/index.ts",
       "default": "./dist/events.js"
     },
+    "./hca": {
+      "workspace-source": "./src/actions/hca/index.ts",
+      "default": "./dist/hca.js"
+    },
     "./indexer": {
       "workspace-source": "./src/actions/indexer/index.ts",
       "default": "./dist/indexer.js"
@@ -137,6 +141,7 @@
       "./capabilities": "./dist/capabilities.js",
       "./dns": "./dist/dns.js",
       "./events": "./dist/events.js",
+      "./hca": "./dist/hca.js",
       "./indexer": "./dist/indexer.js",
       "./indexer/history": "./dist/indexer/history.js",
       "./indexer/names": "./dist/indexer/names.js",

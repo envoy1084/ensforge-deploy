@@ -83,3 +83,6 @@ pnpm verify:hca:sepolia
 Set `SEPOLIA_RPC_URL` in the root `.env` to use your RPC; otherwise this uses PublicNode. The command
 uses no signer and submits no transactions. It rejects missing Sepolia EntryPoint code, unsupported
 chains and mismatched wiring. The result is a block snapshot, not a guarantee of future governance state.
+
+P1 shares the P0 wiring verifier with core and supplies `configs.v2.hca` automatically. This keeps
+local SDK actions and fixture setup on the same discovered account profile.
