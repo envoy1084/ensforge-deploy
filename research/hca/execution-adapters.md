@@ -4,9 +4,7 @@ Status: Typed execution contracts, Rhinestone destination sessions, and Pimlico 
 Parent: [HCA integration and phased TODOs](../hca-integration.md).
 Core APIs: [HCA actions](core-actions.md).
 
-The shipped APIs are documented in the [core API reference](../../packages/core/src/actions/hca/README.md)
-and [adapter package](../../packages/hca/README.md). Code sketches below describe the broader provider
-design; use the package reference for exact shipped types and the [Rhinestone guide](../../packages/hca/RHINESTONE.md) for P3 setup.
+The linked source entry points contain the shipped APIs. Code sketches below also include proposed capabilities.
 
 ## 1. Accepted public shape
 
@@ -313,7 +311,7 @@ selectors from the verified source. Session/cross-chain support stays absent for
 
 Sources: [Pimlico infrastructure](https://docs.pimlico.io/),
 [permissionless source](https://github.com/pimlicolabs/permissionless.js).
-The [implemented Pimlico API](../../packages/hca/PIMLICO.md) uses permissionless 0.4, explicit owner
+The [implemented Pimlico API](../../packages/hca/src/providers/pimlico.ts) uses permissionless 0.4, explicit owner
 signing, nonce key zero, optional sponsorship, and first-operation factory deployment. Local
 EntryPoint proofs do not certify hosted bundler validation policy or real sponsorship.
 
@@ -362,6 +360,6 @@ Pimlico and the shared `ExecutionAdapter` need no cross-chain methods. Source fu
 before the application invokes ordinary destination registration. The funding adapter and subsequent
 execution adapter can differ. P5 storage contains no bridge route and makes no source transaction.
 Use a separate funding record for claims, settlement, and recovery in the same `HcaStorage` backend,
-under a distinct namespace. See [the shipped funding API](../../packages/hca/FUNDING.md).
+under a distinct namespace. See [the shipped funding API](../../packages/hca/src/rhinestone/cross-chain/index.ts).
 Public manifests and hosted settlement proofs remain release gates;
 older combined funding-and-registration sketches are superseded.

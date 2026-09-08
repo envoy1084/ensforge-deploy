@@ -318,7 +318,7 @@ const resumed = await sdk.hca.resumeHcaRegistration({ execution, storage, id: op
 The storage contract supports atomic `create`, `get`, and revision-checked `compareAndSwap`.
 Core owns the contract so dependencies remain inward; `@ensforge/hca` re-exports it and provides a
 versioned JSON codec and in-memory development implementation. Production storage is caller-supplied.
-See the [implemented registration guide](../packages/hca/REGISTRATION.md).
+See the [registration implementation](../packages/core/src/actions/hca/start-hca-registration/index.ts).
 
 Progress is explicit: `created`, `submitting`, `submitted`, `waiting`, `needs-review`, `needs-funding`,
 `needs-authorization`, `registered`, `failed`, `expired`, or `cancelled`. Immutable registration inputs
@@ -402,7 +402,7 @@ Exit achieved: one reproducible HCA account generation, with unsupported public 
 
 Implemented: all 16 P1 actions, existing SDK binding conventions, automatic Sepolia profile selection,
 explicit local profile configuration, direct atomic owner calls, adapter dispatch without fallback,
-submission tracking and owner-only revocation. See the [shipped P1 API](../packages/core/src/actions/hca/README.md).
+submission tracking and owner-only revocation. See the [shipped P1 API](../packages/core/src/actions/hca/index.ts).
 
 Direct execution always simulates the complete batch. Adapter execution requires a successful full
 simulation from its preparation step and consistent account/plan/adapter identities. P3 adds validated destination-session preparation. The current adapter envelope is the P1 owner-delivery boundary; P2 now adds provider typing, persistence, expiry/fee policies and extensions. ENS semantic preparers currently
@@ -424,7 +424,7 @@ Exit achieved: useful HCA interaction with an ordinary wallet, no provider depen
 - [x] Verify base/core imports do not load provider SDKs or require unrelated peers.
 - [x] Prove adapter mismatches and restored invalid envelopes fail without side effects.
 
-Implemented in [`@ensforge/hca`](../packages/hca/README.md): typed lifecycle wrappers, immutable
+Implemented in [`@ensforge/hca`](../packages/hca/src/index.ts): typed lifecycle wrappers, immutable
 review envelopes, account/nonce revalidation, bounded wait/watch, explicit fee limits, expiry checks,
 versioned tracking codecs and optional typed extensions. P3 implements Rhinestone; P4 adds the named Pimlico adapter with optional ETH sponsorship and counterfactual deployment. Existing semantic preparers retain their wallet-context requirement.
 
@@ -445,7 +445,7 @@ nonce, uncertain outcomes and interruption. No provider SDK compatibility is cla
 - [x] Prove allowed record updates, prohibited calls, wrong resolver, expired/revoked/replaced sessions, and SDK refund signatures locally.
 - [x] Add bounded refund configuration and separate registration price from execution fees.
 
-The [shipped API and installation guide](../packages/hca/RHINESTONE.md) define the P3 boundary:
+The [provider entry point](../packages/hca/src/providers/rhinestone.ts) define the P3 boundary:
 an already deployed, prefunded HCA, one same-chain no-funding intent, no swaps or source calls.
 The SDK must return identical destination calls and a single execution nonce. Signed operations
 stay in memory; only public submission tracking is restorable.
@@ -476,7 +476,7 @@ Exit: a destination session works with the exact artifact-backed HCA; direct own
 
 Local EntryPoint verification covers deployed and counterfactual owner execution. Hosted Pimlico
 bundler validation and real sponsorship remain integration checks; local estimation uses a test
-transport, not Pimlico simulation. See [the implemented API](../packages/hca/PIMLICO.md).
+transport, not Pimlico simulation. See [the implemented API](../packages/hca/src/providers/pimlico.ts).
 
 - [ ] Verify hosted Pimlico acceptance, factory validation policy, and real sponsorship.
 
@@ -508,8 +508,8 @@ Exit: end-to-end same-chain registration can resume without losing state or doub
 - [x] Demonstrate the local EOA funding flow followed by ordinary registration with one shared store.
 - [x] Keep registration and the common execution interface independent of funding providers.
 
-Implemented the bounded EOA/ERC-20 Permit2 path. See [FUNDING.md](../packages/hca/FUNDING.md)
-and [STORAGE.md](../packages/hca/STORAGE.md). No public route manifest is enabled by default.
+Implemented the bounded EOA/ERC-20 Permit2 path. See [funding implementation](../packages/hca/src/rhinestone/cross-chain/index.ts)
+and [storage contract](../packages/core/src/actions/hca/storage.ts). No public route manifest is enabled by default.
 Local signature/receipt proofs use a mock source RPC and orchestrator; hosted settlement and source
 contract proofs remain unchecked above. Status observes token movements and does not authenticate
 an intent ID against the signed mandate or prove cross-chain finality.
@@ -531,7 +531,6 @@ Exit: coverage is explicit without inventing unsupported contract capabilities.
 ### P8 — React, remote orchestration and future accounts
 
 - [ ] Bind selected workflows to the existing React provider/config; do not add an HCA client provider.
-- [ ] Add user documentation and code examples that identify proposals versus shipped capabilities.
 - [ ] Add remote execution only with authenticated operations and explicit session-key custody.
 - [ ] Separate browser cancellation, source cancellation and destination revocation in UI state.
 - [ ] Investigate ZeroDev/Kernel, Safe or other accounts independently; do not treat them as HCAs.
@@ -540,6 +539,8 @@ Exit: coverage is explicit without inventing unsupported contract capabilities.
 Exit: additional integrations preserve the one-SDK architecture and account compatibility checks.
 
 ### P9 — release and Mainnet gates
+
+- [ ] Write HCA user documentation and examples in `apps/docs` during this final phase; do not add package guides.
 
 - [ ] Run relevant existing workspace checks, package builds and consumer/import verification.
 - [ ] Document exact provider package versions, deployment manifests and reproducible proof commands.

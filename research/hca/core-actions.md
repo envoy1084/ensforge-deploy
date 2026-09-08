@@ -4,9 +4,7 @@ Status: P1 owner actions implemented; later session, account and governance APIs
 Parent: [HCA research and phased TODOs](../hca-integration.md).
 Provider contract: [Execution adapters](execution-adapters.md).
 
-The shipped 16-action P1 surface and exact return types are documented in the
-[P1 API reference](../../packages/core/src/actions/hca/README.md). The inventory below also includes
-future phases; it is not a claim that all listed methods are available.
+The inventory below includes future phases; it is not a claim that all listed methods are available.
 
 ## 1. Conventions and boundaries
 
@@ -300,7 +298,7 @@ package exports, types and user docs together. Keep every unimplemented action i
 proposed; the TODO ownership and exit gates are in the [main research plan](../hca-integration.md#8-phased-todos).
 
 P2 adds `watchHcaExecution` and typed provider submission inference to the existing SDK group.
-See the [adapter package](../../packages/hca/README.md) for the shipped lifecycle and persistence API.
+See the [adapter package](../../packages/hca/src/index.ts) for the shipped lifecycle and persistence API.
 
 ## Resumable same-chain registration
 
@@ -308,7 +306,7 @@ Implemented actions on `sdk.hca`: `startHcaRegistration`, `getHcaRegistration`,
 `resumeHcaRegistration`, and `cancelHcaRegistration`. Each action has its own core folder.
 The common `HcaStorage` contract lives in core and is re-exported by `@ensforge/hca`. Registration
 and funding use distinct namespaces in one backend; existing `HcaRegistrationStorage` implementations
-remain compatible. See [shared storage](../../packages/hca/STORAGE.md). Provider serialization
-remains provider-owned. See [the shipped workflow and storage API](../../packages/hca/REGISTRATION.md).
+remain compatible. See [shared storage](../../packages/core/src/actions/hca/storage.ts). Provider serialization
+remains provider-owned. See [the shipped workflow and storage API](../../packages/core/src/actions/hca/start-hca-registration/index.ts).
 Registration is destination-only. Independent Rhinestone `execution.crossChain` funding is P6 and
 must finish before the application starts/resumes ordinary registration.

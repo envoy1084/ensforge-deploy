@@ -43,6 +43,9 @@ Keep each public action in its own action folder, following neighboring actions.
 RPC/provider work, mutation, and result construction; group related declarations without inserting
 a blank line after every line.
 
+Defer HCA user documentation until the final documentation phase. Write it in `apps/docs`, not in
+package guides or action README files. Keep the existing research roadmap for implementation tracking.
+
 # Learning more about Effect
 
 This repository uses the Effect TypeScript library.

@@ -22,12 +22,7 @@
   },
   "files": [
     "dist",
-    "patches",
-    "RHINESTONE.md",
-    "PIMLICO.md",
-    "REGISTRATION.md",
-    "STORAGE.md",
-    "FUNDING.md"
+    "patches"
   ],
   "type": "module",
   "sideEffects": false,
