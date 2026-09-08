@@ -1,7 +1,7 @@
 # HCA integration: research and implementation plan
 
-Status: P0–P2 implemented. Rhinestone is P3; Pimlico is P4. Provider implementations, session workflows
-and later APIs remain proposals.
+Status: P0–P3 implemented, including locally verified Rhinestone destination sessions. Pimlico is P4;
+registration workflows, source funding and later APIs remain proposals. Hosted relayer verification is a release follow-up.
 Last reviewed: 2026-09-08. Scope: the recorded ENSv2 Sepolia deployment, followed by separately
 verified provider integrations. No Mainnet support is implied.
 
@@ -116,11 +116,11 @@ It can temporarily hold native/token funds, which the owner can recover through 
 
 There are three different routes:
 
-| Route               | Caller/authorization                      | Infrastructure                                     | Current confidence                                                             |
-| ------------------- | ----------------------------------------- | -------------------------------------------------- | ------------------------------------------------------------------------------ |
-| Owner transaction   | Wallet calls `executeByOwner`             | RPC + owner wallet                                 | Implemented in P1; local owner execution and rejection paths verified          |
-| Owner UserOperation | EntryPoint and fixed owner validator      | Compatible bundler; optional paymaster             | Contract supports it; Pimlico proof pending                                    |
-| ENS session intent  | Fixed IntentExecutor and scoped validator | Compatible Rhinestone SDK and route infrastructure | Upstream guide describes proofs; exact Ensforge profile/provider proof pending |
+| Route               | Caller/authorization                      | Infrastructure                                     | Current confidence                                                                  |
+| ------------------- | ----------------------------------------- | -------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| Owner transaction   | Wallet calls `executeByOwner`             | RPC + owner wallet                                 | Implemented in P1; local owner execution and rejection paths verified               |
+| Owner UserOperation | EntryPoint and fixed owner validator      | Compatible bundler; optional paymaster             | Contract supports it; Pimlico proof pending                                         |
+| ENS session intent  | Fixed IntentExecutor and scoped validator | Compatible Rhinestone SDK and route infrastructure | Patched SDK signatures verified with local deployment; hosted relayer proof pending |
 
 A bundler submits UserOperations. A paymaster may fund gas. Neither changes the account's validator.
 The deployed `validateUserOp` path validates owner signatures; existing ENS session execution uses
@@ -131,7 +131,7 @@ flowchart LR
   Calls[Existing ENS call intents] --> Prepare[Core HCA preparation]
   Prepare --> Wallet[Owner wallet transaction]
   Prepare --> Pimlico[Pimlico owner UserOperation]
-  Prepare --> Rhinestone[Rhinestone owner or session intent]
+  Prepare --> Rhinestone[Rhinestone destination-session intent]
   Wallet --> HCA[Verified HCA]
   Pimlico --> EP[EntryPoint]
   EP --> HCA
@@ -349,7 +349,7 @@ Resolve during the named phase rather than inventing answers:
 
 | Question                                                                | Owner phase / required decision                                         |
 | ----------------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| Does released Rhinestone support this standalone account patch?         | P3: inspect pinned SDK source and prove exact account/session route     |
+| Does released Rhinestone support this standalone account patch?         | P3: patched 1.8.0 locally proven; hosted Sepolia smoke test remains     |
 | Which Pimlico version supports our EntryPoint and estimation signature? | P4: provider proof with the HCA, not their default account              |
 | Which source-chain funding artifacts match our destination generation?  | P6: independent manifest and claim/fill proof                           |
 | How do adapter results preserve existing `executeWritePlan` semantics?  | P1: new HCA submission types; do not change ordinary action results     |
@@ -397,8 +397,7 @@ explicit local profile configuration, direct atomic owner calls, adapter dispatc
 submission tracking and owner-only revocation. See the [shipped P1 API](../packages/core/src/actions/hca/README.md).
 
 Direct execution always simulates the complete batch. Adapter execution requires a successful full
-simulation from its preparation step and consistent account/plan/adapter identities. Sessions remain
-rejected until P3. The current adapter envelope is the P1 owner-delivery boundary; P2 now adds provider typing, persistence, expiry/fee policies and extensions. ENS semantic preparers currently
+simulation from its preparation step and consistent account/plan/adapter identities. P3 adds validated destination-session preparation. The current adapter envelope is the P1 owner-delivery boundary; P2 now adds provider typing, persistence, expiry/fee policies and extensions. ENS semantic preparers currently
 retain their existing configured-wallet requirement; raw adapter calls do not need a wallet.
 
 Verified locally: prediction, existing/new deployment, owner/factory checks, delegated ENS intents,
@@ -419,8 +418,7 @@ Exit achieved: useful HCA interaction with an ordinary wallet, no provider depen
 
 Implemented in [`@ensforge/hca`](../packages/hca/README.md): typed lifecycle wrappers, immutable
 review envelopes, account/nonce revalidation, bounded wait/watch, explicit fee limits, expiry checks,
-versioned tracking codecs and optional typed extensions. Provider subpaths are type-only until their
-implementation phases. Existing semantic preparers retain their wallet-context requirement.
+versioned tracking codecs and optional typed extensions. P3 implements Rhinestone; the Pimlico subpath remains type-only until P4. Existing semantic preparers retain their wallet-context requirement.
 
 Exit: the same SDK operation accepts an external adapter while preserving concrete submission types.
 Local owner-delivery proofs cover restore rejection, expiry, budgets, duplicate submission, changed
@@ -428,18 +426,33 @@ nonce, uncertain outcomes and interruption. No provider SDK compatibility is cla
 
 ### P3 — Rhinestone destination sessions
 
-- [ ] Inspect `@rhinestone/sdk` release source against ENS's pinned 1.8.0 patch.
-- [ ] Pin a proven release or reproducible patch; do not assume stock 1.8.0 works.
-- [ ] Implement the named `rhinestone()` adapter through the P2 lifecycle and typed session extension.
-- [ ] Derive the exact HCA/resolver configuration and verify existing accounts before adoption.
-- [ ] Implement typed session preparation/authorization using the provider SDK.
-- [ ] Add core `enableHcaSession`, `enableHcaSessionWithRefund`, and `isHcaSessionEnabled` actions.
-- [ ] Extend core preparation/execution to accept validated destination sessions with full fixed-policy checks.
-- [ ] Add on-chain enablement, enabled-status checks, expiry and nonce reconciliation.
-- [ ] Prove allowed record updates, prohibited calls, wrong resolver, and expired/revoked sessions.
-- [ ] Add bounded refund configuration and separate registration price from execution fees.
+- [x] Inspect stock SDK releases against ENS's pinned 1.8.0 patch.
+- [x] Pin SDK 1.8.0 with the reproducible ENS patch and documented executor-address extension.
+- [x] Implement `rhinestone()` through the P2 lifecycle with a typed `sessions` extension.
+- [x] Derive the exact HCA configuration and verify existing accounts and resolver provenance.
+- [x] Use SDK permission IDs and execution signatures; enable destination sessions through core owner calls.
+- [x] Add core `enableHcaSession`, `enableHcaSessionWithRefund`, and `isHcaSessionEnabled` actions.
+- [x] Extend core preparation/execution with confirmed session references and full fixed-policy checks.
+- [x] Reconcile canonical enablement events, replacement, expiry, enabled status and session nonce.
+- [x] Prove allowed record updates, prohibited calls, wrong resolver, expired/revoked/replaced sessions, and SDK refund signatures locally.
+- [x] Add bounded refund configuration and separate registration price from execution fees.
 
-Same-chain destination execution only; source-account funding and cross-chain settlement remain a later phase.
+The [shipped API and installation guide](../packages/hca/RHINESTONE.md) define the P3 boundary:
+an already deployed, prefunded HCA, one same-chain no-funding intent, no swaps or source calls.
+The SDK must return identical destination calls and a single execution nonce. Signed operations
+stay in memory; only public submission tracking is restorable.
+
+Inspection corrected the original enablement plan: generic SDK session-detail/owner-proof helpers
+use Smart Session Emissary. This destination-only flow instead enables the fixed ENS validator
+through the existing owner route, then uses the SDK to sign enabled-session execution. Atomic
+first-use owner proofs and source authorization are deferred to workflow/funding phases.
+
+Local proofs cover SDK derivation/signatures, resolver deployment and records, exact owner role grants,
+commit/reveal, separate fee review, denied calls, wrong resolver, expired/revoked/replaced sessions,
+and bounded-refund signatures. Existing owner-adapter behavior is checked separately.
+
+Release follow-up: verify hosted Sepolia routing, relayer settlement and real refund reimbursement
+with provider credentials. Local mock-relayer proofs do not establish hosted service availability.
 
 Exit: a destination session works with the exact artifact-backed HCA; direct owner route remains usable.
 

@@ -2,24 +2,24 @@ import { Effect } from "effect";
 
 import { isAddressEqual } from "viem";
 
-import { defineAction } from "../../action/action.js";
-import type { EnsforgeConfig } from "../../config/config.js";
-import { HcaError } from "../../errors/hca-error.js";
-import { provideConfig } from "../../internal/config/context.js";
-import { hcaRpc } from "../../internal/hca/context.js";
-import { resolveWalletContext } from "../../internal/services/wallet-client.js";
-import { WriteClient } from "../../internal/write/write-client.js";
-import type { WriteError } from "../../write/types.js";
-import { prepareHcaCalls } from "./prepare.js";
-import { verifyHca } from "./reads.js";
-import type { HcaTransactionSubmission, PrepareHcaCallsParameters } from "./types.js";
+import { defineAction } from "../../../action/action.js";
+import type { EnsforgeConfig } from "../../../config/config.js";
+import { HcaError } from "../../../errors/hca-error.js";
+import { provideConfig } from "../../../internal/config/context.js";
+import { hcaRpc } from "../../../internal/hca/context.js";
+import { resolveWalletContext } from "../../../internal/services/wallet-client.js";
+import { WriteClient } from "../../../internal/write/write-client.js";
+import type { WriteError } from "../../../write/types.js";
+import { prepareHcaCalls } from "../prepare-hca-calls/index.js";
+import type { HcaTransactionSubmission, PrepareHcaCallsParameters } from "../types.js";
 import type {
   ExecuteHcaCallsParameters,
   HcaExecutionSubmission,
   HcaExecutionIdentity,
   ExecutionAdapter,
   PreparedHcaCalls,
-} from "./types.js";
+} from "../types.js";
+import { verifyHca } from "../verify-hca/index.js";
 
 export const checkHcaAdapterIdentity = (
   execution: ExecutionAdapter,
@@ -149,6 +149,12 @@ export const executeHcaCalls: ExecuteHcaCallsAction = defineAction<
 
       return submission;
     }
+
+    if (plan.authorization.kind !== "owner")
+      return yield* new HcaError({
+        code: "UNSUPPORTED_AUTHORIZATION",
+        message: "Session execution requires an execution adapter",
+      });
 
     const { walletClient, account } = yield* provideConfig(
       config,

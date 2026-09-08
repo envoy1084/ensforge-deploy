@@ -3,10 +3,9 @@
 Optional, Effect-native execution adapter infrastructure for ENS HCA accounts. ENS actions remain in
 `@ensforge/core` and on the existing `sdk.hca` group. This package does not create another ENS client.
 
-P2 implements the adapter contract and persistence. The `rhinestone` and `pimlico`
-subpaths currently export types only. Rhinestone arrives in P3 and Pimlico in P4;
-installing this package does not yet provide a bundler, paymaster, or session implementation.
-The root and provider subpaths load no provider SDKs and have no provider peer dependencies.
+This package supplies typed execution contracts, persistence and the
+[`rhinestone()` destination-session adapter](RHINESTONE.md), using an optional, patched Rhinestone
+1.8.0 peer. `/pimlico` currently exports types only. Root and Pimlico imports do not load Rhinestone.
 
 ## Using an adapter
 
@@ -142,7 +141,7 @@ and `lookup`. Each concrete adapter retains its own method and payload types. Us
 extensions fail synchronously before signing. Existing capability declarations do not implement a
 feature or prove compatibility with the deployed HCA.
 
-P2 retains deployed-account owner execution. Counterfactual execution, destination sessions and
-cross-chain routes need their later provider proofs. Existing semantic ENS call preparers still
+The shared wrapper supports deployed-account owner and validated destination-session execution.
+Counterfactual execution and cross-chain routes require later provider proofs. Existing semantic ENS call preparers still
 require their configured wallet context; raw adapter calls do not. HCA account management and direct
 owner session revocation remain core actions.

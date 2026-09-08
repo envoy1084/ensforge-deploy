@@ -1,16 +1,18 @@
 import { Clock, Effect, Option, Schema, Stream } from "effect";
 
-import { defineAction } from "../../action/action.js";
+import { getHcaExecutionStatus } from "../../actions/hca/get-hca-execution-status/index.js";
+import type { HcaExecutionStatus, WaitForHcaExecutionParameters } from "../../actions/hca/types.js";
 import type { EnsforgeConfig } from "../../config/config.js";
 import { HcaError } from "../../errors/hca-error.js";
-import { hcaRpc } from "../../internal/hca/context.js";
 import type { WriteError } from "../../write/types.js";
-import { getHcaExecutionStatus } from "./status.js";
-import type { HcaExecutionStatus, WaitForHcaExecutionParameters } from "./types.js";
+import { hcaRpc } from "./context.js";
 
 const positive = Schema.Number.check(Schema.isFinite(), Schema.isGreaterThan(0));
 
-const waitOptions = (config: EnsforgeConfig, parameters: WaitForHcaExecutionParameters) => {
+export const resolveHcaWaitOptions = (
+  config: EnsforgeConfig,
+  parameters: WaitForHcaExecutionParameters,
+) => {
   const policy = config.writes.confirmation;
 
   const timeout =
@@ -38,20 +40,20 @@ const waitOptions = (config: EnsforgeConfig, parameters: WaitForHcaExecutionPara
   return { timeout, confirmations, pollingInterval, maxPollingInterval };
 };
 
-const timedOut = () =>
+export const hcaExecutionTimeout = () =>
   new HcaError({
     code: "INVALID_EXECUTION",
     message: "Execution wait timed out; retain the submission handle to resume",
   });
 
-const stream = (
+export const hcaExecutionStream = (
   config: EnsforgeConfig,
   parameters: WaitForHcaExecutionParameters,
 ): Stream.Stream<HcaExecutionStatus, WriteError> =>
   Stream.unwrap(
     Effect.gen(function* () {
       const options = yield* Effect.try({
-        try: () => waitOptions(config, parameters),
+        try: () => resolveHcaWaitOptions(config, parameters),
         catch: (cause) => cause as HcaError,
       });
 
@@ -60,7 +62,7 @@ const stream = (
       const poll = Effect.fn("ensforge.watchHcaExecution.poll")(function* (attempt: number) {
         const remaining = deadline - (yield* Clock.currentTimeMillis);
 
-        if (remaining <= 0) return yield* timedOut();
+        if (remaining <= 0) return yield* hcaExecutionTimeout();
 
         return yield* Effect.gen(function* () {
           if (attempt > 0)
@@ -110,74 +112,10 @@ const stream = (
           ] as const;
         }).pipe(
           Effect.timeout(remaining),
-          Effect.catchTag("TimeoutError", () => timedOut()),
+          Effect.catchTag("TimeoutError", () => hcaExecutionTimeout()),
         );
       });
 
       return Stream.paginate(0, poll);
     }),
   );
-
-export const waitForHcaExecution = defineAction<
-  WaitForHcaExecutionParameters,
-  HcaExecutionStatus,
-  WriteError
->(
-  Effect.fn("ensforge.waitForHcaExecution")(function* (config, parameters) {
-    const result = yield* Stream.runLast(stream(config, parameters));
-
-    if (Option.isNone(result)) return yield* timedOut();
-
-    return result.value;
-  }),
-);
-
-export interface WatchHcaExecution {
-  (
-    config: EnsforgeConfig,
-    parameters: WaitForHcaExecutionParameters,
-    onStatus: (status: HcaExecutionStatus) => void,
-    onError: (error: WriteError) => void,
-    options?: Effect.RunOptions,
-  ): Promise<() => void>;
-
-  readonly stream: typeof stream;
-}
-
-const watch: WatchHcaExecution = Object.assign(
-  async (
-    config: EnsforgeConfig,
-    parameters: WaitForHcaExecutionParameters,
-    onStatus: (status: HcaExecutionStatus) => void,
-    onError: (error: WriteError) => void,
-    options?: Effect.RunOptions,
-  ) => {
-    waitOptions(config, parameters);
-
-    const controller = new AbortController();
-
-    const abort = () => controller.abort();
-
-    options?.signal?.addEventListener("abort", abort, { once: true });
-
-    if (options?.signal?.aborted) abort();
-
-    const run = Stream.runForEach(stream(config, parameters), (status) =>
-      Effect.sync(() => onStatus(status)),
-    ).pipe(Effect.catch((error) => Effect.sync(() => onError(error))));
-
-    void Effect.runPromise(run, { ...options, signal: controller.signal })
-      .catch((cause: unknown) => {
-        if (!controller.signal.aborted)
-          onError(
-            new HcaError({ code: "ADAPTER_FAILED", message: "Execution watcher failed", cause }),
-          );
-      })
-      .finally(() => options?.signal?.removeEventListener("abort", abort));
-
-    return abort;
-  },
-  { stream },
-);
-
-export const watchHcaExecution = Object.freeze(watch);

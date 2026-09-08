@@ -16,6 +16,9 @@ import {
   waitForHcaExecution,
   watchHcaExecution,
   revokeHcaSessions,
+  enableHcaSession,
+  enableHcaSessionWithRefund,
+  isHcaSessionEnabled,
   type EnsforgeConfig,
 } from "@ensforge/core";
 
@@ -43,6 +46,9 @@ export interface HcaActions {
   readonly getHcaExecutionStatus: BoundAction<typeof getHcaExecutionStatus>;
   readonly waitForHcaExecution: BoundAction<typeof waitForHcaExecution>;
   readonly watchHcaExecution: BoundWatchHcaExecution;
+  readonly enableHcaSession: BoundAction<typeof enableHcaSession>;
+  readonly enableHcaSessionWithRefund: BoundAction<typeof enableHcaSessionWithRefund>;
+  readonly isHcaSessionEnabled: BoundAction<typeof isHcaSessionEnabled>;
   readonly revokeHcaSessions: BoundAction<typeof revokeHcaSessions>;
 }
 
@@ -65,4 +71,7 @@ export const makeHcaActions = (config: EnsforgeConfig): HcaActions =>
     waitForHcaExecution: bindAction(config, waitForHcaExecution),
     watchHcaExecution: bindAction(config, watchHcaExecution),
     revokeHcaSessions: bindAction(config, revokeHcaSessions),
+    enableHcaSession: bindAction(config, enableHcaSession),
+    enableHcaSessionWithRefund: bindAction(config, enableHcaSessionWithRefund),
+    isHcaSessionEnabled: bindAction(config, isHcaSessionEnabled),
   });

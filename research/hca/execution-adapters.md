@@ -1,12 +1,12 @@
 # Execution adapters for HCA
 
-Status: P2 ships the optional package and typed execution contracts. Provider integrations remain P3+.
+Status: P2 typed execution contracts and P3 Rhinestone destination sessions are implemented. Pimlico remains P4.
 Parent: [HCA integration and phased TODOs](../hca-integration.md).
 Core APIs: [HCA actions](core-actions.md).
 
 The shipped APIs are documented in the [core API reference](../../packages/core/src/actions/hca/README.md)
 and [adapter package](../../packages/hca/README.md). Code sketches below describe the broader provider
-design; use the package reference for exact P2 types. Named provider factories remain planned.
+design; use the package reference for exact shipped types and the [Rhinestone guide](../../packages/hca/RHINESTONE.md) for P3 setup.
 
 ## 1. Accepted public shape
 
@@ -272,16 +272,16 @@ before signing when an adapter lacks them.
 
 Public export: `@ensforge/hca/rhinestone`, factory `rhinestone()`.
 ENS's matched source guide uses `@rhinestone/sdk` 1.8.0 with a substantial patch for this standalone
-HCA. Stock 1.8.0 is explicitly insufficient. Inspect a selected newer release for equivalent support
-or use a reproducible package patch; do not substitute a generic `owners.type="ens"` example.
+HCA. P3 ships that reproducible patch plus a verified-profile executor-address extension. Stock
+1.8.0 is insufficient; do not substitute a generic `owners.type="ens"` example.
 
 Use SDK account version/configuration, fixed destination/source validators, source sessions, permit
 handling, quotes, claims/fills and signature formats. Do not recreate the SDK's Permit2, executor or
 paymaster protocol encoding in core. The HCA account version, on-chain account ID, initial factory
 configuration, resolver and profile must all agree.
 
-The adapter can offer owner/session intent execution, refund configuration and verified cross-chain
-routes. Those are separate capabilities from owner ERC-4337 execution. Keep first-route enablement,
+P3 offers confirmed destination-session execution and bounded refund configuration. Owner intent
+execution and cross-chain routes are not implemented. Those are separate capabilities from owner ERC-4337 execution. Keep first-route enablement,
 source-account setup, full destination account configuration and fresh reveal quotes in the integration.
 
 Sources: [ENS integration guide](https://github.com/ensdomains/contracts-v2/blob/09bf3ac64a6fb1b215573c019b17e8c501bb3ca0/docs/HCA.md),

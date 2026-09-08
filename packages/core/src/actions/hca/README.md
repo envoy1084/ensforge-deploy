@@ -1,16 +1,16 @@
-# HCA actions (P1–P2)
+# HCA actions
 
 Import actions from `@ensforge/core/hca` or use `sdk.hca` on the existing `Ensforge` instance.
-The 16 finite actions have a Promise and `.effect` form. `watchHcaExecution` adds a callback API and `.stream`. Reads also expose `.request` for `readBatch`.
+The 19 finite actions have a Promise and `.effect` form. `watchHcaExecution` adds a callback API and `.stream`. Reads also expose `.request` for `readBatch`.
 `deployHca.call` creates a factory intent. Execution and direct owner revocation are lifecycle actions
 and do not expose `.call`.
 
 ## Configuration and account identity
 
-The recorded Sepolia V2 deployment automatically selects the P0 HCA profile. `createConfig` also
+The recorded Sepolia V2 deployment automatically selects the recorded HCA profile. `createConfig` also
 accepts `hca: HcaDeploymentProfile` for an explicitly configured matching deployment. Local devnet
 configs already include `devnet.deployments.hca`. Unsupported chains and mismatched ENS/HCA contract
-addresses fail before writes. P1 supports the pinned initial implementation; an upgraded account
+addresses fail before writes. Only the pinned initial implementation is supported; an upgraded account
 requires a separately verified implementation profile.
 
 `hca` is the account address. Supply `salt` for accounts created with a nonzero salt; the default is
@@ -58,7 +58,7 @@ so owning a name does not automatically give the HCA resolver permissions. Grant
 permissions separately with existing actions.
 
 Raw owner calls use `{ to, data?, value? }`. The outer transaction supplies the sum of their values.
-P1 rejects self-calls to the HCA; management operations need dedicated validation. ENS semantic
+Core rejects self-calls to the HCA; management operations need dedicated validation. ENS semantic
 intents retain their normal precondition checks. Batches that need earlier calls to establish later
 preconditions (such as creating a resolver before configuring it) require later workflow support.
 Existing ENS intent preparation currently uses the configured wallet context; raw adapter calls can
@@ -75,8 +75,8 @@ checks the account again before submission. An adapter failure never falls back 
 `ExecutionAdapter<Prepared, Authorized, Submission>` preserves provider payload types through the
 SDK. The optional [`@ensforge/hca` package](../../../../hca/README.md) implements validated typed
 adapters, review summaries, fee/expiry policies, optional extensions and versioned submission codecs.
-Rhinestone (P3) and Pimlico (P4) factories remain later phases. Session authorization is still
-rejected, even if an adapter claims support. `requiredCapabilities` rejects unavailable features
+Rhinestone destination sessions are supported; the Pimlico owner adapter is not implemented yet.
+Session authorization requires a confirmed enablement reference and a session-capable adapter. `requiredCapabilities` rejects unavailable features
 before provider preparation; `operationId` is an optional tracking label, not a deduplication key.
 
 Transaction status verifies the receipt's actual transaction sender, target, calldata/value
@@ -97,3 +97,28 @@ receipt. Timeouts and uncertain broadcasts remain errors and never trigger autom
 Stream. Wait/watch share a total timeout and stop on succeeded/failed/cancelled/expired outcomes;
 unknown remains nonterminal. `maxPollingInterval` bounds exponential backoff. Cancelling a wait
 or watcher does not cancel the submitted operation. Cancelled/expired statuses require a reason.
+
+## Destination sessions
+
+`enableHcaSession({ hca, permissionId, sessionKey, resolver, validUntil })` sends an owner-authorized
+HCA call to the fixed validator. `enableHcaSessionWithRefund` adds `refund: { token, maxExchangeRate,
+maxGasOverhead, maxAmount }`. Both return submission handles; wait for confirmation before using the
+session. Their `.call` intents must execute through the specified HCA, not an ordinary wallet batch.
+
+`isHcaSessionEnabled({ hca, permissionId })` returns the validator's current usable status; `.request`
+also supports read batching. False can mean missing, expired or revoked. The contract does not expose
+session enumeration or a full session-config getter.
+
+Prepare/execute with `authorization: { kind: "session", permissionId, enableTransactionHash }`.
+Core reads the canonical enablement events, rejects subsequent replacement, expiry and nonce changes,
+and checks the fixed policy against complete calldata. `plan.session` contains the verified public
+session settings. Supply a session-capable execution adapter; there is no wallet fallback.
+
+See [Rhinestone usage, refund bounds and verification limits](../../../../hca/RHINESTONE.md).
+
+## Source organization
+
+Each public action lives in its own kebab-case folder with an `index.ts` entry point. Action-specific
+parameters live alongside their action; shared account, session and execution types remain in the
+group's type modules. Internal HCA modules own shared fingerprinting, session policy, enablement
+preparation and receipt polling. The group barrel preserves the public `@ensforge/core/hca` API.

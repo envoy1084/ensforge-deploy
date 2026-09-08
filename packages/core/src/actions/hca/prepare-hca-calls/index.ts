@@ -3,46 +3,18 @@ import { Effect, Schema } from "effect";
 import { standaloneHcaV2ExecuteByOwnerAbi } from "@ensforge/contracts/v2";
 import { encodeAbiParameters, encodeFunctionData, isAddressEqual, keccak256 } from "viem";
 
-import { defineAction } from "../../action/action.js";
-import { getWriteIntentPreparer } from "../../action/write-intent.js";
-import type { EnsWriteIntent } from "../../action/write-intent.js";
-import { HcaError } from "../../errors/hca-error.js";
-import { executeRead } from "../../internal/read/execute-read.js";
-import { prepareWriteIntents } from "../../internal/write/prepare-write-intents.js";
-import type { WriteError } from "../../write/types.js";
-import { verifyHca } from "./reads.js";
-import {
-  HcaCall,
-  type PrepareHcaCallsParameters,
-  type PreparedHcaCalls,
-  type VerifiedHcaAccount,
-} from "./types.js";
-
-export const fingerprintHcaCalls = (
-  account: Pick<VerifiedHcaAccount, "chainId" | "address" | "owner" | "initialImplementation">,
-  data: `0x${string}`,
-  value: bigint,
-) =>
-  keccak256(
-    encodeAbiParameters(
-      [
-        { type: "uint256" },
-        { type: "address" },
-        { type: "address" },
-        { type: "address" },
-        { type: "bytes" },
-        { type: "uint256" },
-      ],
-      [
-        BigInt(account.chainId),
-        account.address,
-        account.owner,
-        account.initialImplementation,
-        data,
-        value,
-      ],
-    ),
-  );
+import { defineAction } from "../../../action/action.js";
+import { getWriteIntentPreparer } from "../../../action/write-intent.js";
+import type { EnsWriteIntent } from "../../../action/write-intent.js";
+import { HcaError } from "../../../errors/hca-error.js";
+import { fingerprintHcaCalls } from "../../../internal/hca/fingerprint.js";
+import { validateHcaSessionCalls } from "../../../internal/hca/session-policy.js";
+import { readHcaSession } from "../../../internal/hca/session-state.js";
+import { executeRead } from "../../../internal/read/execute-read.js";
+import { prepareWriteIntents } from "../../../internal/write/prepare-write-intents.js";
+import type { WriteError } from "../../../write/types.js";
+import { HcaCall, type PrepareHcaCallsParameters, type PreparedHcaCalls } from "../types.js";
+import { verifyHca } from "../verify-hca/index.js";
 
 export const prepareHcaCalls = defineAction<
   PrepareHcaCallsParameters,
@@ -82,11 +54,13 @@ export const prepareHcaCalls = defineAction<
           message: "Operation ID must be nonempty",
         });
 
-      if (parameters.authorization?.kind !== "owner")
+      if (
+        parameters.authorization?.kind !== "owner" &&
+        parameters.authorization?.kind !== "session"
+      )
         return yield* new HcaError({
           code: "UNSUPPORTED_AUTHORIZATION",
-          message:
-            "P1 supports owner authorization only; destination sessions require validated policy preparation",
+          message: "Expected owner or session authorization",
         });
 
       if (!Array.isArray(parameters.calls) || parameters.calls.length === 0)
@@ -146,6 +120,13 @@ export const prepareHcaCalls = defineAction<
           message: "HCA batch value exceeds uint256",
         });
 
+      const session =
+        parameters.authorization.kind === "session"
+          ? yield* readHcaSession(config, account, parameters.authorization)
+          : undefined;
+
+      if (session) yield* validateHcaSessionCalls(config, account, session, calls);
+
       const data = encodeFunctionData({
         abi: standaloneHcaV2ExecuteByOwnerAbi,
         functionName: "executeByOwner",
@@ -158,11 +139,30 @@ export const prepareHcaCalls = defineAction<
         ...(parameters.requiredCapabilities === undefined
           ? {}
           : { requiredCapabilities: Object.freeze([...parameters.requiredCapabilities]) }),
-        authorization: Object.freeze({ kind: "owner" as const }),
+        authorization: Object.freeze({ ...parameters.authorization }),
+        ...(session === undefined ? {} : { session }),
         calls: Object.freeze(calls.map((call) => Object.freeze(call))),
         data,
         value,
-        fingerprint: fingerprintHcaCalls(account, data, value),
+        fingerprint:
+          session === undefined
+            ? fingerprintHcaCalls(account, data, value)
+            : keccak256(
+                encodeAbiParameters(
+                  [
+                    { type: "bytes32" },
+                    { type: "bytes32" },
+                    { type: "bytes32" },
+                    { type: "uint256" },
+                  ],
+                  [
+                    fingerprintHcaCalls(account, data, value),
+                    session.permissionId,
+                    session.enableTransactionHash,
+                    session.sessionNonce,
+                  ],
+                ),
+              ),
         simulation: "required" as const,
       });
     }),

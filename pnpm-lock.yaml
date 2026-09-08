@@ -81,6 +81,7 @@ overrides:
   vite@<6.4.3: 6.4.3
 
 patchedDependencies:
+  '@rhinestone/sdk@1.8.0': 358b2302ad360224b413b87d3492e2029434cc50ecfc03ed6414ef17fcba2f11
   vocs@2.8.1: 21412b1c246604cce93e7b06526de34d994abccbb22246426350b88ee037ca89
 
 importers:
@@ -284,6 +285,9 @@ importers:
 
   packages/hca:
     dependencies:
+      '@ensforge/contracts':
+        specifier: workspace:*
+        version: link:../contracts
       '@ensforge/core':
         specifier: workspace:*
         version: link:../core
@@ -293,6 +297,10 @@ importers:
       viem:
         specifier: ^2.56.0
         version: 2.56.0(bufferutil@4.1.0)(typescript@6.0.3)(utf-8-validate@5.0.10)(zod@4.5.4)
+    devDependencies:
+      '@rhinestone/sdk':
+        specifier: 1.8.0
+        version: 1.8.0(patch_hash=358b2302ad360224b413b87d3492e2029434cc50ecfc03ed6414ef17fcba2f11)(express@5.2.1)(jose@6.2.10)(typescript@6.0.3)(viem@2.56.0(bufferutil@4.1.0)(typescript@6.0.3)(utf-8-validate@5.0.10)(zod@4.5.4))
 
   packages/react:
     dependencies:
@@ -2515,6 +2523,24 @@ packages:
       '@codemirror/language': ^6.0.0
       '@codemirror/state': ^6.0.0
       '@codemirror/view': ^6.0.0
+
+  '@rhinestone/sdk@1.8.0':
+    resolution: {integrity: sha512-Y1YMbHBogNLjfCEI3jhjl4Q1fdEqfiyC13FZSUP/loTHPW2xCmcBBpMT9upefBkCIhRf4Mo04mozqtsqDN4dGQ==}
+    peerDependencies:
+      express: '>=4'
+      jose: '>=5.0.0'
+      viem: ^2.38.0
+    peerDependenciesMeta:
+      express:
+        optional: true
+      jose:
+        optional: true
+
+  '@rhinestone/shared-configs@1.6.10':
+    resolution: {integrity: sha512-rUSmn78bzXohGhwohuS39qCiDZlMgVrBpvoDb7ZRNi/fJ0Nb62EwtbdktCyB5ACl2vRaR2Or04TO7y+3tHBO0A==}
+    peerDependencies:
+      typescript: ^5
+      viem: ^2.40.1
 
   '@rolldown/binding-android-arm-eabi@1.2.5':
     resolution: {integrity: sha512-DLe/i+l8ynIBY7XEQ191TeZvCoowIGa18R+dIV30GW7DiOtp74i/xX8hs8GUjW5ARV7VZuie3d6AumSmCwbeRA==}
@@ -8158,6 +8184,9 @@ packages:
     resolution: {integrity: sha512-IH/iSeO9T6gz1KkFleGDWkG9N3dl4jXVYUtMhIqH10Md0ttMer8nUNWiP1DKuNrybD2xBrixLJdCC9J6ECoYkg==}
     engines: {node: '>=10.0.0'}
 
+  solady@0.1.26:
+    resolution: {integrity: sha512-dhGr/ptJFdea/1KE6xgqgwEdbMhUiSfRc6A+jLeltPe16zyt9qtED3PElIBVRnzEmUO5aZTjKVAr6SlqXBBcIw==}
+
   sonic-boom@2.8.0:
     resolution: {integrity: sha512-kuonw1YOYYNOve5iHdSahXPOK49GqwA+LZhI6Wz/l0rP57iKyXXIHaRagOBHAPmGwJC6od2Z9zgvZ5loSgMlVg==}
 
@@ -12352,6 +12381,22 @@ snapshots:
       '@codemirror/language': 6.12.4
       '@codemirror/state': 6.7.2
       '@codemirror/view': 6.43.10
+
+  '@rhinestone/sdk@1.8.0(patch_hash=358b2302ad360224b413b87d3492e2029434cc50ecfc03ed6414ef17fcba2f11)(express@5.2.1)(jose@6.2.10)(typescript@6.0.3)(viem@2.56.0(bufferutil@4.1.0)(typescript@6.0.3)(utf-8-validate@5.0.10)(zod@4.5.4))':
+    dependencies:
+      '@rhinestone/shared-configs': 1.6.10(typescript@6.0.3)(viem@2.56.0(bufferutil@4.1.0)(typescript@6.0.3)(utf-8-validate@5.0.10)(zod@4.5.4))
+      solady: 0.1.26
+      viem: 2.56.0(bufferutil@4.1.0)(typescript@6.0.3)(utf-8-validate@5.0.10)(zod@4.5.4)
+    optionalDependencies:
+      express: 5.2.1
+      jose: 6.2.10
+    transitivePeerDependencies:
+      - typescript
+
+  '@rhinestone/shared-configs@1.6.10(typescript@6.0.3)(viem@2.56.0(bufferutil@4.1.0)(typescript@6.0.3)(utf-8-validate@5.0.10)(zod@4.5.4))':
+    dependencies:
+      typescript: 6.0.3
+      viem: 2.56.0(bufferutil@4.1.0)(typescript@6.0.3)(utf-8-validate@5.0.10)(zod@4.5.4)
 
   '@rolldown/binding-android-arm-eabi@1.2.5':
     optional: true
@@ -19681,6 +19726,8 @@ snapshots:
       debug: 4.4.3
     transitivePeerDependencies:
       - supports-color
+
+  solady@0.1.26: {}
 
   sonic-boom@2.8.0:
     dependencies:

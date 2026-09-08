@@ -71,9 +71,26 @@ export interface VerifiedHcaAccount {
   readonly verifiedAtBlock: bigint;
 }
 
+export interface HcaSessionRefund {
+  readonly token: Address;
+  readonly maxExchangeRate: bigint;
+  readonly maxGasOverhead: bigint;
+  readonly maxAmount: bigint;
+}
+
+export interface VerifiedHcaSession {
+  readonly permissionId: Hex;
+  readonly enableTransactionHash: Hex;
+  readonly sessionKey: Address;
+  readonly resolver: Address;
+  readonly validUntil: number;
+  readonly sessionNonce: bigint;
+  readonly refund?: HcaSessionRefund;
+}
+
 export type HcaAuthorization =
   | { readonly kind: "owner" }
-  | { readonly kind: "session"; readonly permissionId: Hex };
+  | { readonly kind: "session"; readonly permissionId: Hex; readonly enableTransactionHash: Hex };
 
 export interface PrepareHcaCallsParameters extends WalletOverrides {
   readonly operationId?: string;
@@ -88,7 +105,8 @@ export interface PreparedHcaCalls {
   readonly operationId?: string;
   readonly requiredCapabilities?: readonly (keyof HcaExecutionCapabilities)[];
   readonly account: VerifiedHcaAccount;
-  readonly authorization: { readonly kind: "owner" };
+  readonly authorization: HcaAuthorization;
+  readonly session?: VerifiedHcaSession;
   readonly calls: readonly { readonly to: Address; readonly data: Hex; readonly value: bigint }[];
   readonly value: bigint;
   readonly data: Hex;

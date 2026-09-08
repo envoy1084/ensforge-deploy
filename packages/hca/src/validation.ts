@@ -3,6 +3,7 @@ import { Clock, Effect, Schema } from "effect";
 import { HcaError, type EnsforgeConfig } from "@ensforge/core";
 import {
   verifyHca,
+  prepareHcaCalls,
   HcaExecutionReview,
   HcaExecutionIdentitySchema,
   type PreparedHcaCalls,
@@ -99,6 +100,31 @@ export const checkAccount = Effect.fn("hca.checkAccount")(function* (
           }),
       ),
     );
+
+  if (plan.authorization.kind === "session") {
+    const fresh = yield* prepareHcaCalls
+      .effect(config, {
+        hca: plan.account.address,
+        salt: plan.account.salt,
+        authorization: plan.authorization,
+        calls: plan.calls,
+      })
+      .pipe(
+        Effect.mapError(
+          (cause) =>
+            new HcaError({
+              code: "INVALID_EXECUTION",
+              message: "Session must remain enabled with its original policy",
+              cause,
+            }),
+        ),
+      );
+    if (fresh.fingerprint !== plan.fingerprint)
+      return yield* new HcaError({
+        code: "ADAPTER_MISMATCH",
+        message: "Session plan changed; prepare again",
+      });
+  }
 
   if (
     current.profileId !== plan.account.profileId ||

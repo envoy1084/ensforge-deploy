@@ -21,7 +21,9 @@
     "directory": "packages/hca"
   },
   "files": [
-    "dist"
+    "dist",
+    "patches",
+    "RHINESTONE.md"
   ],
   "type": "module",
   "sideEffects": false,
@@ -65,10 +67,20 @@
     "prepack": "pnpm build"
   },
   "dependencies": {
+    "@ensforge/contracts": "workspace:*",
     "@ensforge/core": "workspace:*"
   },
+  "devDependencies": {
+    "@rhinestone/sdk": "1.8.0"
+  },
   "peerDependencies": {
+    "@rhinestone/sdk": "1.8.0",
     "effect": "^4.0.0-rc.112",
     "viem": "^2.56.0"
+  },
+  "peerDependenciesMeta": {
+    "@rhinestone/sdk": {
+      "optional": true
+    }
   }
 }

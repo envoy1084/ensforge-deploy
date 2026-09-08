@@ -216,6 +216,9 @@ const actionNames = {
     "waitForHcaExecution",
     "watchHcaExecution",
     "revokeHcaSessions",
+    "enableHcaSession",
+    "enableHcaSessionWithRefund",
+    "isHcaSessionEnabled",
   ],
   wrapping: [
     "extendSubnameExpiry",
@@ -250,7 +253,7 @@ describe("Ensforge", () => {
       }
     }
 
-    expect(Object.values(actionNames).flat()).toHaveLength(189);
+    expect(Object.values(actionNames).flat()).toHaveLength(192);
   });
 
   it("accepts a Wagmi config", () => {

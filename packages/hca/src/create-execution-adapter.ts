@@ -75,11 +75,15 @@ export const createExecutionAdapter = <
       return { supported: false, reason: "Adapter is configured for another chain or HCA profile" };
 
     if (
-      !capabilities.ownerExecution ||
       !capabilities.atomicBatching ||
-      plan.authorization.kind !== "owner"
+      (plan.authorization.kind === "owner"
+        ? !capabilities.ownerExecution
+        : !capabilities.sessionExecution)
     )
-      return { supported: false, reason: "This route requires atomic HCA owner execution" };
+      return {
+        supported: false,
+        reason: "This route requires atomic execution and support for the requested authorization",
+      };
 
     if (plan.requiredCapabilities?.some((key) => capabilities[key] !== true))
       return { supported: false, reason: "A required execution capability is unavailable" };
@@ -161,12 +165,13 @@ export const createExecutionAdapter = <
       if (
         result.review.authorizations.some(
           (authorization) =>
-            authorization.signer.toLowerCase() !== plan.account.owner.toLowerCase(),
+            authorization.signer.toLowerCase() !==
+            (immutablePlan.session?.sessionKey ?? immutablePlan.account.owner).toLowerCase(),
         )
       )
         return yield* new HcaError({
           code: "OWNER_MISMATCH",
-          message: "Owner execution must be authorized by the immutable HCA owner",
+          message: "Execution must be authorized by the verified owner or session signer",
         });
 
       const policy = definition.policy;

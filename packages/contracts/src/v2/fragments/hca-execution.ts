@@ -67,3 +67,31 @@ export const standaloneHcaV2RevokeSessionsAbi = [
     type: "function",
   },
 ] as const satisfies Abi;
+
+/** ERC-1271 verification through the deployed HCA entry point. */
+export const standaloneHcaV2SignatureAbi = [
+  {
+    inputs: [
+      {
+        internalType: "bytes32",
+        name: "hash",
+        type: "bytes32",
+      },
+      {
+        internalType: "bytes",
+        name: "signature",
+        type: "bytes",
+      },
+    ],
+    name: "isValidSignature",
+    outputs: [
+      {
+        internalType: "bytes4",
+        name: "",
+        type: "bytes4",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+] as const;

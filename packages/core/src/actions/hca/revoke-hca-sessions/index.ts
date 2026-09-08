@@ -9,14 +9,15 @@ import {
   type TransactionReceipt,
 } from "viem";
 
-import { defineAction } from "../../action/action.js";
-import { HcaError } from "../../errors/hca-error.js";
-import { provideConfig } from "../../internal/config/context.js";
-import { hcaRpc } from "../../internal/hca/context.js";
-import { resolveWalletContext } from "../../internal/services/wallet-client.js";
-import { WriteClient } from "../../internal/write/write-client.js";
-import type { ConfirmationPolicy, WalletOverrides, WriteError } from "../../write/types.js";
-import { getHcaSessionNonce, verifyHca } from "./reads.js";
+import { defineAction } from "../../../action/action.js";
+import { HcaError } from "../../../errors/hca-error.js";
+import { provideConfig } from "../../../internal/config/context.js";
+import { hcaRpc } from "../../../internal/hca/context.js";
+import { resolveWalletContext } from "../../../internal/services/wallet-client.js";
+import { WriteClient } from "../../../internal/write/write-client.js";
+import type { ConfirmationPolicy, WalletOverrides, WriteError } from "../../../write/types.js";
+import { getHcaSessionNonce } from "../get-hca-session-nonce/index.js";
+import { verifyHca } from "../verify-hca/index.js";
 
 export interface RevokeHcaSessionsParameters extends WalletOverrides {
   readonly hca: Address;
