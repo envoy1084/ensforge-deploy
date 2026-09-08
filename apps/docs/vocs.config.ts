@@ -27,10 +27,8 @@ export default defineConfig({
     text: "Suggest changes to this page",
   },
   head: (_path, { frontmatter }) => ({
-    canonical:
-      typeof frontmatter?.canonical === "string"
-        ? new URL(frontmatter.canonical, siteUrl).href
-        : undefined,
+    // Vocs serializes this callback. Relative URLs resolve against its configured base URL.
+    canonical: typeof frontmatter?.canonical === "string" ? frontmatter.canonical : undefined,
     link: [{ href: "/site.webmanifest", rel: "manifest" }],
     meta: {
       keywords:
