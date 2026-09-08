@@ -53,6 +53,10 @@
       "workspace-source": "./src/entrypoints/hca.ts",
       "default": "./dist/hca.js"
     },
+    "./hca/admin": {
+      "workspace-source": "./src/entrypoints/hca-admin.ts",
+      "default": "./dist/hca/admin.js"
+    },
     "./indexer": {
       "workspace-source": "./src/entrypoints/indexer.ts",
       "default": "./dist/indexer.js"
@@ -114,6 +118,7 @@
       "./dns": "./dist/dns.js",
       "./events": "./dist/events.js",
       "./hca": "./dist/hca.js",
+      "./hca/admin": "./dist/hca/admin.js",
       "./indexer": "./dist/indexer.js",
       "./migration": "./dist/migration.js",
       "./name": "./dist/name.js",

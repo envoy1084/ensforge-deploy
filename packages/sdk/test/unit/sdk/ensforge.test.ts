@@ -199,6 +199,26 @@ const actionNames = {
     "transferSubname",
   ],
   hca: [
+    "admin",
+    "getHcaEntryPoint",
+    "getHcaDeposit",
+    "getHcaNonce",
+    "getHcaSigningDomain",
+    "verifyHcaSignature",
+    "getHcaValidators",
+    "getHcaExecutors",
+    "getHcaHook",
+    "getHcaFallbackHandler",
+    "getHcaRegistry",
+    "isHcaModuleInstalled",
+    "supportsHcaExecutionMode",
+    "addHcaDeposit",
+    "withdrawHcaDeposit",
+    "getHcaUpgradeEligibility",
+    "upgradeHca",
+    "isHcaImplementationTrusted",
+    "getHcaUpgradeImplementationApproval",
+
     "startHcaRegistration",
     "getHcaRegistration",
     "resumeHcaRegistration",
@@ -251,13 +271,32 @@ describe("Ensforge", () => {
       expect(Object.keys(namespace)).toEqual(names);
       expect(Object.isFrozen(namespace)).toBe(true);
 
-      for (const action of Object.values(namespace)) {
+      for (const [name, action] of Object.entries(namespace)) {
+        if (group === "hca" && name === "admin") {
+          expect(Object.keys(sdk.hca.admin)).toEqual([
+            "setHcaFactoryImplementationApproval",
+            "setHcaUpgradeImplementationApproval",
+            "setTrustedHcaImplementation",
+            "transferHcaGovernanceOwnership",
+            "renounceHcaGovernanceOwnership",
+            "grantTrustedHcaRoles",
+            "revokeTrustedHcaRoles",
+            "getHcaGovernanceOwner",
+            "getTrustedHcaRoles",
+          ]);
+          expect(Object.isFrozen(sdk.hca.admin)).toBe(true);
+          for (const privileged of Object.values(sdk.hca.admin)) {
+            expect(privileged).toBeTypeOf("function");
+            expect(Object.isFrozen(privileged)).toBe(true);
+          }
+          continue;
+        }
         expect(action).toBeTypeOf("function");
         expect(Object.isFrozen(action)).toBe(true);
       }
     }
 
-    expect(Object.values(actionNames).flat()).toHaveLength(196);
+    expect(Object.values(actionNames).flat()).toHaveLength(215);
   });
 
   it("accepts a Wagmi config", () => {

@@ -519,12 +519,28 @@ used afterwards. Registration never automatically bridges or launches source-cha
 
 ### P7 — complete account and governance surface
 
-- [ ] Finish deposits, signature inspection, nonces and module/registry inspection reads.
-- [ ] Add upgrade eligibility and direct-owner upgrade with both gate checks.
-- [ ] Add explicit `hca/admin` factory/gate/trusted-set operations and existing permission reuse.
-- [ ] Classify every inherited ABI function as action, inspection, internal callback or unsupported.
-- [ ] Resolve self-call-only withdrawal/registry management and emergency hook behavior before exposing it.
-- [ ] Keep module installation, owner transfer and unsupported session actions unavailable.
+- [x] Finish deposits, signature inspection, nonces and module/registry inspection reads.
+- [x] Add upgrade eligibility and direct-owner upgrade with both gate checks.
+- [x] Add explicit `hca/admin` factory/gate/trusted-set operations and existing permission reuse.
+- [x] Classify every inherited ABI function as action, inspection, internal callback or unsupported.
+- [x] Resolve self-call-only withdrawal/registry management and emergency hook behavior before exposing it.
+- [x] Keep module installation, owner transfer and unsupported session actions unavailable.
+
+Implemented 18 account actions on `sdk.hca` and nine governance actions on
+`sdk.hca.admin`, with explicit core/SDK `hca/admin` exports. ABI fragments match the saved
+Sepolia artifacts at `09bf3ac64a6fb1b215573c019b17e8c501bb3ca0`; the contracts package
+classifies every exported HCA ABI function.
+
+Local contract checks cover EntryPoint deposits, the exact owner-authorized withdrawal self-call,
+independent factory approval, both directional upgrade gates, an actual upgrade, trusted-set
+approvals/root and resource roles, and governance ownership transfer/renunciation. The trusted-set check deploys
+the saved artifact because the devnet fixture does not provide that contract. Upgrading does not
+certify the new implementation for existing adapters. Signature rejection returns false; RPC failures
+remain errors.
+
+Registry configuration is a no-op in the pinned Nexus adapter, so there is no registry write action.
+No hook is installed in this generation and ordinary module changes are disabled, so emergency hook
+removal remains unavailable. Governance ownership changes apply to factories/gates, not HCA ownership.
 
 Exit: coverage is explicit without inventing unsupported contract capabilities.
 
