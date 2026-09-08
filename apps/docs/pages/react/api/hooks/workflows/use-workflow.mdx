@@ -1,0 +1,83 @@
+---
+title: useWorkflow
+description: Read saved workflow progress and submission references.
+---
+
+import ParametersGuide from "../../../../../shared/react/atom-parameters.mdx";
+import ResultGuide from "../../../../../shared/react/atom-result.mdx";
+
+# useWorkflow
+
+Read saved workflow progress and submission references. Uses the SDK from `EnsforgeProvider`.
+
+## Import
+
+```tsx
+import { useWorkflow } from "@ensforge/react";
+```
+
+## Usage
+
+:::code-group
+
+```tsx [component.tsx]
+import { useWorkflow } from "@ensforge/react";
+
+function Component(parameters: Parameters<typeof useWorkflow>[0]) {
+  const result = useWorkflow(parameters);
+  return <p>{result.isWaiting ? "Loading" : "Result available"}</p>;
+}
+```
+
+```tsx [provider.tsx]
+// [!include ~/snippets/hca/provider.tsx]
+```
+
+:::
+
+## Parameters
+
+```ts
+type Input = Parameters<typeof useWorkflow>[0];
+```
+
+### walletClient
+
+`Input["walletClient"]`
+
+Viem wallet override. Defaults to the configured wallet resolver.
+
+### account
+
+`` `0x${string}` | Account | undefined ``
+
+Wallet account override for the operation.
+
+### workflowId
+
+`string`
+
+Existing saved workflow instance ID.
+
+<ParametersGuide />
+
+## Return Type
+
+```ts
+type Result = ReturnType<typeof useWorkflow>;
+```
+
+<ResultGuide />
+
+## Effect Atom
+
+```ts
+import { getWorkflowAtom } from "@ensforge/react/atoms";
+
+const atom = getWorkflowAtom(sdk, parameters, options);
+```
+
+## Action
+
+- [`getWorkflow`](/core/api/actions/workflows/get-workflow)
+- [`sdk.workflows.getWorkflow`](/sdk/api/workflows/get-workflow)
