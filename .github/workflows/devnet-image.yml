@@ -12,8 +12,8 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  # Pinned post-audit-2 source; the Dockerfile compiles this revision.
-  CONTRACTS_COMMIT: d0c902eeb388c7fbde3f95d9eaf6076eeedff1d7
+  # Source matches the compiler inputs saved with the Sepolia deployment artifacts.
+  CONTRACTS_COMMIT: 09bf3ac64a6fb1b215573c019b17e8c501bb3ca0
 
 jobs:
   publish:
@@ -22,11 +22,6 @@ jobs:
     timeout-minutes: 60
 
     steps:
-      - name: Checkout Ensforge build helpers
-        uses: actions/checkout@v7
-        with:
-          persist-credentials: false
-
       - name: Prepare image metadata
         id: metadata
         shell: bash
@@ -43,12 +38,6 @@ jobs:
           path: .repos/ens-contracts-v2
           submodules: recursive
           persist-credentials: false
-
-      - name: Apply devnet Dockerfile compatibility patch
-        shell: bash
-        run: |
-          git -C .repos/ens-contracts-v2 apply --check "${GITHUB_WORKSPACE}/scripts/devnet-dockerfile.patch"
-          git -C .repos/ens-contracts-v2 apply "${GITHUB_WORKSPACE}/scripts/devnet-dockerfile.patch"
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v4

@@ -19,38 +19,24 @@ await devnet.reset();
 Normal local and CI runs pull the pinned immutable image and do not compile contracts. Local image
 builds are available only through explicit `build` options for contracts development.
 
-## Pending image update
+## Sepolia-compatible source pin
 
-The image publishing workflow now builds `post-audit-2` commit
-`d0c902eeb388c7fbde3f95d9eaf6076eeedff1d7`. Run **Publish devnet image** manually to publish it.
-The current runtime image digest, CI image, and local source pin remain on the previously published
-revision until the new image is available and verified. After publication, update
-`ensContractsV2Commit` and `ensDevnetImageDigest` in `src/devnet/source.ts`, plus `ENSFORGE_TEST_IMAGE`
-in `.github/workflows/ci.yml`, together using the workflow's emitted digest.
+The publishing workflow and runtime source pin use
+`09bf3ac64a6fb1b215573c019b17e8c501bb3ca0`. Its source matches all 790 source entries
+across the five compiler inputs saved under `contracts/deployments/sepolia/build-info`
+on `post-audit-2` at `d0c902eeb388c7fbde3f95d9eaf6076eeedff1d7`, including dependencies.
+The existing published image remains the default; no replacement is needed for the branch update.
+This verifies source correspondence, not byte-for-byte reproducibility of a fresh image build.
 
-The upstream Dockerfile compiles source; its local deployment is not necessarily identical to the
-Sepolia artifact snapshot at that commit. Verify the new devnet's discovery payload, fixtures, and
-contract compatibility before switching the default image. Sepolia compatibility uses the deployed
-artifact ABIs and, when needed, a pinned Sepolia fork.
+Use the Sepolia artifacts as the integration authority, not the branch tip's Solidity source.
+The recorded deployment still uses `UserRegistry.initialize(address,uint256)` and
+`PermissionedResolver.initialize(address,uint256,bytes[])`, and still includes
+`DNSV1MirrorRootBatchRegistrar`. The newer branch source changes these interfaces and DNS
+architecture; compiling that tip does not reproduce the recorded Sepolia deployment.
 
-The publishing workflow applies `scripts/devnet-dockerfile.patch` to the pinned checkout before
-building. This copies the migration fixture extraction script and archive before the first
-`bun install`, whose root postinstall needs them. The patch changes Docker copy order only, not
-contract source or dependencies. Apply the same patch when reproducing the workflow with a direct
-local Docker build; reassess it whenever the upstream commit changes.
-
-The patched image builds and starts locally, but integration setup currently fails with
-`DEPLOYMENTS_INVALID`: its discovery payload omits `DNSV1MirrorRootBatchRegistrar`, which the
-existing devnet profile requires. Resolve that compatibility gap and rerun the full integration
-suite before switching the default image.
-
-The Sepolia deployment artifacts at this same commit still use
-`UserRegistry.initialize(address rootAccount, uint256 roleBitmap)` and
-`PermissionedResolver.initialize(address admin, uint256 roleBitmap, bytes[] setters)`.
-They also still include `DNSV1MirrorRootBatchRegistrar`. The newer source-only `Grant[]`
-initializer and DNS deployment changes must not replace these deployed ABIs or addresses.
-A source-built devnet is not a Sepolia deployment replica; use the deployed artifact bytecode
-or a pinned Sepolia fork when validating compatibility with that deployment.
+When changing the image, verify its ABI compatibility before updating `ensContractsV2Commit`
+and `ensDevnetImageDigest` in `src/devnet/source.ts`, plus `ENSFORGE_TEST_IMAGE` in
+`.github/workflows/ci.yml`, together using the publishing workflow's emitted digest.
 
 ## Development
 
