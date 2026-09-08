@@ -72,6 +72,7 @@ export interface EnsV2MigrationContractAddresses {
 export interface EnsV2InfrastructureContractAddresses {
   readonly managedUniversalResolverProxy?: Address;
   readonly batchRegistrar: Address;
+  readonly dnsV1MirrorRootBatchRegistrar: Address;
 }
 
 export interface EnsV2ExperimentalHcaContractAddresses {

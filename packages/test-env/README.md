@@ -39,16 +39,18 @@ building. This copies the migration fixture extraction script and archive before
 contract source or dependencies. Apply the same patch when reproducing the workflow with a direct
 local Docker build; reassess it whenever the upstream commit changes.
 
-Upstream [DNS deployment change #422](https://github.com/ensdomains/contracts-v2/pull/422)
-removed the separate V1 mirror registrar. New devnets register DNS TLDs through
-`RootBatchRegistrar` with `DNSTLDResolver`. Discovery requires `RootBatchRegistrar` and uses it
-for the DNS fixture registrar. The obsolete mirror field is removed from deployment profiles;
-its historical Sepolia artifact ABI remains available. No fixture or test invokes that mirror.
+The patched image builds and starts locally, but integration setup currently fails with
+`DEPLOYMENTS_INVALID`: its discovery payload omits `DNSV1MirrorRootBatchRegistrar`, which the
+existing devnet profile requires. Resolve that compatibility gap and rerun the full integration
+suite before switching the default image.
 
-The new image now passes deployment discovery, but fixture seeding still requires migration:
-`UserRegistry.initialize` changed from `(address, uint256)` to `Grant[]` in upstream #405.
-The existing seed call reverts before integration tests run. Keep the default image unchanged
-until source-level ABI and fixture compatibility is verified.
+The Sepolia deployment artifacts at this same commit still use
+`UserRegistry.initialize(address rootAccount, uint256 roleBitmap)` and
+`PermissionedResolver.initialize(address admin, uint256 roleBitmap, bytes[] setters)`.
+They also still include `DNSV1MirrorRootBatchRegistrar`. The newer source-only `Grant[]`
+initializer and DNS deployment changes must not replace these deployed ABIs or addresses.
+A source-built devnet is not a Sepolia deployment replica; use the deployed artifact bytecode
+or a pinned Sepolia fork when validating compatibility with that deployment.
 
 ## Development
 

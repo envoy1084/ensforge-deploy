@@ -25,7 +25,7 @@ const DevnetRequiredDeployments = Schema.Struct({
   DNSSECImpl: DevnetDeploymentAddress,
   DNSTLDResolver: DevnetDeploymentAddress,
   DNSTXTResolver: DevnetDeploymentAddress,
-  RootBatchRegistrar: DevnetDeploymentAddress,
+  DNSV1MirrorRootBatchRegistrar: DevnetDeploymentAddress,
   ENSRegistry: DevnetDeploymentAddress,
   ENSV1Resolver: DevnetDeploymentAddress,
   ENSV2Resolver: DevnetDeploymentAddress,
@@ -164,6 +164,7 @@ export const mapDevnetDeployments = Effect.fn("mapDevnetDeployments")(function* 
     },
     infrastructure: {
       batchRegistrar: source.BatchRegistrar,
+      dnsV1MirrorRootBatchRegistrar: source.DNSV1MirrorRootBatchRegistrar,
     },
     testTokens: {
       dai: source.MockDAI,
@@ -182,7 +183,7 @@ export const mapDevnetDeployments = Effect.fn("mapDevnetDeployments")(function* 
       dnssecGatewayProvider: source.DNSSECGatewayProvider,
       dnssecOracle: source.DNSSECImpl,
       registrar: source.DNSRegistrar,
-      rootBatchRegistrar: source.RootBatchRegistrar,
+      rootBatchRegistrar: source.DNSV1MirrorRootBatchRegistrar,
       publicSuffixList: source.SimplePublicSuffixList,
       tldResolver: source.DNSTLDResolver,
       txtResolver: source.DNSTXTResolver,
