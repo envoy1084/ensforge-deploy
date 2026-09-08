@@ -25,7 +25,8 @@ The publishing workflow and runtime source pin use
 `09bf3ac64a6fb1b215573c019b17e8c501bb3ca0`. Its source matches all 790 source entries
 across the five compiler inputs saved under `contracts/deployments/sepolia/build-info`
 on `post-audit-2` at `d0c902eeb388c7fbde3f95d9eaf6076eeedff1d7`, including dependencies.
-The existing published image remains the default; no replacement is needed for the branch update.
+The default image is
+`ghcr.io/thenamespace/ensforge-devnet@sha256:0a62a0ee9225c2ed457daca15a9f6fff4db7b8094ed19ca3ad611f35291d2015`.
 This verifies source correspondence, not byte-for-byte reproducibility of a fresh image build.
 
 Use the Sepolia artifacts as the integration authority, not the branch tip's Solidity source.
