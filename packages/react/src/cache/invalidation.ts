@@ -26,15 +26,19 @@ export const makeInvalidationKeys = (
   const network = sdk.config.network;
 
   if (invalidation.all === true) keys[queryKeys.all] = [network];
+
   if (invalidation.group !== undefined) {
     keys[queryKeys.group(invalidation.group)] = [network];
   }
+
   if (invalidation.name !== undefined) {
     keys[queryKeys.name] = [`${network}:${invalidation.name}`];
   }
+
   if (invalidation.names !== undefined) {
     keys[queryKeys.name] = invalidation.names.map((name) => `${network}:${name}`);
   }
+
   if (invalidation.address !== undefined) {
     keys[queryKeys.address] = [`${network}:${invalidation.address.toLowerCase()}`];
   }

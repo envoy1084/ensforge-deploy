@@ -8,4 +8,5 @@ export interface SetPubkeyParameters {
 }
 
 export type SetPubkeyResult = CallExecutionResult;
+
 export type SetPubkeyError = WriteError;

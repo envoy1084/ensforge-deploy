@@ -19,6 +19,7 @@ export const makeReadContext = Effect.fn("makeReadContext")(function* (
     config,
     Effect.gen(function* () {
       const execution = yield* ReadExecution;
+
       return yield* execution.makeContext(options);
     }),
   );
@@ -32,10 +33,12 @@ export const executeRead = Effect.fn("executeRead")(function* <Success, Failure>
   const activeContext = yield* Effect.serviceOption(ReadContext);
   const configured = provideConfig(config, effect);
 
+  // Nested reads must reuse the outer snapshot to avoid mixing block states.
   if (Option.isSome(activeContext)) {
     return yield* configured.pipe(Effect.provideService(ReadContext, activeContext.value));
   }
 
   const context = yield* makeReadContext(config, options);
+
   return yield* configured.pipe(Effect.provideService(ReadContext, context));
 });

@@ -44,6 +44,7 @@ export const queryV1RecordHistory = Effect.fn("queryV1RecordHistory")(function* 
       // V1 cannot filter the ResolverEvent interface by concrete event type. Keep each request
       // bounded because large polymorphic event pages are expensive on hosted subgraphs.
       const batchSize = limit + 1;
+
       const where: V1GetRecordHistoryQueryVariables["where"] = {
         resolver_: {
           domain: namehash,
@@ -52,6 +53,7 @@ export const queryV1RecordHistory = Effect.fn("queryV1RecordHistory")(function* 
         ...(filter.blockAfter === undefined ? {} : { blockNumber_gt: Number(filter.blockAfter) }),
         ...(filter.blockBefore === undefined ? {} : { blockNumber_lt: Number(filter.blockBefore) }),
       };
+
       const response = yield* requestIndexer<
         V1GetRecordHistoryQuery,
         V1GetRecordHistoryQueryVariables
@@ -61,13 +63,16 @@ export const queryV1RecordHistory = Effect.fn("queryV1RecordHistory")(function* 
         document: V1GetRecordHistoryDocument,
         variables: { first: batchSize, skip, where, orderDirection: order.direction },
       });
+
       const data = yield* requireIndexerData(config, "v1", operationName, response);
+
       indexedBlock = yield* decodeIndexedBlock(
         config,
         "v1",
         operationName,
         data["_meta"]?.block.number,
       );
+
       const normalized = yield* Effect.try({
         try: () =>
           data.resolverEvents.map((event, index) => ({
@@ -88,6 +93,7 @@ export const queryV1RecordHistory = Effect.fn("queryV1RecordHistory")(function* 
             cause,
           }),
       });
+
       candidates.push(...normalized.filter(({ item }) => matchesRecordHistoryFilter(item, filter)));
       skip += data.resolverEvents.length;
       hasNextPage = data.resolverEvents.length === batchSize;
@@ -103,6 +109,7 @@ export const queryV1RecordHistory = Effect.fn("queryV1RecordHistory")(function* 
       metadata: { protocol: "v1", status: "failed", failure: indexerSourceFailure(result.failure) },
     };
   }
+
   return {
     status: "complete",
     page: result.success.page,

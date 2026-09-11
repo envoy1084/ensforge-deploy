@@ -36,6 +36,7 @@ export const queryIndexedNameSource = Effect.fn("queryIndexedNameSource")(functi
   lookup: IndexedNameLookup,
 ): Effect.fn.Return<IndexedName | null, GetIndexedNameError> {
   const operation = operationName(protocol);
+
   if (protocol === "v1") {
     const response = yield* requestIndexer<V1GetIndexedNameQuery, V1GetIndexedNameQueryVariables>(
       config,
@@ -46,14 +47,18 @@ export const queryIndexedNameSource = Effect.fn("queryIndexedNameSource")(functi
         variables: { id: lookup.namehash },
       },
     );
+
     const result = yield* requireIndexerData(config, protocol, operation, response);
+
     if (result.domain === null) return null;
+
     const indexedBlock = yield* decodeIndexedBlock(
       config,
       protocol,
       operation,
       result["_meta"].block.number,
     );
+
     return yield* normalizeV1IndexedName(result.domain, {
       network: config.network,
       protocol,
@@ -74,15 +79,19 @@ export const queryIndexedNameSource = Effect.fn("queryIndexedNameSource")(functi
       },
     },
   );
+
   const result = yield* requireIndexerData(config, protocol, operation, response);
   const domain = result.byName ?? result.byNamehash;
+
   if (domain === null) return null;
+
   const indexedBlock = yield* decodeIndexedBlock(
     config,
     protocol,
     operation,
     result["_meta"].block.number,
   );
+
   return yield* normalizeV2IndexerName(domain, {
     network: config.network,
     protocol,

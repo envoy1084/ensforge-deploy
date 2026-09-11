@@ -12,6 +12,7 @@ const transferSubnameEffect = Effect.fn("ensforge.transferSubname")(function* (
   parameters: TransferSubnameParameters,
 ) {
   yield* resolveSubnameRoute(config, parameters.name);
+
   return yield* transferName.effect(config, parameters);
 });
 

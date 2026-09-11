@@ -14,8 +14,10 @@ export const setAlias = makeResolverWriteAction<SetAliasParameters>({
   encode: (parameters, context) =>
     Effect.gen(function* () {
       const fromName = yield* dnsEncodeName.effect(context.name);
+
       const toName =
         parameters.target === null ? "0x" : yield* dnsEncodeName.effect(parameters.target);
+
       return yield* Effect.try({
         try: () =>
           encodeFunctionData({

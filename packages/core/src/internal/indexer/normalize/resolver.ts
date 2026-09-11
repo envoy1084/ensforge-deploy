@@ -31,10 +31,15 @@ import {
 } from "./scalars.js";
 
 type V1BindingWire = V1GetIndexedResolverQuery["resolvers"][number];
+
 type V2BindingWire = V2GetIndexedResolverQuery["bindings"][number];
+
 type V2ResolverDetail = NonNullable<V2GetIndexedResolverQuery["detail"]>;
+
 type V2OwnedResolverWire = V2GetResolversForAddressQuery["resolversByOwner"][number];
+
 type V2ResolverMetadataWire = NonNullable<V2GetResolverMetadataQuery["metadata"]>;
+
 type V2ResolverApprovalWire = V2GetResolverApprovalsQuery["approvals"][number];
 
 const unknownName = { kind: "unknown", value: null } as const;
@@ -42,7 +47,9 @@ const unknownName = { kind: "unknown", value: null } as const;
 const binding = (wire: V1BindingWire | V2BindingWire): IndexedResolverNameBindingType => {
   const namehash =
     wire.domain === null ? null : decodeDomainNamehash(wire.domain.id, wire.domain.name);
+
   const v2 = "abis" in wire;
+
   return Schema.decodeUnknownSync(IndexedResolverNameBinding)({
     id: wire.id,
     namehash,
@@ -118,6 +125,7 @@ export const normalizeV2IndexedResolver = Effect.fn("normalizeV2IndexedResolver"
           indexedBlock: context.indexedBlock,
         },
       };
+
       const ownerRole = detail?.roles.reduce<(typeof detail.roles)[number] | null>(
         (latest, role) =>
           role.name === null &&
@@ -128,6 +136,7 @@ export const normalizeV2IndexedResolver = Effect.fn("normalizeV2IndexedResolver"
             : latest,
         null,
       );
+
       return protocol === "v1"
         ? Schema.decodeUnknownSync(IndexedResolverV1)({ ...common, protocol })
         : Schema.decodeUnknownSync(IndexedResolverV2)({

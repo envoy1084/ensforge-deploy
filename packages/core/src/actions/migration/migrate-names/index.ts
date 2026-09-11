@@ -12,6 +12,7 @@ import { MigrationError } from "../../../errors/migration-error.js";
 import { provideConfig } from "../../../internal/config/context.js";
 import { viemErrorToEffectError } from "../../../internal/errors/viem-error.js";
 import { resolveWalletContext } from "../../../internal/services/wallet-client.js";
+import { withWorkflow } from "../../../internal/workflows/run.js";
 import { normalizeName } from "../../../names/normalize.js";
 import type { EthereumAddress } from "../../../schemas/identity.js";
 import type { WriteError, WritePlan } from "../../../write/types.js";
@@ -40,6 +41,7 @@ import type {
 type ReadyPlan = Omit<Extract<MigrationPlan, { readonly status: "ready" }>, "target"> & {
   readonly target: Extract<MigrationTarget, { readonly supported: true }>;
 };
+
 type ReadyEntry = {
   readonly parameters: MigrateNameCallParameters;
   readonly plan: ReadyPlan;
@@ -90,22 +92,27 @@ const migrateNamesEffect = Effect.fn("ensforge.migrateNames")(function* (
       message: "migrateNames requires at least one migration",
     });
   }
+
   const migrations = yield* Effect.forEach(parameters.migrations, (migration) =>
     normalizeName.effect(migration.name).pipe(Effect.map((name) => ({ ...migration, name }))),
   );
+
   if (new Set(migrations.map(({ name }) => name)).size !== migrations.length) {
     return yield* new MigrationError({
       code: "INVALID_MIGRATION_BATCH",
       message: "migrateNames cannot contain duplicate names",
     });
   }
+
   const id = planId(migrations);
+
   if (parameters.resume !== undefined && parameters.resume.write.planId !== id) {
     return yield* new MigrationError({
       code: "ROUTE_CHANGED",
       message: "Migration resume data does not match the supplied batch",
     });
   }
+
   if (parameters.resume?.write.status === "completed") {
     const completedEntries = yield* Effect.forEach(parameters.resume.migrations, (entry) =>
       getNameState.effect(config, { name: entry.name }).pipe(
@@ -116,11 +123,13 @@ const migrateNamesEffect = Effect.fn("ensforge.migrateNames")(function* (
         })),
       ),
     );
+
     return { ...parameters.resume, status: "completed", migrations: completedEntries };
   }
 
   const { account } = yield* provideConfig(config, resolveWalletContext(parameters));
   const address = (typeof account === "string" ? account : account.address) as EthereumAddress;
+
   const initial = yield* Effect.forEach(
     migrations,
     (migration) =>
@@ -133,6 +142,7 @@ const migrateNamesEffect = Effect.fn("ensforge.migrateNames")(function* (
       ).pipe(Effect.map(([plan, steps]) => ({ migration, plan, steps }))),
     { concurrency: config.reads.concurrency },
   );
+
   const steps = parameters.resume?.steps ?? [
     ...new Map(
       initial.flatMap(({ steps: resolved }) => resolved).map((step) => [step.name, step]),
@@ -156,17 +166,21 @@ const migrateNamesEffect = Effect.fn("ensforge.migrateNames")(function* (
         ),
       ),
   );
+
   const helper = yield* getCompatibleMigrationHelper(config);
   const hasDependencies = initial.some(({ steps: resolved }) => resolved.length > 1);
+
   const approvalsWithEntries =
     helper === null || hasDependencies || readyEntries.length !== steps.length
       ? []
       : yield* Effect.forEach(readyEntries, (entry) =>
           readApproval(config, entry, helper).pipe(Effect.map((approved) => ({ entry, approved }))),
         );
+
   const canStageApprovals = approvalsWithEntries.every(
     ({ entry, approved }) => approved || isAddressEqual(entry.tokenOwner, address),
   );
+
   const strategy: MigrationBatchProgress["strategy"] =
     parameters.resume?.strategy ??
     (helper !== null &&
@@ -175,6 +189,7 @@ const migrateNamesEffect = Effect.fn("ensforge.migrateNames")(function* (
     canStageApprovals
       ? "helper"
       : "sequential");
+
   if (strategy === "helper" && helper === null) {
     return yield* new MigrationError({
       code: "ROUTE_CHANGED",
@@ -185,12 +200,16 @@ const migrateNamesEffect = Effect.fn("ensforge.migrateNames")(function* (
   const approvals: Array<MigrationBatchApproval> = parameters.resume?.approvals
     ? [...parameters.resume.approvals]
     : [];
+
   const stages: Array<WritePlan["stages"][number]> = [];
+
   if (strategy === "helper" && helper !== null) {
     const requiredByToken = new Map<string, ReadyEntry>();
     const listedApprovals = new Set<string>();
+
     for (const { entry, approved } of approvalsWithEntries) {
       const key = `${entry.plan.target.tokenContract}:${entry.tokenOwner}`;
+
       if (parameters.resume === undefined && !listedApprovals.has(key)) {
         approvals.push({
           token: entry.plan.target.tokenContract,
@@ -198,21 +217,27 @@ const migrateNamesEffect = Effect.fn("ensforge.migrateNames")(function* (
           operator: helper,
           required: !approved,
         });
+
         listedApprovals.add(key);
       }
+
       if (!approved) requiredByToken.set(key, entry);
     }
+
     if (parameters.resume !== undefined) {
       for (const approval of parameters.resume.approvals) {
         if (!approval.required) continue;
+
         const entry = readyEntries.find(
           (candidate) =>
             isAddressEqual(candidate.plan.target.tokenContract, approval.token) &&
             isAddressEqual(candidate.tokenOwner, approval.owner),
         );
+
         if (entry !== undefined) requiredByToken.set(approval.token, entry);
       }
     }
+
     if (requiredByToken.size > 0) {
       stages.push({
         type: "calls",
@@ -225,6 +250,7 @@ const migrateNamesEffect = Effect.fn("ensforge.migrateNames")(function* (
         confirmation: { type: "confirmed" },
       });
     }
+
     stages.push({
       type: "calls",
       id: "migrate-with-helper",
@@ -240,6 +266,7 @@ const migrateNamesEffect = Effect.fn("ensforge.migrateNames")(function* (
   } else {
     for (const [index, step] of steps.entries()) {
       const requested = migrations.find(({ name }) => name === step.name);
+
       stages.push({
         type: "calls",
         id: `migrate-${index}-${step.name}`,
@@ -260,6 +287,7 @@ const migrateNamesEffect = Effect.fn("ensforge.migrateNames")(function* (
       nextActionAt: null,
       failure: null,
     } as const;
+
     const entries = yield* Effect.forEach(migrations, (migration) =>
       getNameState.effect(config, { name: migration.name }).pipe(
         Effect.map((finalState): MigrationBatchEntry => ({
@@ -270,6 +298,7 @@ const migrateNamesEffect = Effect.fn("ensforge.migrateNames")(function* (
         })),
       ),
     );
+
     return {
       status: "completed",
       strategy,
@@ -286,7 +315,9 @@ const migrateNamesEffect = Effect.fn("ensforge.migrateNames")(function* (
     ...(parameters.walletClient === undefined ? {} : { walletClient: parameters.walletClient }),
     ...(parameters.account === undefined ? {} : { account: parameters.account }),
   });
+
   const completed = write.status === "completed";
+
   const resultEntries = yield* Effect.forEach(initial, ({ migration, plan, steps: resolved }) => {
     const route =
       plan.status === "ready" && plan.target.supported
@@ -294,6 +325,7 @@ const migrateNamesEffect = Effect.fn("ensforge.migrateNames")(function* (
         : ((resolved.at(-1)?.route ??
             parameters.resume?.migrations.find(({ name }) => name === migration.name)?.route ??
             null) as MigrationNameProgress["route"] | null);
+
     if (!completed) {
       return Effect.succeed({
         name: migration.name,
@@ -302,6 +334,7 @@ const migrateNamesEffect = Effect.fn("ensforge.migrateNames")(function* (
         finalState: null,
       } satisfies MigrationBatchEntry);
     }
+
     return getNameState.effect(config, { name: migration.name }).pipe(
       Effect.map((finalState): MigrationBatchEntry => ({
         name: migration.name,
@@ -311,6 +344,7 @@ const migrateNamesEffect = Effect.fn("ensforge.migrateNames")(function* (
       })),
     );
   });
+
   return {
     status: completed ? "completed" : "partial",
     strategy,
@@ -325,7 +359,7 @@ export const migrateNames = defineAction<
   MigrateNamesParameters,
   MigrationBatchProgress,
   WriteError
->(migrateNamesEffect);
+>(withWorkflow("migrateNames", migrateNamesEffect));
 
 export type {
   MigrateNamesParameters,

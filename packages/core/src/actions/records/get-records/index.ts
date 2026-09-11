@@ -17,6 +17,7 @@ const getRecordsEffect = Effect.fn("ensforge.getRecords")(function* (
   parameters: GetRecordsParameters,
 ) {
   const name = yield* normalizeName.effect(parameters.name);
+
   return yield* executeRead(
     config,
     parameters,

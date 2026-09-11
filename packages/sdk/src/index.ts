@@ -31,6 +31,7 @@ export {
 
 export { Ensforge } from "./ensforge.js";
 export type {
+  HcaActions,
   BatchActions,
   CapabilitiesActions,
   DnsActions,
@@ -49,9 +50,33 @@ export type {
 } from "./groups/index.js";
 export type {
   BoundAction,
+  BoundExecuteHcaCalls,
+  BoundWatchHcaExecution,
   BoundNoParametersAction,
   BoundGetRecordsAction,
   BoundReadBatch,
   BoundReadBatchSettled,
   BoundWatchEnsEvents,
 } from "./internal/bind-action.js";
+export type {
+  ExecutionAdapter,
+  HcaExecutionSubmission,
+  HcaExecutionStatus,
+  VerifiedHcaAccount,
+  PreparedHcaCalls,
+} from "@ensforge/core/hca";
+export {
+  createMemoryWorkflowStorage,
+  createIndexedDbWorkflowStorage,
+  WorkflowError,
+} from "@ensforge/core";
+export type {
+  WorkflowStorage,
+  WorkflowStoredRecord,
+  WorkflowParameters,
+  WorkflowProgress,
+  WorkflowSnapshot,
+} from "@ensforge/core";
+export type { WorkflowActions } from "./groups/workflows.js";
+
+export type { EnsAction } from "@ensforge/core";

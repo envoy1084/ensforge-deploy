@@ -8,6 +8,7 @@ export const simulatePreparedCalls = Effect.fn("simulatePreparedCalls")(function
   concurrency: number,
 ) {
   const client = yield* WriteClient;
+
   return yield* Effect.forEach(
     calls,
     (call) =>

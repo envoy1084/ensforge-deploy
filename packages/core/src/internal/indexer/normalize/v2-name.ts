@@ -70,6 +70,7 @@ export const normalizeV2IndexerName = Effect.fn("normalizeV2IndexerName")(functi
     try: () => {
       const indexedNamehash = decodeDomainNamehash(wire.id, wire.name);
       const protocol = Schema.decodeUnknownSync(Schema.Literals(["v1", "v2"]))(wire.protocol);
+
       const common = {
         namehash: indexedNamehash,
         name: decodeIndexedNameValue(wire.name, indexedNamehash),
@@ -93,6 +94,7 @@ export const normalizeV2IndexerName = Effect.fn("normalizeV2IndexerName")(functi
 
       if (protocol === "v1") {
         const wrappedOwner = decodeNullableAddress(wire.wrappedDomain?.owner?.id);
+
         return Schema.decodeUnknownSync(IndexedNameV1)({
           ...common,
           protocol,
@@ -120,6 +122,7 @@ export const normalizeV2IndexerName = Effect.fn("normalizeV2IndexerName")(functi
 
       const registry = decodeNullableAddress(wire.parent?.subregistry?.address);
       const tokenId = decodeNullableBigInt(wire.tokenId);
+
       return Schema.decodeUnknownSync(IndexedNameV2)({
         ...common,
         protocol,

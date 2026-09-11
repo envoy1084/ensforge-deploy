@@ -1,0 +1,62 @@
+---
+title: Compatibility and limitations
+description: Pinned deployment generation, package versions and supported capabilities.
+---
+
+# Compatibility and limitations
+
+The integration uses deployment artifacts recorded for Sepolia at contracts source commit
+`09bf3ac64a6fb1b215573c019b17e8c501bb3ca0`. Artifact addresses and ABIs are authoritative for that
+snapshot; a later `post-audit-2` source commit may describe contracts that were not deployed there.
+
+Import `sepoliaHcaDeployment` from `@ensforge/contracts/deployments`. Use its metadata and the
+published ABI fragments instead of copying addresses into application code. The artifact snapshot is
+`d0c902eeb388c7fbde3f95d9eaf6076eeedff1d7`; its recorded source commit is the one above. A custom `hca` profile
+must describe compatible contracts, module wiring, generation rules and deployment provenance.
+`infrastructure.intentExecutorAdapter` identifies the route arbiter; it is distinct from the
+`intentExecutor` that calls the HCA. Keep both aligned with the deployed constructor wiring.
+
+| Dependency         | Implementation baseline                                       |
+| ------------------ | ------------------------------------------------------------- |
+| `@rhinestone/sdk`  | `1.8.0` with the shipped ENSforge patch (exact optional peer) |
+| `permissionless`   | `0.4.0` (peer range `^0.4.0`)                                 |
+| `viem`             | `2.56.0` (peer range `^2.56.0`)                               |
+| `effect`           | `4.0.0-rc.112` (peer range `^4.0.0-rc.112`)                   |
+| Pimlico EntryPoint | `0.7`                                                         |
+
+Apply the [Rhinestone compatibility patch](/hca/installation#rhinestone-compatibility-patch) when using that provider.
+Use the lockfile for the exact resolved installation. ENS HCA integration is still pre-release work;
+inspect the release changesets before choosing a published package version.
+
+## Supported boundary
+
+- Direct owner transactions on verified deployed standalone HCAs.
+- Pimlico owner UserOperations, including counterfactual deployment and optional ETH sponsorship.
+- Rhinestone destination sessions with constrained ENS calls.
+- Independent Rhinestone EOA/ERC-20 funding only for explicitly configured, verified routes.
+- Account inspection, deposits, dedicated withdrawal, gated upgrade and explicit governance actions.
+
+Generic module installation, HCA owner transfer, unrestricted HCA self-calls, Pimlico sessions,
+unverified source smart accounts and default public cross-chain routes are unavailable. The pinned
+Nexus registry setter is a no-op, so there is no registry write action. This generation has no installed
+hook requiring an emergency removal action. Factory/gate ownership is distinct from HCA ownership.
+
+A successful upgrade does not certify the replacement implementation for existing provider adapters.
+Check both directional upgrade gates and implementation approval, then independently assess adapter
+compatibility. Module interfaces alone do not make Kernel or Safe implementations ENS HCAs.
+
+## Evidence and outstanding checks
+
+Manual Sepolia runs have exercised sponsored and self-funded Pimlico execution, sponsored
+Rhinestone sessions, registration, recovery and an EOA USDC funding route from Base Sepolia to
+Sepolia. Governance and refund-policy rejection checks also ran on a local fork. These results apply
+to the pinned generation and tested configuration, not every provider policy or route.
+
+Token-paid Rhinestone session execution remains unsupported for release. Hosted unsponsored quotes
+include source funding or approvals outside the destination-only execution boundary. The adapter
+rejects these before signing; adding more USDC does not make the route compatible. Use sponsored
+Rhinestone sessions or Pimlico owner execution instead.
+
+Provider outages, real sponsorship denial, expired funding quotes and interrupted settlement still
+need deployment-specific verification. See the [release checklist](/hca/release). There is no Mainnet
+HCA profile or default public funding route.

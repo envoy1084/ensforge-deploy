@@ -24,6 +24,7 @@ const estimateCallsEffect = Effect.fn("ensforge.estimateCalls")(function* (
     { consistency: "snapshot" },
     Effect.gen(function* () {
       const context = yield* ReadContext;
+
       if (context.block.blockNumber === undefined) {
         return yield* new RpcError({
           code: "REQUEST_FAILED",
@@ -31,24 +32,30 @@ const estimateCallsEffect = Effect.fn("ensforge.estimateCalls")(function* (
           cause: context.block,
         });
       }
+
       const blockNumber = context.block.blockNumber;
 
       const calls = yield* prepareWriteIntents(config, parameters);
+
       yield* Effect.annotateCurrentSpan({
         "ens.network": config.network,
         "ens.write.call_count": calls.length,
         "ens.write.operation": "estimate",
       });
+
       const client = yield* WriteClient;
       const fee: FeeEstimate = yield* client.estimateFeesPerGas();
       const price = fee.type === "legacy" ? fee.gasPrice : fee.maxFeePerGas;
+
       const outcomes = yield* Effect.forEach(
         calls,
         (call) => Effect.result(client.estimateGas(call, blockNumber)),
         { concurrency: config.reads.concurrency },
       );
+
       const estimates = calls.map((call, index): CallEstimate => {
         const outcome = outcomes[index];
+
         if (outcome === undefined || Result.isFailure(outcome)) {
           return {
             status: "unavailable",
@@ -62,7 +69,9 @@ const estimateCallsEffect = Effect.fn("ensforge.estimateCalls")(function* (
               }),
           };
         }
+
         const estimatedFee = outcome.success * price;
+
         return {
           status: "estimated",
           call,
@@ -72,6 +81,7 @@ const estimateCallsEffect = Effect.fn("ensforge.estimateCalls")(function* (
           maximumCost: call.value + estimatedFee,
         };
       });
+
       const successful = estimates.filter(
         (estimate): estimate is Extract<CallEstimate, { readonly status: "estimated" }> =>
           estimate.status === "estimated",

@@ -31,6 +31,7 @@ export const getEnsEventContracts = (
 ): ReadonlyArray<EnsEventContract> => {
   const v1 = profile.v1;
   const contracts: Array<EnsEventContract> = [];
+
   if (v1 !== undefined) {
     contracts.push(
       {
@@ -60,6 +61,7 @@ export const getEnsEventContracts = (
       },
     );
   }
+
   if (profile.protocol === "v2") {
     contracts.push(
       {
@@ -100,5 +102,6 @@ export const getEnsEventContracts = (
       },
     );
   }
+
   return contracts;
 };

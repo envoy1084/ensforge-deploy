@@ -20,6 +20,7 @@ export const classifyCommitmentStatus = ({
 
   const readyAt = submittedAt + minimumAge;
   const expiresAt = submittedAt + maximumAge;
+
   if (currentTime < readyAt) {
     return {
       status: "pending",
@@ -30,9 +31,11 @@ export const classifyCommitmentStatus = ({
       remainingSeconds: readyAt - currentTime,
     };
   }
+
   if (currentTime >= expiresAt) {
     return { status: "expired", protocol, submittedAt, readyAt, expiresAt };
   }
+
   return {
     status: "ready",
     protocol,

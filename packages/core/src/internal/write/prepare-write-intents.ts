@@ -27,9 +27,11 @@ export const prepareWriteIntents = Effect.fn("prepareWriteIntents")(function* (
     { consistency: "snapshot" },
     Effect.gen(function* () {
       const { walletClient, account } = yield* resolveWalletContext(parameters);
+
       return yield* Effect.forEach(parameters.calls, (intent, localIndex) => {
         const index = startIndex + localIndex;
         const preparer = getWriteIntentPreparer(intent);
+
         if (preparer === undefined) {
           return new WritePlanError({
             code: "INTENT_NOT_PREPARABLE",
@@ -37,7 +39,9 @@ export const prepareWriteIntents = Effect.fn("prepareWriteIntents")(function* (
             cause: intent,
           });
         }
+
         const id = `${idPrefix}-${index}`;
+
         return preparer(config, intent.parameters, {
           id,
           index,
@@ -55,6 +59,7 @@ export const prepareWriteIntents = Effect.fn("prepareWriteIntents")(function* (
               to: details.to,
               value: details.value,
             };
+
             return Object.assign(
               call,
               details.data === undefined ? {} : { data: details.data },

@@ -41,6 +41,7 @@ const requireQuote = Effect.fn("ensforge.renewal.requireQuote")(function* (
   parameters: RenewNameCallParameters,
 ) {
   const quote = yield* getRenewalPrice.effect(config, parameters);
+
   switch (quote.status) {
     case "not-renewable":
       return yield* new RenewalError({
@@ -64,6 +65,7 @@ const requireQuote = Effect.fn("ensforge.renewal.requireQuote")(function* (
           message: `The current renewal price for ${quote.name} exceeds maxPrice`,
         });
       }
+
       return quote;
   }
 });
@@ -94,18 +96,22 @@ const approvalPreparer: EnsWriteIntentPreparer<ApproveRenewalPaymentParameters, 
         message: "Renewal payment approval amount cannot be negative",
       });
     }
+
     const paymentToken = yield* decodeOwnershipAddress(parameters.paymentToken, "payment token");
+
     const quote = yield* requireQuote(config, {
       name: parameters.name,
       duration: parameters.duration,
       paymentToken,
     });
+
     if (quote.currency.kind !== "erc20") {
       return yield* new RenewalError({
         code: "PAYMENT_TOKEN_UNSUPPORTED",
         message: "ENSv1 renewal uses native ETH and does not accept payment tokens",
       });
     }
+
     return {
       to: paymentToken,
       data: yield* encode("approveRenewalPayment", () =>
@@ -126,6 +132,7 @@ const renewalPreparer: EnsWriteIntentPreparer<RenewNameCallParameters, WriteErro
   const quote = yield* requireQuote(config, parameters);
   const label = yield* getSecondLevelEthLabel(quote.name);
   const referrer = parameters.referrer ?? zeroHash;
+
   if (quote.route === "v1-controller") {
     return {
       to: quote.renewer,
@@ -140,21 +147,25 @@ const renewalPreparer: EnsWriteIntentPreparer<RenewNameCallParameters, WriteErro
       protocol: "v1" as const,
     };
   }
+
   if (quote.currency.kind !== "erc20") {
     return yield* new RenewalError({
       code: "PAYMENT_TOKEN_REQUIRED",
       message: `An ERC-20 payment token is required to renew ${quote.name}`,
     });
   }
+
   const currency = quote.currency;
   const account = typeof context.account === "string" ? context.account : context.account.address;
   const allowance = yield* readAllowance(config, currency.address, quote.renewer, account);
+
   if (allowance < quote.price) {
     return yield* new RenewalError({
       code: "INSUFFICIENT_ALLOWANCE",
       message: `Payment-token allowance is insufficient to renew ${quote.name}`,
     });
   }
+
   return {
     to: quote.renewer,
     data: yield* encode("renewName", () =>
@@ -174,7 +185,9 @@ const v1BatchRenewalPreparer: EnsWriteIntentPreparer<RenewBatchCallParameters, W
     if (parameters.renewals.length === 0) {
       return yield* new RenewalError({ code: "RENEWAL_FAILED", message: "Renewal batch is empty" });
     }
+
     const duration = parameters.renewals[0]?.duration;
+
     if (
       duration === undefined ||
       parameters.renewals.some((renewal) => renewal.duration !== duration)
@@ -184,30 +197,38 @@ const v1BatchRenewalPreparer: EnsWriteIntentPreparer<RenewBatchCallParameters, W
         message: "ENSv1 bulk renewal requires a shared duration",
       });
     }
+
     const quotes = yield* Effect.forEach(parameters.renewals, (renewal) =>
       requireQuote(config, renewal),
     );
+
     if (quotes.some((quote) => quote.route !== "v1-controller")) {
       return yield* new RenewalError({
         code: "ROUTE_CHANGED",
         message: "ENSv1 bulk renewal only accepts names routed through the V1 controller",
       });
     }
+
     const total = quotes.reduce((sum, quote) => sum + quote.price, 0n);
+
     if (parameters.maxTotalPrice !== undefined && total > parameters.maxTotalPrice) {
       return yield* new RenewalError({
         code: "TOTAL_PRICE_EXCEEDS_MAXIMUM",
         message: "The current renewal batch price exceeds maxTotalPrice",
       });
     }
+
     const v1 = config.deployments.v1;
+
     if (v1 === undefined) {
       return yield* new RenewalError({
         code: "ROUTE_CHANGED",
         message: "The ENSv1 bulk renewal deployment is unavailable",
       });
     }
+
     const labels = yield* Effect.forEach(quotes, (quote) => getSecondLevelEthLabel(quote.name));
+
     return {
       to: v1.contracts.bulkRenewal,
       data: yield* encode("renewNames", () =>

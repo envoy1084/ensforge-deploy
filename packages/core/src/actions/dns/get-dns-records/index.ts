@@ -13,11 +13,13 @@ const getDnsRecordsEffect = Effect.fn("ensforge.getDnsRecords")(function* (
   parameters: GetDnsRecordsParameters,
 ) {
   const name = yield* normalizeName.effect(parameters.name);
+
   const queries = yield* Effect.forEach(parameters.records, (record) =>
     normalizeName
       .effect(record.recordName)
       .pipe(Effect.map((recordName) => ({ ...record, recordName }))),
   );
+
   return yield* executeRead(
     config,
     parameters,
@@ -26,6 +28,7 @@ const getDnsRecordsEffect = Effect.fn("ensforge.getDnsRecords")(function* (
         [getResolver.effect(config, parameters), resolveDnsRecords(name, queries)] as const,
         { concurrency: "unbounded" },
       );
+
       return {
         name,
         resolver,

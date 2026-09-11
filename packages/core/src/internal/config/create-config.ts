@@ -10,7 +10,7 @@ import type { EnsforgeServiceValues } from "../services/context.js";
 import { makeServicesContext } from "../services/context.js";
 import type { WalletClientResolver } from "../services/wallet-client.js";
 import { attachConfigContext } from "./context.js";
-import { resolveNetwork } from "./resolve-network.js";
+import { freezeDeployment, resolveNetwork } from "./resolve-network.js";
 import { validateClientChain, validateDeployments } from "./validation.js";
 
 interface ConfigClients {
@@ -30,9 +30,11 @@ export const createConfigFromClients = (
   const indexer = resolveIndexerConfig(preset, parameters.indexer);
 
   validateClientChain(publicClient, "public", network, chainId);
+
   if (clients.walletClient !== undefined) {
     validateClientChain(clients.walletClient, "wallet", network, chainId);
   }
+
   validateDeployments(deployments, chainId);
 
   const serviceValues: EnsforgeServiceValues = {
@@ -47,6 +49,7 @@ export const createConfigFromClients = (
       ? {}
       : { walletClientResolver: clients.walletClientResolver }),
   };
+
   const config = attachConfigContext(
     {
       [EnsforgeConfigTypeId]: EnsforgeConfigTypeId,
@@ -57,7 +60,11 @@ export const createConfigFromClients = (
       writes,
       gateways,
       indexer,
+      ...(parameters.storage === undefined ? {} : { storage: parameters.storage }),
       deployments,
+      ...(parameters.hca === undefined
+        ? {}
+        : { hca: freezeDeployment(structuredClone(parameters.hca)) }),
       ...(clients.walletClient === undefined ? {} : { walletClient: clients.walletClient }),
     },
     makeServicesContext(serviceValues),

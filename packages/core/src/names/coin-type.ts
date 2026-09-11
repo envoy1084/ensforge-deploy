@@ -6,6 +6,7 @@ import { CodecError } from "../errors/codec-error.js";
 import { CoinType, type CoinType as CoinTypeValue } from "../schemas/coin-type.js";
 
 const EVM_COIN_TYPE_NAMESPACE = 0x8000_0000n;
+
 const EvmChainId = Schema.Int.pipe(
   Schema.check(Schema.isGreaterThanOrEqualTo(0), Schema.isLessThan(0x8000_0000)),
 );
@@ -43,6 +44,7 @@ export const toCoinType = (chainId: number): CoinTypeValue => {
     return parseCoinType(viemToCoinType(chainId));
   } catch (error) {
     if (error instanceof CodecError) throw error;
+
     throw new CodecError({
       code: "INVALID_CHAIN_ID",
       message: `Invalid EVM chain ID: ${chainId}`,

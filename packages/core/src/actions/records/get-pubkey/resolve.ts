@@ -24,11 +24,13 @@ export const resolvePubkey = Effect.fn("resolvePubkey")(function* (name: Normali
         cause,
       }),
   });
+
   const results = yield* resolveRecords(name, [call]);
 
   if (results === null) return null;
 
   const encodedResult = results[0];
+
   if (encodedResult === undefined) {
     return yield* new ContractError({
       code: "DECODE_FAILED",

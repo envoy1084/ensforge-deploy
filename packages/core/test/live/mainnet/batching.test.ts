@@ -16,6 +16,7 @@ describe("Mainnet semantic batching", () => {
         },
         { concurrency: 2 },
       );
+
       const batched = yield* readBatch.effect(mainnetConfig, {
         owner: getOwner.request({ name: mainnetNames.standard }),
         resolver: getResolver.request({ name: mainnetNames.standard }),

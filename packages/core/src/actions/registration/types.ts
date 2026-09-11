@@ -14,6 +14,7 @@ import type { Hex } from "../../schemas/hex.js";
 import { EthereumAddress } from "../../schemas/identity.js";
 import { NormalizedName } from "../../schemas/name.js";
 import { EnsProtocol } from "../../schemas/protocol.js";
+import type { WorkflowParameters, WorkflowProgress } from "../../workflows/types.js";
 import type {
   CallExecutionResult,
   ConfirmationPolicy,
@@ -254,7 +255,7 @@ export interface RegistrationWalletParameters {
   readonly confirmation?: ConfirmationPolicy;
 }
 
-export type RegisterNameParameters = Omit<RegistrationCommitmentWriteParameters, "records"> &
+type RegisterNameParametersState = Omit<RegistrationCommitmentWriteParameters, "records"> &
   RegistrationWalletParameters & {
     readonly paymentToken?: EthereumAddress;
     readonly maxPrice?: bigint;
@@ -264,7 +265,7 @@ export type RegisterNameParameters = Omit<RegistrationCommitmentWriteParameters,
 
 export type AvailableRegistrationPrice = Extract<RegistrationPriceResult, { status: "available" }>;
 
-export interface RegisterNameResult {
+export interface RegisterNameResult extends WorkflowProgress {
   readonly status: "waiting" | "partial" | "submitted" | "completed";
   readonly name: NormalizedName;
   readonly protocol: typeof EnsProtocol.Type;
@@ -284,19 +285,21 @@ export type RegisterNamesEntryParameters = Omit<
   "resume" | "walletClient" | "account" | "mode" | "confirmation"
 >;
 
-export interface RegisterNamesParameters extends RegistrationWalletParameters {
+export interface RegisterNamesParameters extends WorkflowParameters, RegistrationWalletParameters {
   readonly registrations: ReadonlyArray<RegisterNamesEntryParameters>;
   readonly resume?: RegisterNamesResult;
 }
 
-export interface RegisterNamesResult {
+export interface RegisterNamesResult extends WorkflowProgress {
   readonly status: "waiting" | "partial" | "submitted" | "completed";
   readonly registrations: ReadonlyArray<RegisterNameResult>;
   readonly nextActionAt: bigint | null;
 }
 
 export type RegistrationWriteError = WriteError;
+
 export type RegistrationWriteResult = CallExecutionResult;
+
 export type RegistrationWriteIntent = EnsWriteIntent<
   RegistrationWriteResult,
   RegistrationWriteError
@@ -317,7 +320,7 @@ export interface ApproveRenewalPaymentParameters {
   readonly amount: bigint;
 }
 
-export type RenewNameParameters = RenewNameCallParameters &
+type RenewNameParametersState = RenewNameCallParameters &
   RegistrationWalletParameters & {
     readonly resume?: RenewNameResult;
   };
@@ -329,7 +332,7 @@ export interface RenewalApproval {
   readonly amount: bigint;
 }
 
-export interface RenewNameResult {
+export interface RenewNameResult extends WorkflowProgress {
   readonly status: "completed" | "partial";
   readonly name: NormalizedName;
   readonly protocol: typeof EnsProtocol.Type;
@@ -356,13 +359,13 @@ export interface RenewNameAction extends EnsAction<
 
 export type RenewNamesEntryParameters = RenewNameCallParameters;
 
-export interface RenewNamesParameters extends RegistrationWalletParameters {
+export interface RenewNamesParameters extends WorkflowParameters, RegistrationWalletParameters {
   readonly renewals: ReadonlyArray<RenewNamesEntryParameters>;
   readonly maxTotalPrice?: bigint;
   readonly resume?: RenewNamesResult;
 }
 
-export interface RenewNamesResult {
+export interface RenewNamesResult extends WorkflowProgress {
   readonly status: "completed" | "partial";
   readonly renewals: ReadonlyArray<
     Omit<RenewNameResult, "write" | "status" | "approval" | "finalState"> & {
@@ -374,3 +377,7 @@ export interface RenewNamesResult {
   readonly totalPrice: bigint;
   readonly write: WritePlanProgress;
 }
+
+export type RegisterNameParameters = RegisterNameParametersState & WorkflowParameters;
+
+export type RenewNameParameters = RenewNameParametersState & WorkflowParameters;

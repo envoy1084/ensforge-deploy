@@ -54,9 +54,11 @@ describe("Viem error translation", () => {
     const nestedAbi = [
       { type: "error", name: "UnreachableName", inputs: [{ name: "name", type: "bytes" }] },
     ] as const;
+
     const outerAbi = [
       { type: "error", name: "ResolverError", inputs: [{ name: "errorData", type: "bytes" }] },
     ] as const;
+
     const cause = new ContractFunctionRevertedError({
       abi: outerAbi,
       data: encodeErrorResult({

@@ -12,6 +12,7 @@ const isReservedEffect = Effect.fn("ensforge.isReserved")(function* (
   parameters: GetNameStateParameters,
 ) {
   const name = yield* normalizeName.effect(parameters.name);
+
   return yield* executeRead(
     config,
     parameters,

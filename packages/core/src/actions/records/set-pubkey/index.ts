@@ -20,6 +20,7 @@ export const setPubkey = makeResolverWriteAction<SetPubkeyParameters>({
           message: `Invalid public key coordinates for ${context.name}`,
         });
       }
+
       return yield* Effect.try({
         try: () =>
           encodeFunctionData({

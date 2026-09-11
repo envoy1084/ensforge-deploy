@@ -5,6 +5,7 @@ import { isAddressEqual, keccak256, stringToHex, zeroAddress } from "viem";
 import { defineAction } from "../../../action/action.js";
 import type { EnsforgeConfig } from "../../../config/config.js";
 import { AuthorizationError } from "../../../errors/authorization-error.js";
+import { withWorkflow } from "../../../internal/workflows/run.js";
 import { dnsEncodeName } from "../../../names/dns.js";
 import { labelhash } from "../../../names/hashes.js";
 import type { WritePlan } from "../../../write/types.js";
@@ -38,21 +39,26 @@ const wrapNameEffect = Effect.fn("ensforge.wrapName")(function* (
 ): Effect.fn.Return<WrapNameResult, WrapperWriteError> {
   const route = yield* requireV1WrapperRoute(config, parameters.name);
   const strategy = route.analysis.isSecondLevelEth ? "eth-2ld" : "registry";
+
   if (route.wrapped && (parameters.resume === undefined || strategy !== "registry")) {
     return yield* new AuthorizationError({
       code: "WRITE_TARGET_UNAVAILABLE",
       message: `${route.name} is already wrapped`,
     });
   }
+
   const owner = yield* decodeOwnershipAddress(parameters.owner, "wrapped owner");
+
   const resolver =
     parameters.resolver === undefined
       ? zeroAddress
       : yield* decodeOwnershipAddress(parameters.resolver, "wrapper resolver");
+
   const requestedFuses = yield* encodeFuseMask(
     parameters.fuses ?? 0,
     wrapperFuseMasks.ownerControlledMask,
   );
+
   if (!route.analysis.isSecondLevelEth && requestedFuses !== 0) {
     return yield* new AuthorizationError({
       code: "WRITE_TARGET_UNAVAILABLE",
@@ -65,15 +71,19 @@ const wrapNameEffect = Effect.fn("ensforge.wrapName")(function* (
   const cleanupCalls: Array<WrapperWriteIntent> = [];
   let registrarApprovalAdded = parameters.resume?.approvals.registrar ?? false;
   let registryApprovalAdded = parameters.resume?.approvals.registry ?? false;
+
   if (strategy === "eth-2ld") {
     const tokenId = BigInt(labelhash(route.analysis.ethSecondLevelLabel ?? ""));
+
     if (parameters.resume === undefined) {
       const approval = yield* getTokenApproval.effect(config, { name: route.name });
+
       registrarApprovalAdded =
         approval.supported &&
         (approval.approved === null ||
           !isAddressEqual(approval.approved, route.deployment.contracts.nameWrapper));
     }
+
     if (registrarApprovalAdded) {
       approvalCalls.push(
         yield* approveWrapperIntent(
@@ -83,6 +93,7 @@ const wrapNameEffect = Effect.fn("ensforge.wrapName")(function* (
         ),
       );
     }
+
     wrapCalls.push(
       yield* wrapEth2ldIntent({
         wrapper: route.deployment.contracts.nameWrapper,
@@ -95,21 +106,25 @@ const wrapNameEffect = Effect.fn("ensforge.wrapName")(function* (
   } else {
     if (parameters.resume === undefined) {
       const manager = yield* getManager.effect(config, { name: route.name });
+
       if (manager === null) {
         return yield* new AuthorizationError({
           code: "WRITE_TARGET_UNAVAILABLE",
           message: `Registry ownership is unavailable for ${route.name}`,
         });
       }
+
       const approval = yield* getOperatorApproval.effect(config, {
         name: route.name,
         owner: manager,
         operator: route.deployment.contracts.nameWrapper,
       });
+
       registryApprovalAdded = !approval.targets.some(
         (target) => target.kind === "registry" && target.supported && target.approved,
       );
     }
+
     if (registryApprovalAdded) {
       approvalCalls.push(
         setOperatorApproval.call({
@@ -119,6 +134,7 @@ const wrapNameEffect = Effect.fn("ensforge.wrapName")(function* (
           approved: true,
         }),
       );
+
       cleanupCalls.push(
         setOperatorApproval.call({
           name: route.name,
@@ -128,9 +144,11 @@ const wrapNameEffect = Effect.fn("ensforge.wrapName")(function* (
         }),
       );
     }
+
     if (!isAddressEqual(resolver, zeroAddress)) {
       wrapCalls.push(setResolver.call({ name: route.name, resolver }));
     }
+
     wrapCalls.push(
       yield* wrapIntent({
         wrapper: route.deployment.contracts.nameWrapper,
@@ -142,6 +160,7 @@ const wrapNameEffect = Effect.fn("ensforge.wrapName")(function* (
   }
 
   const stages: WritePlan["stages"] extends ReadonlyArray<infer Stage> ? Array<Stage> : never = [];
+
   if (approvalCalls.length > 0) {
     stages.push({
       type: "calls",
@@ -152,6 +171,7 @@ const wrapNameEffect = Effect.fn("ensforge.wrapName")(function* (
       confirmation: parameters.confirmation ?? { type: "confirmed" },
     });
   }
+
   stages.push({
     type: "calls",
     id: "wrap-name",
@@ -160,6 +180,7 @@ const wrapNameEffect = Effect.fn("ensforge.wrapName")(function* (
     atomicity: wrapCalls.length > 1 ? "preferred" : "none",
     confirmation: parameters.confirmation ?? { type: "confirmed" },
   });
+
   if (cleanupCalls.length > 0) {
     stages.push({
       type: "calls",
@@ -180,6 +201,7 @@ const wrapNameEffect = Effect.fn("ensforge.wrapName")(function* (
     ...(parameters.walletClient === undefined ? {} : { walletClient: parameters.walletClient }),
     ...(parameters.account === undefined ? {} : { account: parameters.account }),
   });
+
   return {
     name: route.name,
     protocol: "v1",
@@ -192,7 +214,7 @@ const wrapNameEffect = Effect.fn("ensforge.wrapName")(function* (
 });
 
 export const wrapName = defineAction<WrapNameParameters, WrapNameResult, WrapperWriteError>(
-  wrapNameEffect,
+  withWorkflow("wrapName", wrapNameEffect),
 );
 
 export type {

@@ -19,11 +19,13 @@ export const decodeTransferRecipient = Effect.fn("ensforge.decodeTransferRecipie
   value: string,
 ) {
   const address = yield* decodeOwnershipAddress(value, "recipient");
+
   if (isAddressEqual(address, zeroAddress)) {
     return yield* new CodecError({
       code: "INVALID_ADDRESS",
       message: "Transfer recipient cannot be the zero address",
     });
   }
+
   return address;
 });

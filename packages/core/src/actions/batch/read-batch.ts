@@ -96,14 +96,17 @@ const readBatchEffect = Effect.fn("ensforge.readBatch")(function* <
   options: ReadBatchOptions = {},
 ): Effect.fn.Return<ReadBatchResult<Requests>, ReadBatchError<Requests>> {
   const context = yield* makeReadContext(config, options);
+
   yield* Effect.annotateCurrentSpan({
     "ens.network": config.network,
     "ens.read.call_count": Object.keys(requests).length,
     "ens.read.settled": false,
   });
+
   const entries = yield* Effect.all(getRequestEntries(config, requests, context), {
     concurrency: config.reads.concurrency,
   });
+
   return Object.fromEntries(entries) as ReadBatchResult<Requests>;
 });
 
@@ -132,11 +135,13 @@ const readBatchSettledEffect = Effect.fn("ensforge.readBatchSettled")(function* 
   options: ReadBatchOptions = {},
 ): Effect.fn.Return<ReadBatchSettledResult<Requests>, RpcError> {
   const context = yield* makeReadContext(config, options);
+
   yield* Effect.annotateCurrentSpan({
     "ens.network": config.network,
     "ens.read.call_count": Object.keys(requests).length,
     "ens.read.settled": true,
   });
+
   const settled = Object.entries(requests).map(([key, request]) =>
     executeReadRequest(request, config).pipe(
       Effect.provideService(ReadContext, context),
@@ -146,6 +151,7 @@ const readBatchSettledEffect = Effect.fn("ensforge.readBatchSettled")(function* 
       }),
     ),
   );
+
   const entries = yield* Effect.all(settled, { concurrency: config.reads.concurrency });
 
   return Object.fromEntries(entries) as ReadBatchSettledResult<Requests>;

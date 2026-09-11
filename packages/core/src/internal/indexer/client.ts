@@ -19,6 +19,7 @@ import {
 import { resolveIndexerSource, type IndexerSource } from "./source.js";
 
 type IndexerVariables = object;
+
 type IndexerRequestDocument = { readonly toString: () => string };
 
 export interface IndexerRequestParameters<
@@ -54,7 +55,9 @@ const resolveHeaders = (
   source: IndexerSource,
 ): Effect.Effect<Readonly<Record<string, string>>, IndexerConfigError> => {
   const headers = getIndexerRuntimeConfig(config.indexer).headers;
+
   if (headers === undefined) return Effect.succeed({});
+
   if (typeof headers !== "function") return Effect.succeed({ ...headers });
 
   return Effect.tryPromise({
@@ -80,6 +83,7 @@ const requestOnce = <Result, VariablesType extends IndexerVariables>(
   Effect.gen(function* () {
     const headers = yield* resolveHeaders(config, source);
     const runtime = getIndexerRuntimeConfig(config.indexer);
+
     const body = yield* Effect.try({
       try: () =>
         JSON.stringify({
@@ -89,6 +93,7 @@ const requestOnce = <Result, VariablesType extends IndexerVariables>(
       catch: (cause) =>
         indexerRequestErrorFromCause(source, parameters.operationName, attempt, cause),
     });
+
     const request = HttpClientRequest.post(source.endpoint).pipe(
       HttpClientRequest.setHeaders(headers),
       HttpClientRequest.acceptJson,
@@ -97,6 +102,7 @@ const requestOnce = <Result, VariablesType extends IndexerVariables>(
 
     const execute = Effect.gen(function* () {
       const client = yield* HttpClient.HttpClient;
+
       const response = yield* client
         .execute(request)
         .pipe(
@@ -107,6 +113,7 @@ const requestOnce = <Result, VariablesType extends IndexerVariables>(
 
       if (response.status < 200 || response.status >= 300) {
         const retryAfter = retryAfterMilliseconds(response.headers);
+
         return yield* new IndexerRequestError({
           code: "HTTP_FAILED",
           message: `The ${source.identity} indexer request failed with HTTP ${response.status}`,
@@ -134,6 +141,7 @@ const requestOnce = <Result, VariablesType extends IndexerVariables>(
             }),
         ),
       );
+
       const envelope = yield* Schema.decodeUnknownEffect(IndexerResponseEnvelope)(json).pipe(
         Effect.mapError(
           (cause) =>
@@ -183,7 +191,9 @@ const requestOnce = <Result, VariablesType extends IndexerVariables>(
 
 const retryDelay = (error: IndexerRequestError, attempt: number): number => {
   if (error.retryAfter !== undefined) return Math.min(error.retryAfter, 30_000);
+
   const base = Math.min(250 * 2 ** (attempt - 1), 2_000);
+
   return Math.round(base * (0.75 + Math.random() * 0.5));
 };
 
@@ -208,6 +218,7 @@ export const requestIndexer = <
           if (!error.retryable || attempt > config.indexer.retry.attempts) {
             return Effect.fail(error);
           }
+
           return Effect.sleep(Duration.millis(retryDelay(error, attempt))).pipe(
             Effect.andThen(execute(attempt + 1)),
           );

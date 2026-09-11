@@ -16,29 +16,44 @@ export interface ResolverRootRolesMutationParameters {
 }
 
 export type GrantResolverRolesParameters = ResolverRolesMutationParameters;
+
 export type RevokeResolverRolesParameters = ResolverRolesMutationParameters;
+
 export type GrantResolverRootRolesParameters = ResolverRootRolesMutationParameters;
+
 export type RevokeResolverRootRolesParameters = ResolverRootRolesMutationParameters;
+
 export type GrantResolverRolesResult = CallExecutionResult;
+
 export type RevokeResolverRolesResult = CallExecutionResult;
+
 export type GrantResolverRootRolesResult = CallExecutionResult;
+
 export type RevokeResolverRootRolesResult = CallExecutionResult;
+
 export type GrantResolverRolesError = WriteError;
+
 export type RevokeResolverRolesError = WriteError;
+
 export type GrantResolverRootRolesError = WriteError;
+
 export type RevokeResolverRootRolesError = WriteError;
+
 export type GrantResolverRolesIntent = EnsWriteIntent<
   GrantResolverRolesResult,
   GrantResolverRolesError
 >;
+
 export type RevokeResolverRolesIntent = EnsWriteIntent<
   RevokeResolverRolesResult,
   RevokeResolverRolesError
 >;
+
 export type GrantResolverRootRolesIntent = EnsWriteIntent<
   GrantResolverRootRolesResult,
   GrantResolverRootRolesError
 >;
+
 export type RevokeResolverRootRolesIntent = EnsWriteIntent<
   RevokeResolverRootRolesResult,
   RevokeResolverRootRolesError

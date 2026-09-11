@@ -1,5 +1,5 @@
+import { pageProperties, safeUrl } from "../runtime/page-context";
 import { track } from "./client";
-import { pageProperties, safeUrl } from "./events";
 
 const searchSelector = 'input[role="combobox"][aria-controls="search-results"]';
 

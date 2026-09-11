@@ -76,6 +76,7 @@ describe("indexer page merging", () => {
       ],
       3,
     );
+
     const second = merge(
       [
         source("v1", [{ id: "e", rank: 5, protocol: "v1" }]),
@@ -114,6 +115,7 @@ describe("indexer page merging", () => {
   it.effect("preserves partial results and fails in strict mode", () =>
     Effect.gen(function* () {
       const failure = new Error("V1 unavailable");
+
       const results = [
         {
           status: "failed",

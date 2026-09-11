@@ -18,13 +18,16 @@ const prepare = Effect.fn("ensforge.approveName.prepareApproval")(function* (
   approved: string,
 ) {
   const target = yield* getTokenApproval.effect(config, { name });
+
   if (!target.supported) {
     return yield* new AuthorizationError({
       code: "WRITE_TARGET_UNAVAILABLE",
       message: `Per-name approval is unavailable for ${name}: ${target.reason}`,
     });
   }
+
   const address = yield* decodePermissionAddress(approved, "approved account");
+
   const data = yield* Effect.try({
     try: () =>
       target.kind === "registrar"
@@ -45,6 +48,7 @@ const prepare = Effect.fn("ensforge.approveName.prepareApproval")(function* (
         cause,
       }),
   });
+
   return { to: target.contract, data, value: 0n, protocol: "v1" as const };
 });
 
@@ -61,6 +65,7 @@ const clearPreparer: EnsWriteIntentPreparer<ClearNameApprovalParameters, WriteEr
 });
 
 export const approveName = makeSingleWriteAction("approveName", approvePreparer);
+
 export const clearNameApproval = makeSingleWriteAction("clearNameApproval", clearPreparer);
 
 export type {

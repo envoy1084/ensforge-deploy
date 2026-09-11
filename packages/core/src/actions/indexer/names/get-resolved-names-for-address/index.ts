@@ -24,8 +24,10 @@ export const GetResolvedNamesForAddressParameters = Schema.Struct({
   cursor: Schema.optional(IndexerCursor),
 });
 export type GetResolvedNamesForAddressParameters = typeof GetResolvedNamesForAddressParameters.Type;
+
 export const GetResolvedNamesForAddressResult = IndexerPage(IndexedResolvedName);
 export type GetResolvedNamesForAddressResult = IndexerPageType<typeof IndexedResolvedName.Type>;
+
 export type GetResolvedNamesForAddressError = GetNamesForAddressError;
 
 const getResolvedNamesForAddressEffect = Effect.fn("ensforge.getResolvedNamesForAddress")(
@@ -44,10 +46,12 @@ const getResolvedNamesForAddressEffect = Effect.fn("ensforge.getResolvedNamesFor
           }),
       ),
     );
+
     const page = yield* getNamesForAddress.effect(config, {
       ...decoded,
       relations: ["resolved-address"],
     });
+
     return {
       ...page,
       items: page.items.map((name) => ({

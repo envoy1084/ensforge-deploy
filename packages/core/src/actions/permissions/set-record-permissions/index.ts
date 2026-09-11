@@ -29,7 +29,9 @@ const implementation = Effect.fn("ensforge.setRecordPermissions")(function* (
       cause: parameters.records,
     });
   }
+
   const account = yield* decodePermissionAddress(parameters.account, "permission account");
+
   const [protocol, resolver, permissions] = yield* Effect.all(
     [
       getProtocol.effect(config, { name: parameters.name }),
@@ -42,13 +44,16 @@ const implementation = Effect.fn("ensforge.setRecordPermissions")(function* (
     ] as const,
     { concurrency: "unbounded" },
   );
+
   if (resolver.address === null || resolver.inherited) {
     return yield* new AuthorizationError({
       code: "WRITE_TARGET_UNAVAILABLE",
       message: `A directly attached resolver is required for ${parameters.name}`,
     });
   }
+
   const unsupported = permissions.records.find((permission) => !permission.supported);
+
   if (unsupported !== undefined) {
     return yield* new AuthorizationError({
       code: "RECORD_UNSUPPORTED",
@@ -63,6 +68,7 @@ const implementation = Effect.fn("ensforge.setRecordPermissions")(function* (
         message: `Public Resolver delegation widens the requested permissions to every record for ${parameters.name}`,
       });
     }
+
     const execution = yield* sendCalls.effect(config, {
       calls: [
         setResolverDelegateApproval.call({
@@ -77,6 +83,7 @@ const implementation = Effect.fn("ensforge.setRecordPermissions")(function* (
       atomicity: "none",
       ...(parameters.confirmation === undefined ? {} : { confirmation: parameters.confirmation }),
     });
+
     return {
       model: "public-resolver-delegate",
       protocol,
@@ -95,20 +102,24 @@ const implementation = Effect.fn("ensforge.setRecordPermissions")(function* (
       message: `The resolver permission model for ${parameters.name} is not supported`,
     });
   }
+
   const exact = permissions.records.map((permission) => ({
     record: permission.record,
     resource: permission.resource,
     roles: resolverRecordRole(permission.record),
   }));
+
   const invalid = exact.find(
     (permission) => permission.resource === null || permission.roles === 0n,
   );
+
   if (invalid !== undefined) {
     return yield* new AuthorizationError({
       code: "RECORD_UNSUPPORTED",
       message: `Exact ${invalid.record.type} permissions are unavailable for ${parameters.name}`,
     });
   }
+
   const calls = exact.map((permission) =>
     parameters.approved
       ? grantResolverRoles.call({
@@ -124,6 +135,7 @@ const implementation = Effect.fn("ensforge.setRecordPermissions")(function* (
           roles: permission.roles,
         }),
   );
+
   const execution = yield* sendCalls.effect(config, {
     calls,
     ...(parameters.walletClient === undefined ? {} : { walletClient: parameters.walletClient }),
@@ -133,6 +145,7 @@ const implementation = Effect.fn("ensforge.setRecordPermissions")(function* (
     ...(parameters.confirmation === undefined ? {} : { confirmation: parameters.confirmation }),
     ...(parameters.capabilities === undefined ? {} : { capabilities: parameters.capabilities }),
   });
+
   return {
     model: "permissioned-resolver-roles",
     protocol: "v2",

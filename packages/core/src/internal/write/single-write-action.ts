@@ -26,8 +26,10 @@ export const makeSingleWriteAction = <Parameters>(
       preparer,
       options?.sensitive ?? false,
     );
+
     const result = yield* executeSequential(config, { calls: [intent] });
     const call = result.calls[0];
+
     if (call === undefined) {
       return yield* new WritePlanError({
         code: "INVALID_CALL_PLAN",
@@ -35,6 +37,7 @@ export const makeSingleWriteAction = <Parameters>(
         cause: result,
       });
     }
+
     return call;
   });
 

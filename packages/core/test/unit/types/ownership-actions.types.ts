@@ -19,28 +19,37 @@ import {
 } from "../../../src/index.js";
 
 const config = {} as EnsforgeConfig;
+
 const name = "example.eth";
+
 const address = "0x0000000000000000000000000000000000000001";
 
 expectTypeOf(getTtl(config, { name })).toEqualTypeOf<Promise<GetTtlResult>>();
+
 expectTypeOf(getTtl.effect(config, { name })).toEqualTypeOf<
   Effect.Effect<GetTtlResult, GetTtlError>
 >();
+
 expectTypeOf(setTtl.call({ name, ttl: 60n })).toEqualTypeOf<
   EnsWriteIntent<CallExecutionResult, WriteError>
 >();
+
 expectTypeOf(setManager.call({ name, manager: address })).toEqualTypeOf<
   EnsWriteIntent<CallExecutionResult, WriteError>
 >();
+
 expectTypeOf(transferRegistrant.call({ name, to: address })).toEqualTypeOf<
   EnsWriteIntent<CallExecutionResult, WriteError>
 >();
+
 expectTypeOf(reclaimName.call({ name, manager: address })).toEqualTypeOf<
   EnsWriteIntent<CallExecutionResult, WriteError>
 >();
+
 expectTypeOf(transferName(config, { name, to: address })).toEqualTypeOf<
   Promise<TransferNameResult>
 >();
+
 expectTypeOf(transferName.effect(config, { name, to: address })).toEqualTypeOf<
   Effect.Effect<TransferNameResult, WriteError>
 >();

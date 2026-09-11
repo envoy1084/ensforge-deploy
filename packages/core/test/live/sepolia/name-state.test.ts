@@ -32,6 +32,7 @@ describe("Sepolia V1 and V2 name state", () => {
     Effect.gen(function* () {
       const parameters = { name: sepoliaNames.v2.profile };
       const state = yield* getNameState.effect(sepoliaConfig, parameters);
+
       const focused = yield* readBatch.effect(sepoliaConfig, {
         owner: getOwner.request(parameters),
         manager: getManager.request(parameters),
@@ -74,6 +75,7 @@ describe("Sepolia V1 and V2 name state", () => {
   it.effect("routes an unmigrated reserved name through V1", () =>
     Effect.gen(function* () {
       const name = sepoliaNames.v1.reserved;
+
       const [state, owner, expiry, reserved, migrated, wrapped] = yield* Effect.all(
         [
           getNameState.effect(sepoliaConfig, { name }),

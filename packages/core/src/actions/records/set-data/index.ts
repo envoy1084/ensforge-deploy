@@ -20,6 +20,7 @@ export const setData = makeResolverWriteAction<SetDataParameters>({
           message: `Invalid data record value for ${context.name}`,
         });
       }
+
       return yield* Effect.try({
         try: () =>
           encodeFunctionData({

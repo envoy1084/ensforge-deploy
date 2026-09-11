@@ -2,6 +2,16 @@ import type { Effect, Stream } from "effect";
 
 import type {
   EnsAction,
+  ExecuteHcaCallsAction,
+  ExecuteHcaCallsParameters,
+  PrepareHcaCallsParameters,
+  ExecutionAdapter,
+  HcaTransactionSubmission,
+  HcaExecutionSubmission,
+  WatchHcaExecution,
+  WaitForHcaExecutionParameters,
+  HcaExecutionStatus,
+  WriteError,
   EnsEvent,
   EnsNoParametersAction,
   EnsReadAction,
@@ -120,6 +130,52 @@ export interface BoundWatchEnsEvents {
   ) => Stream.Stream<EnsEvent, WatchEnsEventsError>;
 }
 
+export interface BoundExecuteHcaCalls {
+  <Adapter extends ExecutionAdapter>(
+    parameters: PrepareHcaCallsParameters & { readonly execution: Adapter },
+    options?: Effect.RunOptions,
+  ): Promise<Awaited<ReturnType<Adapter["submit"]>>>;
+  (
+    parameters: PrepareHcaCallsParameters & { readonly execution?: never },
+    options?: Effect.RunOptions,
+  ): Promise<HcaTransactionSubmission>;
+  (
+    parameters: ExecuteHcaCallsParameters,
+    options?: Effect.RunOptions,
+  ): Promise<HcaExecutionSubmission>;
+
+  readonly effect: {
+    <Adapter extends ExecutionAdapter>(
+      parameters: PrepareHcaCallsParameters & { readonly execution: Adapter },
+    ): Effect.Effect<Awaited<ReturnType<Adapter["submit"]>>, WriteError>;
+    (
+      parameters: PrepareHcaCallsParameters & { readonly execution?: never },
+    ): Effect.Effect<HcaTransactionSubmission, WriteError>;
+    (parameters: ExecuteHcaCallsParameters): Effect.Effect<HcaExecutionSubmission, WriteError>;
+  };
+}
+
+export interface BoundWatchHcaExecution {
+  (
+    parameters: WaitForHcaExecutionParameters,
+    onStatus: (status: HcaExecutionStatus) => void,
+    onError: (error: WriteError) => void,
+    options?: Effect.RunOptions,
+  ): Promise<() => void>;
+
+  readonly stream: (
+    parameters: WaitForHcaExecutionParameters,
+  ) => Stream.Stream<HcaExecutionStatus, WriteError>;
+}
+
+export function bindAction(
+  config: EnsforgeConfig,
+  action: ExecuteHcaCallsAction,
+): BoundExecuteHcaCalls;
+export function bindAction(
+  config: EnsforgeConfig,
+  action: WatchHcaExecution,
+): BoundWatchHcaExecution;
 export function bindAction(config: EnsforgeConfig, action: GetRecordsAction): BoundGetRecordsAction;
 export function bindAction(config: EnsforgeConfig, action: ReadBatch): BoundReadBatch;
 export function bindAction(config: EnsforgeConfig, action: ReadBatchSettled): BoundReadBatchSettled;
@@ -135,6 +191,7 @@ export function bindAction(config: EnsforgeConfig, action: Callable): Callable {
 
   for (const property of ["effect", "stream"] as const) {
     const extension = Reflect.get(action, property);
+
     if (typeof extension === "function") {
       Object.defineProperty(bound, property, {
         value: (...arguments_: ReadonlyArray<unknown>) =>
@@ -146,8 +203,10 @@ export function bindAction(config: EnsforgeConfig, action: Callable): Callable {
     }
   }
 
+  // Descriptors stay unbound so batches can prepare them with their own execution context.
   for (const property of ["request", "call"] as const) {
     const extension = Reflect.get(action, property);
+
     if (typeof extension === "function") {
       Object.defineProperty(bound, property, {
         value: extension,

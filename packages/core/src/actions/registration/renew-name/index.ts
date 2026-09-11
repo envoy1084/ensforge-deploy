@@ -9,6 +9,7 @@ import { RenewalError } from "../../../errors/renewal-error.js";
 import { provideConfig } from "../../../internal/config/context.js";
 import { viemErrorToEffectError } from "../../../internal/errors/viem-error.js";
 import { resolveWalletContext } from "../../../internal/services/wallet-client.js";
+import { withWorkflow } from "../../../internal/workflows/run.js";
 import { normalizeName } from "../../../names/normalize.js";
 import type { WriteError, WritePlan } from "../../../write/types.js";
 import { executeWritePlan } from "../../batch/execute-write-plan.js";
@@ -25,25 +26,25 @@ import type {
 
 const confirmed = { type: "confirmed" } as const;
 
-const renewalError = (code: RenewalError["code"], message: string) =>
-  new RenewalError({ code, message });
-
 const requireQuote = (
   quote: RenewalPriceResult,
 ): Effect.Effect<Extract<RenewalPriceResult, { status: "renewable" }>, RenewalError> => {
   switch (quote.status) {
     case "not-renewable":
-      return renewalError("NAME_NOT_RENEWABLE", `${quote.name} is not renewable`);
+      return new RenewalError({
+        code: "NAME_NOT_RENEWABLE",
+        message: `${quote.name} is not renewable`,
+      });
     case "payment-token-required":
-      return renewalError(
-        "PAYMENT_TOKEN_REQUIRED",
-        `A payment token is required to renew ${quote.name}`,
-      );
+      return new RenewalError({
+        code: "PAYMENT_TOKEN_REQUIRED",
+        message: `A payment token is required to renew ${quote.name}`,
+      });
     case "unsupported-payment-token":
-      return renewalError(
-        "PAYMENT_TOKEN_UNSUPPORTED",
-        `The selected payment token is not supported for ${quote.name}`,
-      );
+      return new RenewalError({
+        code: "PAYMENT_TOKEN_UNSUPPORTED",
+        message: `The selected payment token is not supported for ${quote.name}`,
+      });
     default:
       return Effect.succeed(quote);
   }
@@ -68,20 +69,23 @@ const renewNameEffect = Effect.fn("ensforge.renewName")(function* (
 ): Effect.fn.Return<RenewNameResult, WriteError> {
   const name = yield* normalizeName.effect(parameters.name);
   const id = planId(name, parameters);
+
   if (
     parameters.resume?.write.status === "completed" &&
     parameters.resume.write.completedStages.some((stage) => stage.id === "renew")
   ) {
     if (parameters.resume.write.planId !== id) {
-      return yield* renewalError(
-        "ROUTE_CHANGED",
-        "Renewal resume data does not match the supplied renewal",
-      );
+      return yield* new RenewalError({
+        code: "ROUTE_CHANGED",
+        message: "Renewal resume data does not match the supplied renewal",
+      });
     }
+
     const [expiry, finalState] = yield* Effect.all(
       [getExpiry.effect(config, { name }), getNameState.effect(config, { name })] as const,
       { concurrency: "unbounded" },
     );
+
     return { ...parameters.resume, newExpiry: expiry?.expiry ?? null, finalState };
   }
 
@@ -96,18 +100,21 @@ const renewNameEffect = Effect.fn("ensforge.renewName")(function* (
     ] as const,
     { concurrency: "unbounded" },
   );
+
   const quote = yield* requireQuote(priceResult);
+
   if (parameters.resume !== undefined && parameters.resume.route !== quote.route) {
-    return yield* renewalError(
-      "ROUTE_CHANGED",
-      `The renewal route for ${name} changed while resuming`,
-    );
+    return yield* new RenewalError({
+      code: "ROUTE_CHANGED",
+      message: `The renewal route for ${name} changed while resuming`,
+    });
   }
+
   if (parameters.maxPrice !== undefined && quote.price > parameters.maxPrice) {
-    return yield* renewalError(
-      "PRICE_EXCEEDS_MAXIMUM",
-      `The current renewal price for ${name} exceeds maxPrice`,
-    );
+    return yield* new RenewalError({
+      code: "PRICE_EXCEEDS_MAXIMUM",
+      message: `The current renewal price for ${name} exceeds maxPrice`,
+    });
   }
 
   let approval = parameters.resume?.approval ?? {
@@ -116,10 +123,12 @@ const renewNameEffect = Effect.fn("ensforge.renewName")(function* (
     token: null,
     amount: 0n,
   };
+
   if (quote.currency.kind === "erc20" && !approval.required) {
     const currency = quote.currency;
     const { account } = yield* provideConfig(config, resolveWalletContext(parameters));
     const payer = typeof account === "string" ? account : account.address;
+
     const allowance = yield* Effect.tryPromise({
       try: () =>
         config.publicClient.readContract({
@@ -130,6 +139,7 @@ const renewNameEffect = Effect.fn("ensforge.renewName")(function* (
         }),
       catch: (cause) => viemErrorToEffectError(cause, "readContract"),
     });
+
     if (allowance < quote.price) {
       approval = {
         required: true,
@@ -141,6 +151,7 @@ const renewNameEffect = Effect.fn("ensforge.renewName")(function* (
   }
 
   const stages: Array<WritePlan["stages"][number]> = [];
+
   if (approval.required && approval.token !== null) {
     stages.push({
       type: "calls",
@@ -158,6 +169,7 @@ const renewNameEffect = Effect.fn("ensforge.renewName")(function* (
       confirmation: confirmed,
     });
   }
+
   stages.push({
     type: "calls",
     id: "renew",
@@ -178,16 +190,19 @@ const renewNameEffect = Effect.fn("ensforge.renewName")(function* (
       Effect.mapError((error) =>
         error instanceof RenewalError
           ? error
-          : renewalError("RENEWAL_FAILED", `Unable to renew ${name}`),
+          : new RenewalError({ code: "RENEWAL_FAILED", message: `Unable to renew ${name}` }),
       ),
     );
+
   const completed = write.status === "completed";
+
   const [newExpiry, finalState] = completed
     ? yield* Effect.all(
         [getExpiry.effect(config, { name }), getNameState.effect(config, { name })] as const,
         { concurrency: "unbounded" },
       )
     : ([null, null] as const);
+
   return {
     status: write.status === "completed" ? "completed" : "partial",
     name,
@@ -205,7 +220,7 @@ const renewNameEffect = Effect.fn("ensforge.renewName")(function* (
 });
 
 const action = defineExtendedAction<RenewNameParameters, RenewNameResult, WriteError>(
-  renewNameEffect,
+  withWorkflow("renewName", renewNameEffect),
 );
 
 export const renewName = Object.freeze(

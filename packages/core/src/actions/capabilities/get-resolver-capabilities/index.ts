@@ -59,11 +59,13 @@ const getResolverCapabilitiesEffect = Effect.fn("ensforge.getResolverCapabilitie
   parameters: NameCapabilityParameters,
 ) {
   const name = yield* normalizeName.effect(parameters.name);
+
   return yield* executeRead(
     config,
     parameters,
     Effect.gen(function* () {
       const discovery = yield* findResolver(name);
+
       if (discovery === null) {
         return {
           address: null,
@@ -75,9 +77,11 @@ const getResolverCapabilitiesEffect = Effect.fn("ensforge.getResolverCapabilitie
           profiles: emptyProfiles,
         } as const satisfies ResolverCapabilities;
       }
+
       const support = yield* supportsInterfaces(discovery.address, resolverInterfaces);
       const deployment = yield* DeploymentService;
       const { extended, permissioned, ...profiles } = support;
+
       return {
         address: discovery.address,
         node: discovery.node,

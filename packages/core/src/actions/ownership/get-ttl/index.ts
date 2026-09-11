@@ -17,22 +17,27 @@ const getTtlEffect = Effect.fn("ensforge.getTtl")(function* (
   parameters: GetNameStateParameters,
 ) {
   const name = yield* normalizeName.effect(parameters.name);
+
   return yield* executeRead(
     config,
     parameters,
     Effect.gen(function* () {
       const route = yield* readNameRoute(name);
+
       if (route.kind === "v2" || route.kind === "available") {
         return { supported: false, protocol: "v2", reason: "TTL_UNSUPPORTED" } as const;
       }
+
       const ethereum = yield* EthereumClient;
       const deployment = route.kind === "reserved" ? route.v1 : route.deployment;
+
       const ttl = yield* ethereum.readContract({
         address: deployment.contracts.registry,
         abi: ensRegistryV1TtlAbi,
         functionName: "ttl",
         args: [namehash(name)],
       });
+
       return { supported: true, protocol: "v1", ttl } as const;
     }),
   );

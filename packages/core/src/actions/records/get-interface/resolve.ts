@@ -23,6 +23,7 @@ export const resolveInterface = Effect.fn("resolveInterface")(function* (
         message: `Invalid EIP-165 interface ID: ${input}`,
       }),
   });
+
   const call = yield* Effect.try({
     try: () =>
       encodeFunctionData({
@@ -37,11 +38,13 @@ export const resolveInterface = Effect.fn("resolveInterface")(function* (
         cause,
       }),
   });
+
   const results = yield* resolveRecords(name, [call]);
 
   if (results === null) return { interfaceId, implementer: null } as const;
 
   const encodedResult = results[0];
+
   if (encodedResult === undefined) {
     return yield* new ContractError({
       code: "DECODE_FAILED",

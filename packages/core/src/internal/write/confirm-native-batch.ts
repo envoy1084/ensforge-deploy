@@ -49,6 +49,7 @@ export const confirmNativeBatch: (
   }
 
   const client = yield* WriteClient;
+
   const status = yield* client
     .waitForCallsStatus(
       walletClient,
@@ -56,6 +57,7 @@ export const confirmNativeBatch: (
       confirmation.timeout === undefined ? {} : { timeout: confirmation.timeout },
     )
     .pipe(Effect.retry({ times: config.writes.statusRetries }));
+
   if (status.status !== "success") {
     return yield* new TransactionError({
       code: status.status === undefined ? "INVALID_BATCH_STATUS" : "BATCH_STATUS_FAILED",
@@ -64,7 +66,9 @@ export const confirmNativeBatch: (
       batchId: id,
     });
   }
+
   const receipts = status.receipts ?? [];
+
   return {
     mode: "batch",
     atomic: status.atomic,
@@ -72,6 +76,7 @@ export const confirmNativeBatch: (
     id,
     calls: calls.map((call, index) => {
       const receipt = receipts[index] ?? (status.atomic ? receipts[0] : undefined);
+
       return {
         id: call.id,
         operation: call.operation,

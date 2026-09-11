@@ -39,8 +39,10 @@ const getIndexedRecordsEffect = Effect.fn("ensforge.getIndexedRecords")(function
       message: "Indexer actions are disabled for this configuration",
     });
   }
+
   const lookup = yield* decodeIndexerNameIdentity(parameters);
   const states = getIndexerRuntimeConfig(config.indexer).sourceStates;
+
   const results = yield* Effect.all(
     (["v1", "v2"] as const).map((protocol) =>
       states[protocol] === "enabled"
@@ -49,6 +51,7 @@ const getIndexedRecordsEffect = Effect.fn("ensforge.getIndexedRecords")(function
     ),
     { concurrency: "unbounded" },
   );
+
   const collected = yield* collectIndexerSourcePages(results, config.indexer.failureMode);
 
   return {

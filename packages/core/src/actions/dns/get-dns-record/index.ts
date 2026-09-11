@@ -16,6 +16,7 @@ const getDnsRecordEffect = Effect.fn("ensforge.getDnsRecord")(function* (
     [normalizeName.effect(parameters.name), normalizeName.effect(parameters.recordName)] as const,
     { concurrency: "unbounded" },
   );
+
   return yield* executeRead(
     config,
     parameters,
@@ -27,7 +28,9 @@ const getDnsRecordEffect = Effect.fn("ensforge.getDnsRecord")(function* (
         ] as const,
         { concurrency: "unbounded" },
       );
+
       const value = values?.[0];
+
       return {
         name,
         recordName,

@@ -24,6 +24,7 @@ export const predictResolverAddressEffect = Effect.fn("ensforge.predictResolverA
   parameters: CreateResolverParameters,
 ) {
   const deployment = config.deployments;
+
   if (deployment.protocol !== "v2") {
     return yield* new WritePlanError({
       code: "INVALID_CALL_PLAN",
@@ -31,6 +32,7 @@ export const predictResolverAddressEffect = Effect.fn("ensforge.predictResolverA
       cause: deployment,
     });
   }
+
   const wallet = yield* provideConfig(
     config,
     resolveWalletContext({
@@ -38,12 +40,15 @@ export const predictResolverAddressEffect = Effect.fn("ensforge.predictResolverA
       ...(parameters.account === undefined ? {} : { account: parameters.account }),
     }),
   );
+
   const sender = typeof wallet.account === "string" ? wallet.account : wallet.account.address;
   const factory = deployment.v2.contracts.verifiableFactory;
+
   const proxyLogic = yield* provideConfig(
     config,
     Effect.gen(function* () {
       const ethereum = yield* EthereumClient;
+
       return yield* ethereum.readContractDirect({
         address: factory,
         abi: verifiableFactoryV2ProxyLogicAbi,
@@ -57,12 +62,14 @@ export const predictResolverAddressEffect = Effect.fn("ensforge.predictResolverA
       const salt = keccak256(
         encodeAbiParameters([{ type: "address" }, { type: "uint256" }], [sender, parameters.salt]),
       );
+
       const bytecode = concatHex([
         "0x3d604d80600a3d3981f3363d3d373d3d3d363d73",
         proxyLogic,
         "0x5af43d82803e903d91602b57fd5bf3",
         salt,
       ]);
+
       return getCreate2Address({ from: factory, salt, bytecode });
     },
     catch: (cause) =>
@@ -85,13 +92,16 @@ const implementation = Effect.fn("ensforge.createResolver")(function* (
   parameters: CreateResolverParameters,
 ) {
   const resolver = yield* predictResolverAddressEffect(config, parameters);
+
   const result = yield* executeSequential(config, {
     calls: [createResolverIntent(parameters)],
     ...(parameters.walletClient === undefined ? {} : { walletClient: parameters.walletClient }),
     ...(parameters.account === undefined ? {} : { account: parameters.account }),
     ...(parameters.confirmation === undefined ? {} : { confirmation: parameters.confirmation }),
   });
+
   const call = result.calls[0];
+
   if (call === undefined) {
     return yield* new WritePlanError({
       code: "INVALID_CALL_PLAN",
@@ -99,7 +109,9 @@ const implementation = Effect.fn("ensforge.createResolver")(function* (
       cause: result,
     });
   }
+
   const deployment = config.deployments;
+
   if (deployment.protocol !== "v2") {
     return yield* new WritePlanError({
       code: "INVALID_CALL_PLAN",
@@ -107,6 +119,7 @@ const implementation = Effect.fn("ensforge.createResolver")(function* (
       cause: deployment,
     });
   }
+
   return {
     status: "deployed",
     resolver,

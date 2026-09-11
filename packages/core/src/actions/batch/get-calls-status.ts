@@ -18,6 +18,7 @@ const getCallsStatusEffect = Effect.fn("ensforge.getCallsStatus")(function* (
       const { walletClient } = yield* resolveWalletContext(parameters);
       const client = yield* WriteClient;
       const status = yield* client.getCallsStatus(walletClient, parameters.id);
+
       if (status.chainId !== config.chainId) {
         return yield* new TransactionError({
           code: "INVALID_BATCH_STATUS",
@@ -26,6 +27,7 @@ const getCallsStatusEffect = Effect.fn("ensforge.getCallsStatus")(function* (
           batchId: parameters.id,
         });
       }
+
       return {
         id: parameters.id,
         chainId: status.chainId,

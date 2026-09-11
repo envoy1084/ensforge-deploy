@@ -21,13 +21,16 @@ const prepare: EnsWriteIntentPreparer<SetManagerParameters, WriteError> = Effect
   const name = yield* normalizeName.effect(parameters.name);
   const manager = yield* decodeOwnershipAddress(parameters.manager, "manager");
   const target = yield* getWriteTarget.effect(config, { name, operation: { type: "setOwner" } });
+
   if (!target.available || target.protocol !== "v1" || target.kind !== "registry") {
     return yield* new AuthorizationError({
       code: "WRITE_TARGET_UNAVAILABLE",
       message: `Registry-level manager ownership is unavailable for ${name}; use transferName`,
     });
   }
+
   yield* requireOwnershipAuthorization(config, name, context.account, { type: "setOwner" });
+
   const data = yield* Effect.try({
     try: () =>
       encodeFunctionData({
@@ -42,6 +45,7 @@ const prepare: EnsWriteIntentPreparer<SetManagerParameters, WriteError> = Effect
         cause,
       }),
   });
+
   return { to: target.address, data, value: 0n, protocol: "v1" as const };
 });
 

@@ -46,22 +46,28 @@ export const runProcess = (
       });
     } catch (cause) {
       resume(Effect.fail(cause instanceof Error ? cause : new Error(String(cause))));
+
       return;
     }
 
     child.stdout?.on("data", (chunk: Uint8Array) => {
       stdout = appendOutput(stdout, chunk);
     });
+
     child.stderr?.on("data", (chunk: Uint8Array) => {
       stderr = appendOutput(stderr, chunk);
     });
+
     child.once("error", (cause) => {
       if (settled) return;
+
       settled = true;
       resume(Effect.fail(cause));
     });
+
     child.once("close", (exitCode) => {
       if (settled) return;
+
       settled = true;
       resume(Effect.succeed({ exitCode, stdout, stderr }));
     });

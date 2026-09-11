@@ -1,3 +1,4 @@
+import type { HcaDeploymentProfile } from "@ensforge/contracts/deployments";
 import type { PublicClient, WalletClient } from "viem";
 
 import type { EnsDeploymentProfile, EnsforgeConfig } from "../config/config.js";
@@ -9,12 +10,16 @@ import { resolveReadOptions } from "../config/read-options.js";
 import type { WriteOptions } from "../config/write-options.js";
 import { resolveWriteOptions } from "../config/write-options.js";
 import { attachConfigContext } from "../internal/config/context.js";
+import { freezeDeployment } from "../internal/config/resolve-network.js";
 import { validateClientChain, validateDeployments } from "../internal/config/validation.js";
 import { makeServicesContext } from "../internal/services/context.js";
+import type { WorkflowStorage } from "../workflows/storage.js";
 
 export const ensTestChainId = 31337 as const;
 
 export interface CreateTestConfigParameters {
+  readonly storage?: WorkflowStorage;
+  readonly hca?: HcaDeploymentProfile;
   readonly deployments: EnsDeploymentProfile;
   readonly publicClient: PublicClient;
   readonly walletClient?: WalletClient;
@@ -31,6 +36,7 @@ export const createTestConfig = (parameters: CreateTestConfigParameters): Ensfor
   }
 
   validateDeployments(parameters.deployments, ensTestChainId);
+
   const reads = resolveReadOptions(parameters.reads);
   const writes = resolveWriteOptions(parameters.writes);
   const gateways = resolveGatewayOptions(parameters.gateways);
@@ -51,6 +57,10 @@ export const createTestConfig = (parameters: CreateTestConfigParameters): Ensfor
       {
         [EnsforgeConfigTypeId]: EnsforgeConfigTypeId,
         ...serviceValues,
+        ...(parameters.hca === undefined
+          ? {}
+          : { hca: freezeDeployment(structuredClone(parameters.hca)) }),
+        ...(parameters.storage === undefined ? {} : { storage: parameters.storage }),
         writes,
         gateways,
       } as unknown as EnsforgeConfig,

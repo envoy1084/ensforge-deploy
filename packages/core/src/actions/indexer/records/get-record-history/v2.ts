@@ -40,6 +40,7 @@ export const queryV2RecordHistory = Effect.fn("queryV2RecordHistory")(function* 
     let after = position;
     let indexedBlock = 0n;
     let hasNextPage = true;
+
     const selectedTypes = (filter.kinds ?? Object.keys(recordEventTypes)).flatMap(
       (kind) => recordEventTypes[kind as keyof typeof recordEventTypes],
     );
@@ -58,6 +59,7 @@ export const queryV2RecordHistory = Effect.fn("queryV2RecordHistory")(function* 
           ? {}
           : { timestamp_lt: Number(filter.timestampBefore) }),
       };
+
       const response = yield* requestIndexer<
         V2GetRecordHistoryQuery,
         V2GetRecordHistoryQueryVariables
@@ -72,13 +74,16 @@ export const queryV2RecordHistory = Effect.fn("queryV2RecordHistory")(function* 
           orderDirection: order.direction,
         },
       });
+
       const data = yield* requireIndexerData(config, "v2", operationName, response);
+
       indexedBlock = yield* decodeIndexedBlock(
         config,
         "v2",
         operationName,
         data["_meta"].block.number,
       );
+
       const normalized = yield* Effect.try({
         try: () =>
           data.eventConnection.edges.map(({ cursor, node }) => ({
@@ -95,9 +100,13 @@ export const queryV2RecordHistory = Effect.fn("queryV2RecordHistory")(function* 
             cause,
           }),
       });
+
       candidates.push(...normalized.filter(({ item }) => matchesRecordHistoryFilter(item, filter)));
+
       const next = data.eventConnection.pageInfo.endCursor;
+
       hasNextPage = data.eventConnection.pageInfo.hasNextPage;
+
       if (hasNextPage && (next === null || next === after)) {
         return yield* new IndexerDecodeError({
           code: "INVALID_RESPONSE",
@@ -108,8 +117,10 @@ export const queryV2RecordHistory = Effect.fn("queryV2RecordHistory")(function* 
           cause: data.eventConnection.pageInfo,
         });
       }
+
       after = next;
     }
+
     return { indexedBlock, page: { protocol: "v2" as const, candidates, hasNextPage } };
   }).pipe(Effect.result);
 
@@ -120,6 +131,7 @@ export const queryV2RecordHistory = Effect.fn("queryV2RecordHistory")(function* 
       metadata: { protocol: "v2", status: "failed", failure: indexerSourceFailure(result.failure) },
     };
   }
+
   return {
     status: "complete",
     page: result.success.page,

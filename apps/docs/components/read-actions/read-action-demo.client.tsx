@@ -4,13 +4,13 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import { Segment } from "@thenamespace/uikit/segment";
 
-import { track } from "../analytics/client";
-import { errorCategory, safeUrl } from "../analytics/events";
 import { ClientOnly } from "../client-only.client";
 import { ResultCodeBlock } from "../code/result-code-block";
 import { FormRenderer } from "../form/form-renderer";
 import type { Network } from "../runtime/network";
+import { errorCategory, safeUrl } from "../runtime/page-context";
 import { getSdk } from "../runtime/sdk";
+import { track } from "../runtime/site-observers";
 import { WalletProviders } from "../wallet-connect/providers.client";
 import { WalletConnectButton } from "../wallet-connect/wallet-connect-button.client";
 import { loadReadAction } from "./registry/manifest";

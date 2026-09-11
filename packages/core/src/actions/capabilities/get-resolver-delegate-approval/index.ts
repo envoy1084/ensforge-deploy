@@ -24,6 +24,7 @@ export type GetResolverDelegateApprovalParameters = NameCapabilityParameters & {
 const getResolverDelegateApprovalEffect = Effect.fn("ensforge.getResolverDelegateApproval")(
   function* (config: EnsforgeConfig, parameters: GetResolverDelegateApprovalParameters) {
     const name = yield* normalizeName.effect(parameters.name);
+
     return yield* executeRead(
       config,
       parameters,
@@ -32,11 +33,15 @@ const getResolverDelegateApprovalEffect = Effect.fn("ensforge.getResolverDelegat
           [readNameRoute(name), findResolver(name)] as const,
           { concurrency: "unbounded" },
         );
+
         const protocol = route.kind === "v1" || route.kind === "reserved" ? "v1" : "v2";
+
         if (discovery === null) {
           return { supported: false, protocol, reason: "RESOLVER_NOT_FOUND" } as const;
         }
+
         const ethereum = yield* EthereumClient;
+
         const approved = yield* ethereum
           .readContract({
             address: discovery.address,
@@ -45,6 +50,7 @@ const getResolverDelegateApprovalEffect = Effect.fn("ensforge.getResolverDelegat
             args: [parameters.owner, discovery.node, parameters.delegate],
           })
           .pipe(Effect.catchTag("ContractError", () => Effect.succeed(null)));
+
         if (approved === null) {
           return {
             supported: false,
@@ -52,6 +58,7 @@ const getResolverDelegateApprovalEffect = Effect.fn("ensforge.getResolverDelegat
             reason: "DELEGATE_APPROVAL_UNSUPPORTED",
           } as const;
         }
+
         return {
           supported: true,
           protocol,

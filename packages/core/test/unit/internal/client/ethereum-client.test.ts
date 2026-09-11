@@ -9,6 +9,7 @@ import { makeEthereumClient } from "../../../../src/internal/client/ethereum-cli
 import { makeReadExecution, ReadContext } from "../../../../src/internal/read/execution-context.js";
 
 const address = "0x0000000000000000000000000000000000000001";
+
 const ownerAbi = [
   {
     type: "function",
@@ -22,6 +23,7 @@ const ownerAbi = [
 describe("EthereumClient", () => {
   it("executes direct typed contract reads through the configured public client", async () => {
     const readContract = vi.fn().mockResolvedValue(address);
+
     const client = makeEthereumClient({
       publicClient: { readContract } as unknown as PublicClient,
     });
@@ -40,6 +42,7 @@ describe("EthereumClient", () => {
 
   it("translates rejected reads into the typed error channel", async () => {
     const cause = new Error("RPC unavailable");
+
     const client = makeEthereumClient({
       publicClient: {
         readContract: vi.fn().mockRejectedValue(cause),
@@ -67,13 +70,16 @@ describe("EthereumClient", () => {
 
   it("batches concurrent contract reads through the operation context", async () => {
     const secondAddress = "0x0000000000000000000000000000000000000002";
+
     const multicall = vi.fn().mockResolvedValue([
       { status: "success", result: address },
       { status: "success", result: secondAddress },
     ]);
+
     const publicClient = { multicall } as unknown as PublicClient;
     const client = makeEthereumClient({ publicClient });
     const execution = makeReadExecution({ publicClient });
+
     const context = await Effect.runPromise(
       execution.makeContext({ consistency: "best-effort", blockNumber: 123n }),
     );
@@ -107,6 +113,7 @@ describe("EthereumClient", () => {
     const publicClient = { multicall } as unknown as PublicClient;
     const client = makeEthereumClient({ publicClient });
     const execution = makeReadExecution({ publicClient });
+
     const context = await Effect.runPromise(
       execution.makeContext({ consistency: "best-effort", blockNumber: 123n }),
     );
@@ -128,6 +135,7 @@ describe("EthereumClient", () => {
   it("keeps individual multicall failures available to domain actions", async () => {
     const failure = new Error("ERC-721 token does not exist");
     const multicall = vi.fn().mockResolvedValue([{ status: "failure", error: failure }]);
+
     const client = makeEthereumClient({
       publicClient: { multicall } as unknown as PublicClient,
     });
@@ -146,6 +154,7 @@ describe("EthereumClient", () => {
     Effect.gen(function* () {
       const started = yield* Deferred.make<void>();
       let release: (() => void) | undefined;
+
       const readContract = vi.fn(
         () =>
           new Promise<string>((resolve) => {
@@ -153,22 +162,28 @@ describe("EthereumClient", () => {
             Effect.runSync(Deferred.succeed(started, undefined));
           }),
       );
+
       const client = makeEthereumClient({
         publicClient: { readContract } as unknown as PublicClient,
         readSemaphore: Semaphore.makeUnsafe(1),
       });
+
       const first = yield* Effect.forkChild(
         client.readContractDirect({ address, abi: ownerAbi, functionName: "owner" }),
       );
+
       yield* Deferred.await(started);
+
       const queued = yield* Effect.forkChild(
         client.readContractDirect({ address, abi: ownerAbi, functionName: "owner" }),
       );
+
       yield* Effect.yieldNow;
 
       yield* Fiber.interrupt(queued);
       assert.isDefined(release);
       release();
+
       const result = yield* Fiber.join(first);
 
       assert.strictEqual(result, address);

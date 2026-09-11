@@ -44,10 +44,12 @@ const prepare: EnsWriteIntentPreparer<ReverseMutationParameters, WriteError> = E
     typeof context.account === "string" ? context.account : context.account.address,
     "wallet account",
   );
+
   const target =
     parameters.target === undefined
       ? caller
       : yield* decodeOwnershipAddress(parameters.target, "reverse target");
+
   const name = parameters.name.length === 0 ? "" : yield* normalizeName.effect(parameters.name);
 
   if (parameters.targetKind === "contract" && !(yield* requireContract(config, target))) {
@@ -61,10 +63,12 @@ const prepare: EnsWriteIntentPreparer<ReverseMutationParameters, WriteError> = E
 
   if (name.length > 0 && parameters.verifyForward !== false) {
     const forward = yield* getAddress.effect(config, { name });
+
     const forwardAddress =
       forward.address === null
         ? null
         : yield* decodeOwnershipAddress(forward.address, "forward record");
+
     if (forwardAddress === null || !isAddressEqual(forwardAddress, target)) {
       return yield* new ReverseNameError({
         code: "FORWARD_ADDRESS_MISMATCH",
@@ -89,6 +93,7 @@ const prepare: EnsWriteIntentPreparer<ReverseMutationParameters, WriteError> = E
   }
 
   const registrar = config.deployments.v1.contracts.reverseRegistrar;
+
   if (isAddressEqual(target, caller)) {
     return {
       to: registrar,
@@ -113,6 +118,7 @@ const prepare: EnsWriteIntentPreparer<ReverseMutationParameters, WriteError> = E
       }),
     catch: (cause) => viemErrorToEffectError(cause, "readContract"),
   });
+
   return {
     to: registrar,
     data: yield* encode("the delegated ENSv1 primary-name update", target, () =>

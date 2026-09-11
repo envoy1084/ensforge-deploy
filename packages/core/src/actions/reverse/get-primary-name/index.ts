@@ -30,6 +30,7 @@ const getPrimaryNameEffect = Effect.fn("ensforge.getPrimaryName")(function* (
             message: `Invalid ENS coin type: ${parameters.coinType}`,
           }),
   });
+
   const address =
     coinType === 60n
       ? yield* Effect.try({
@@ -50,6 +51,7 @@ const getPrimaryNameEffect = Effect.fn("ensforge.getPrimaryName")(function* (
                   message: `Invalid address for coin type ${coinType}`,
                 }),
         });
+
   const resolved = yield* executeRead(config, parameters, reverseAddress(address, coinType)).pipe(
     Effect.catchIf(
       (error) =>
@@ -63,6 +65,7 @@ const getPrimaryNameEffect = Effect.fn("ensforge.getPrimaryName")(function* (
   if (resolved === null || resolved[0].length === 0) return null;
 
   const name = yield* normalizeName.effect(resolved[0]);
+
   return { name, match: true } as const;
 });
 

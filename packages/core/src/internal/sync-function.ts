@@ -11,7 +11,9 @@ export const defineSyncFunction = <Arguments extends ReadonlyArray<unknown>, Suc
 ): SyncFunction<Arguments, Success, Failure> => {
   const synchronous = (...arguments_: Arguments): Success => {
     const result = Effect.runSync(Effect.result(implementation(...arguments_)));
+
     if (Result.isFailure(result)) throw result.failure;
+
     return result.success;
   };
 

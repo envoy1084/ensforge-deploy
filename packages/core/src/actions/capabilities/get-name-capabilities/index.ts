@@ -26,11 +26,13 @@ const getNameCapabilitiesEffect = Effect.fn("ensforge.getNameCapabilities")(func
   parameters: GetNameCapabilitiesParameters,
 ) {
   const name = yield* normalizeName.effect(parameters.name);
+
   return yield* executeRead(
     config,
     parameters,
     Effect.gen(function* () {
       const records = parameters.records ?? [];
+
       const [registry, resolver, recordPermissions, authorizations] = yield* Effect.all(
         [
           getRegistryCapabilities.effect(config, parameters),
@@ -64,6 +66,7 @@ const getNameCapabilitiesEffect = Effect.fn("ensforge.getNameCapabilities")(func
         ] as const,
         { concurrency: "unbounded" },
       );
+
       return {
         name,
         account: parameters.account,

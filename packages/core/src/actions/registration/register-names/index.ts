@@ -3,6 +3,7 @@ import { Effect } from "effect";
 import { defineAction } from "../../../action/action.js";
 import type { EnsforgeConfig } from "../../../config/config.js";
 import { RegistrationError } from "../../../errors/registration-error.js";
+import { withWorkflow } from "../../../internal/workflows/run.js";
 import { normalizeName } from "../../../names/normalize.js";
 import type { WriteError } from "../../../write/types.js";
 import { registerName } from "../register-name/index.js";
@@ -18,15 +19,18 @@ const registerNamesEffect = Effect.fn("ensforge.registerNames")(function* (
       message: "registerNames requires at least one registration",
     });
   }
+
   const names = yield* Effect.forEach(parameters.registrations, (registration) =>
     normalizeName.effect(registration.name),
   );
+
   if (new Set(names).size !== names.length) {
     return yield* new RegistrationError({
       code: "REGISTRATION_FAILED",
       message: "registerNames cannot contain duplicate names",
     });
   }
+
   const registrations = yield* Effect.forEach(
     parameters.registrations,
     (registration, index) =>
@@ -42,11 +46,13 @@ const registerNamesEffect = Effect.fn("ensforge.registerNames")(function* (
       }),
     { concurrency: 1 },
   );
+
   const status = registrations.some((registration) => registration.status === "partial")
     ? "partial"
     : registrations.every((registration) => registration.status === "completed")
       ? "completed"
       : "waiting";
+
   const nextActionAt = registrations.reduce<bigint | null>(
     (earliest, registration) =>
       registration.nextActionAt === null ||
@@ -55,11 +61,12 @@ const registerNamesEffect = Effect.fn("ensforge.registerNames")(function* (
         : registration.nextActionAt,
     null,
   );
+
   return { status, registrations, nextActionAt };
 });
 
 export const registerNames = defineAction<RegisterNamesParameters, RegisterNamesResult, WriteError>(
-  registerNamesEffect,
+  withWorkflow("registerNames", registerNamesEffect),
 );
 
 export type { RegisterNamesParameters, RegisterNamesResult } from "../types.js";

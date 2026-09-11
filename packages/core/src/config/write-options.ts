@@ -3,6 +3,7 @@ import { Schema } from "effect";
 import { ConfigError } from "../errors/config-error.js";
 
 const PositiveNumber = Schema.Number.check(Schema.isGreaterThan(0));
+
 const NonNegativeInteger = Schema.Int.pipe(Schema.check(Schema.isGreaterThanOrEqualTo(0)));
 
 export const SimulationPolicy = Schema.Literals(["required", "skip"]);

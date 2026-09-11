@@ -12,11 +12,16 @@ import { createConfig } from "../../../../src/index.js";
 import { makeSepoliaPublicClient } from "../../fixtures/client-fixtures.js";
 
 const resolver = "0x0000000000000000000000000000000000001000" as const;
+
 const owner = "0x0000000000000000000000000000000000002000" as const;
+
 const transactionHash = `0x${"ab".repeat(32)}` as const;
+
 const aliceNamehash = namehash("alice.eth");
+
 const response = (data: unknown) =>
   new Response(JSON.stringify({ data }), { headers: { "content-type": "application/json" } });
+
 const request = (init: RequestInit | undefined) =>
   JSON.parse(String(init?.body)) as {
     readonly query: string;
@@ -121,6 +126,7 @@ describe("indexed history", () => {
     Effect.gen(function* () {
       const fetch: typeof globalThis.fetch = (_input, init) =>
         Promise.resolve(request(init).query.includes("V1GetEvents") ? v1Response() : v2Response());
+
       const config = createConfig({
         network: "sepolia",
         publicClient: makeSepoliaPublicClient(),
@@ -143,6 +149,7 @@ describe("indexed history", () => {
     Effect.gen(function* () {
       const fetch: typeof globalThis.fetch = (_input, init) =>
         Promise.resolve(request(init).query.includes("V1GetEvents") ? v1Response() : v2Response());
+
       const config = createConfig({
         network: "sepolia",
         publicClient: makeSepoliaPublicClient(),
@@ -150,6 +157,7 @@ describe("indexed history", () => {
       });
 
       const page = yield* getRegistrationHistory.effect(config, { name: "alice.eth" });
+
       assert.deepStrictEqual(
         page.items.map(({ kind }) => kind),
         ["renewal", "registration"],
@@ -163,6 +171,7 @@ describe("indexed history", () => {
         request(init).query.includes("V1GetEvents")
           ? Promise.reject(new Error("V1 unavailable"))
           : Promise.resolve(v2Response());
+
       const config = createConfig({
         network: "sepolia",
         publicClient: makeSepoliaPublicClient(),
@@ -170,6 +179,7 @@ describe("indexed history", () => {
       });
 
       const page = yield* getEvents.effect(config, { filter: { name: "alice.eth" } });
+
       assert.lengthOf(page.items, 1);
       assert.strictEqual(page.items[0]?.protocol, "v2");
       assert.isTrue(
@@ -182,11 +192,14 @@ describe("indexed history", () => {
     Effect.gen(function* () {
       const fetch: typeof globalThis.fetch = (_input, init) => {
         const { variables } = request(init);
+
         assert.deepInclude(variables.where, {
           blockNumber_gt: 50,
           timestamp_gt: 1500,
         });
+
         const after = variables.after;
+
         return Promise.resolve(
           response({
             _meta: { block: { number: 250 } },
@@ -213,6 +226,7 @@ describe("indexed history", () => {
           }),
         );
       };
+
       const config = createConfig({
         network: "sepolia",
         publicClient: makeSepoliaPublicClient(),
@@ -223,13 +237,17 @@ describe("indexed history", () => {
         filter: { blockAfter: 50n, timestampAfter: 1500n },
         pageSize: 1,
       });
+
       assert.strictEqual(first.items[0]?.kind, "unknown");
+
       if (first.pageInfo.cursor === null) return assert.fail("expected an event cursor");
+
       const second = yield* getEvents.effect(config, {
         filter: { blockAfter: 50n, timestampAfter: 1500n },
         pageSize: 1,
         cursor: first.pageInfo.cursor,
       });
+
       assert.strictEqual(second.items[0]?.id, "second");
       assert.isFalse(second.pageInfo.hasNextPage);
     }),
@@ -239,9 +257,11 @@ describe("indexed history", () => {
     Effect.gen(function* () {
       const fetch: typeof globalThis.fetch = (_input, init) => {
         const { variables } = request(init);
+
         assert.deepInclude(variables.where, {
           type_in: ["EACRolesChanged", "SubregistryUpdated"],
         });
+
         return Promise.resolve(
           response({
             _meta: { block: { number: 250 } },
@@ -252,6 +272,7 @@ describe("indexed history", () => {
           }),
         );
       };
+
       const config = createConfig({
         network: "sepolia",
         publicClient: makeSepoliaPublicClient(),

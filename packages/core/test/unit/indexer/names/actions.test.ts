@@ -20,6 +20,7 @@ const response = (data: unknown, status = 200): Response =>
 
 const v1Name = (name: string, createdAt: number, migrated = false) => {
   const [label = ""] = name.split(".");
+
   return {
     id: namehash(name),
     name,
@@ -47,6 +48,7 @@ const v1Name = (name: string, createdAt: number, migrated = false) => {
 
 const v2Name = (name: string, createdAt: number, protocol: "v1" | "v2" = "v2") => {
   const [label = ""] = name.split(".");
+
   return {
     id: name,
     protocol,
@@ -84,6 +86,7 @@ const operation = (init: RequestInit | undefined) => {
     readonly query: string;
     readonly variables: Record<string, unknown>;
   };
+
   return body;
 };
 
@@ -92,14 +95,17 @@ describe("indexed name actions", () => {
     Effect.gen(function* () {
       const fetch: typeof globalThis.fetch = (_input, init) => {
         const request = operation(init);
+
         assert.include(request.query, "V1GetIndexedName");
         assert.strictEqual(request.variables.id, namehash("alice.eth"));
+
         return Promise.resolve(
           response({
             data: { _meta: { block: { number: 100 } }, domain: v1Name("alice.eth", 10) },
           }),
         );
       };
+
       const config = createConfig({
         network: "mainnet",
         publicClient: makeMainnetPublicClient(),
@@ -110,7 +116,9 @@ describe("indexed name actions", () => {
 
       assert.strictEqual(result?.protocol, "v1");
       assert.strictEqual(result?.name.kind, "normalized");
+
       if (result?.name.kind !== "normalized") return assert.fail("expected a normalized name");
+
       assert.strictEqual(result.name.value, "alice.eth");
       assert.strictEqual(result?.source.indexedBlock, 100n);
     }),
@@ -119,9 +127,12 @@ describe("indexed name actions", () => {
   it.effect("prefers the combined V2 source on Sepolia", () =>
     Effect.gen(function* () {
       let v1Requests = 0;
+
       const fetch: typeof globalThis.fetch = (_input, init) => {
         const request = operation(init);
+
         if (request.query.includes("V1GetIndexedName")) v1Requests += 1;
+
         return Promise.resolve(
           response({
             data: {
@@ -132,6 +143,7 @@ describe("indexed name actions", () => {
           }),
         );
       };
+
       const config = createConfig({
         network: "sepolia",
         publicClient: makeSepoliaPublicClient(),
@@ -150,6 +162,7 @@ describe("indexed name actions", () => {
     Effect.gen(function* () {
       const fetch: typeof globalThis.fetch = (_input, init) => {
         const request = operation(init);
+
         return Promise.resolve(
           request.query.includes("V2GetIndexedName")
             ? response({
@@ -167,6 +180,7 @@ describe("indexed name actions", () => {
               }),
         );
       };
+
       const config = createConfig({
         network: "sepolia",
         publicClient: makeSepoliaPublicClient(),
@@ -184,19 +198,25 @@ describe("indexed name actions", () => {
     Effect.gen(function* () {
       let v1Page = 0;
       let v2Page = 0;
+
       const fetch: typeof globalThis.fetch = (_input, init) => {
         const request = operation(init);
+
         if (request.query.includes("V1GetNames")) {
           v1Page += 1;
+
           const domains =
             v1Page === 1
               ? [v1Name("alice.eth", 40), v1Name("charlie.eth", 20)]
               : [v1Name("charlie.eth", 20)];
+
           return Promise.resolve(
             response({ data: { _meta: { block: { number: 100 } }, domains } }),
           );
         }
+
         v2Page += 1;
+
         const edges =
           v2Page === 1
             ? [
@@ -205,6 +225,7 @@ describe("indexed name actions", () => {
                 { cursor: "v2-delta", node: v2Name("delta.eth", 10) },
               ]
             : [{ cursor: "v2-delta", node: v2Name("delta.eth", 10) }];
+
         return Promise.resolve(
           response({
             data: {
@@ -217,6 +238,7 @@ describe("indexed name actions", () => {
           }),
         );
       };
+
       const config = createConfig({
         network: "sepolia",
         publicClient: makeSepoliaPublicClient(),
@@ -224,6 +246,7 @@ describe("indexed name actions", () => {
       });
 
       const first = yield* getNames.effect(config, { pageSize: 2 });
+
       assert.deepStrictEqual(
         first.items.map((name) => [
           name.name.kind === "unknown" ? null : name.name.value,
@@ -235,12 +258,14 @@ describe("indexed name actions", () => {
         ],
       );
       assert.isNotNull(first.pageInfo.cursor);
+
       if (first.pageInfo.cursor === null) return assert.fail("expected another page");
 
       const second = yield* getNames.effect(config, {
         pageSize: 2,
         cursor: first.pageInfo.cursor,
       });
+
       assert.deepStrictEqual(
         second.items.map((name) => (name.name.kind === "unknown" ? null : name.name.value)),
         ["charlie.eth", "delta.eth"],
@@ -252,10 +277,13 @@ describe("indexed name actions", () => {
   it.effect("uses the dedicated V1 source for a V1-only name list", () =>
     Effect.gen(function* () {
       let requests = 0;
+
       const fetch: typeof globalThis.fetch = (_input, init) => {
         const request = operation(init);
+
         requests += 1;
         assert.include(request.query, "V1GetNames");
+
         return Promise.resolve(
           response({
             data: {
@@ -265,6 +293,7 @@ describe("indexed name actions", () => {
           }),
         );
       };
+
       const config = createConfig({
         network: "sepolia",
         publicClient: makeSepoliaPublicClient(),
@@ -284,10 +313,14 @@ describe("indexed name actions", () => {
   it.effect("refills V2 pages when a portable protocol filter is applied locally", () =>
     Effect.gen(function* () {
       let requests = 0;
+
       const fetch: typeof globalThis.fetch = (_input, init) => {
         const request = operation(init);
+
         requests += 1;
+
         const after = request.variables.after;
+
         const edges =
           after === null
             ? [
@@ -295,6 +328,7 @@ describe("indexed name actions", () => {
                 { cursor: "legacy-2", node: v2Name("legacy-two.eth", 20, "v1") },
               ]
             : [{ cursor: "native", node: v2Name("native.eth", 10) }];
+
         return Promise.resolve(
           response({
             data: {
@@ -310,6 +344,7 @@ describe("indexed name actions", () => {
           }),
         );
       };
+
       const config = createConfig({
         network: "sepolia",
         publicClient: makeSepoliaPublicClient(),
@@ -332,6 +367,7 @@ describe("indexed name actions", () => {
     Effect.gen(function* () {
       const fetch: typeof globalThis.fetch = (_input, init) => {
         const request = operation(init);
+
         return Promise.resolve(
           request.query.includes("V1GetNames")
             ? response({ errors: [{ message: "V1 unavailable" }] }, 503)
@@ -346,11 +382,13 @@ describe("indexed name actions", () => {
               }),
         );
       };
+
       const partial = createConfig({
         network: "sepolia",
         publicClient: makeSepoliaPublicClient(),
         indexer: { fetch, failureMode: "partial", retry: { attempts: 0 } },
       });
+
       const strict = createConfig({
         network: "sepolia",
         publicClient: makeSepoliaPublicClient(),

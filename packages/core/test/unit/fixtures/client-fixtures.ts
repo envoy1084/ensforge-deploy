@@ -13,6 +13,7 @@ const makeTransport = (onRequest?: () => void) =>
   custom({
     request: () => {
       onRequest?.();
+
       return Promise.reject(new Error("The test transport must not make an RPC request"));
     },
   });

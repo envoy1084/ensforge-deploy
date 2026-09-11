@@ -34,8 +34,10 @@ const getRegistrationParametersEffect = Effect.fn("ensforge.getRegistrationParam
     Effect.gen(function* () {
       const { profile } = yield* DeploymentService;
       const ethereum = yield* EthereumClient;
+
       if (profile.protocol === "v1") {
         const controller = profile.v1.contracts.ethRegistrarController;
+
         const [
           minimumRegistrationDuration,
           minimumCommitmentAge,
@@ -66,6 +68,7 @@ const getRegistrationParametersEffect = Effect.fn("ensforge.getRegistrationParam
           ] as const,
           { concurrency: "unbounded" },
         );
+
         return {
           protocol: "v1",
           registrar: controller,
@@ -79,6 +82,7 @@ const getRegistrationParametersEffect = Effect.fn("ensforge.getRegistrationParam
       }
 
       const registrar = profile.v2.contracts.ethRegistrar;
+
       const [
         minimumRegistrationDuration,
         minimumRenewalDuration,
@@ -115,6 +119,7 @@ const getRegistrationParametersEffect = Effect.fn("ensforge.getRegistrationParam
         ] as const,
         { concurrency: "unbounded" },
       );
+
       return {
         protocol: "v2",
         registrar,

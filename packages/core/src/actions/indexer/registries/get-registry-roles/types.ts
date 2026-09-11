@@ -29,6 +29,8 @@ export type GetRegistryRolesParameters = typeof GetRegistryRolesParameters.Type;
 
 export const GetRegistryRolesPage = IndexerPage(IndexedRegistryRole);
 export type GetRegistryRolesPage = IndexerPageType<IndexedRegistryRoleType>;
+
 export const GetRegistryRolesResult = V2IndexerResult(GetRegistryRolesPage);
 export type GetRegistryRolesResult = V2IndexerResultType<GetRegistryRolesPage>;
+
 export type GetRegistryRolesError = RegistryIndexerError;

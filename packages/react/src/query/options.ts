@@ -44,10 +44,13 @@ const resolveSwrOptions = <Failure>(
   options: EnsAtomOptions<Failure> | undefined,
 ): false | ResolvedEnsAtomSwrOptions => {
   const selected = options?.swr ?? defaults?.swr ?? defaultEnsAtomOptions.swr;
+
   if (selected === false) return false;
 
   const fallback = defaultEnsAtomOptions.swr;
+
   if (fallback === false) return false;
+
   const defaultSwr = defaults?.swr === false ? undefined : defaults?.swr;
 
   return {

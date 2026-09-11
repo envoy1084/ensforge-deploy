@@ -28,11 +28,17 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
-      ENSFORGE_TEST_IMAGE: ghcr.io/envoy1084/ensforge-devnet@sha256:63415642daad6f3486d305b5660a0b9c659203fc20194bafb50b6b1e1bedeef3
+      ENSFORGE_TEST_IMAGE: ghcr.io/thenamespace/ensforge-devnet@sha256:0a62a0ee9225c2ed457daca15a9f6fff4db7b8094ed19ca3ad611f35291d2015
     steps:
       - uses: actions/checkout@v7
       - name: Setup pnpm and Node.js
         uses: ./.github/actions/setup
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       - name: Pull pinned ENS devnet image
         run: docker pull "${ENSFORGE_TEST_IMAGE}"
       - name: Build integration dependencies

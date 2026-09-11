@@ -7,18 +7,22 @@ export const createReclaimNameMutationAtom = makeMutationAtom(
   "ownership",
   (sdk) => sdk.ownership.reclaimName,
 );
+
 export const createSetManagerMutationAtom = makeMutationAtom(
   "ownership",
   (sdk) => sdk.ownership.setManager,
 );
+
 export const createSetTtlMutationAtom = makeMutationAtom(
   "ownership",
   (sdk) => sdk.ownership.setTtl,
 );
+
 export const createTransferNameMutationAtom = makeMutationAtom(
   "ownership",
   (sdk) => sdk.ownership.transferName,
 );
+
 export const createTransferRegistrantMutationAtom = makeMutationAtom(
   "ownership",
   (sdk) => sdk.ownership.transferRegistrant,

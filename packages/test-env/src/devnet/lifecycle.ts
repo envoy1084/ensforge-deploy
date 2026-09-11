@@ -51,12 +51,14 @@ export const buildDevnetImage = Effect.fn("buildDevnetImage")(function* (
           }),
       ),
     );
+
     if (exists) return image;
   }
 
   const source = yield* verifyContractsSource(
     options.sourceDirectory === undefined ? {} : { directory: options.sourceDirectory },
   );
+
   yield* docker.build(source.directory, image).pipe(
     Effect.mapError(
       (cause) =>
@@ -117,7 +119,9 @@ export const fetchDevnetDeployments = Effect.fn("fetchDevnetDeployments")(functi
   const input = yield* Effect.tryPromise({
     try: async (signal) => {
       const response = await fetch(`${metadataUrl}/deployments`, { signal });
+
       if (!response.ok) throw new Error(`Deployment endpoint returned HTTP ${response.status}`);
+
       return response.json() as Promise<unknown>;
     },
     catch: (cause) =>
@@ -138,6 +142,7 @@ export const fetchDevnetDeployments = Effect.fn("fetchDevnetDeployments")(functi
         }),
     ),
   );
+
   const chainId = yield* Schema.decodeUnknownEffect(Schema.NumberFromString)(response.chainId).pipe(
     Effect.mapError(
       (cause) =>
@@ -148,6 +153,7 @@ export const fetchDevnetDeployments = Effect.fn("fetchDevnetDeployments")(functi
         }),
     ),
   );
+
   const { chainId: _chainId, ...contracts } = response;
 
   return yield* Schema.decodeUnknownEffect(DevnetDeploymentManifest)({ chainId, contracts }).pipe(
@@ -164,6 +170,7 @@ export const fetchDevnetDeployments = Effect.fn("fetchDevnetDeployments")(functi
 
 export const getDevnetLogs = Effect.fn("getDevnetLogs")(function* (container: DevnetContainer) {
   const docker = yield* DockerEngine;
+
   return yield* docker.logs(container.containerName).pipe(
     Effect.mapError(
       (cause) =>
@@ -178,6 +185,7 @@ export const getDevnetLogs = Effect.fn("getDevnetLogs")(function* (container: De
 
 export const stopDevnet = Effect.fn("stopDevnet")(function* (container: DevnetContainer) {
   const docker = yield* DockerEngine;
+
   yield* docker.remove(container.containerName).pipe(
     Effect.mapError(
       (cause) =>
@@ -217,6 +225,7 @@ export const startDevnet = Effect.fn("startDevnet")(function* (
 ): Effect.fn.Return<DevnetInstance, TestEnvironmentError, DockerEngine | Scope> {
   const docker = yield* DockerEngine;
   const image = yield* buildDevnetImage(options);
+
   const containerName =
     options.containerName ?? `ensforge-devnet-${process.pid}-${randomUUID().slice(0, 8)}`;
 
@@ -261,6 +270,7 @@ export const startDevnet = Effect.fn("startDevnet")(function* (
     container,
     docker,
   );
+
   const metadataUrl = `http://127.0.0.1:${endpoints.metadataPort}`;
   const rpcUrl = `http://127.0.0.1:${endpoints.rpcPort}`;
 

@@ -54,8 +54,11 @@ const sourceExhausted = (
   previous: boolean,
 ) => {
   if (previous) return true;
+
   if (page === undefined) return false;
+
   const last = page.candidates.at(-1)?.position;
+
   return !page.hasNextPage && (last === undefined || last === consumed);
 };
 
@@ -69,6 +72,7 @@ const getSubnamesEffect = Effect.fn("ensforge.getSubnames")(function* (
       message: "Indexer actions are disabled for this configuration",
     });
   }
+
   const decoded = yield* Schema.decodeUnknownEffect(GetSubnamesParametersSchema)(parameters).pipe(
     Effect.mapError(
       () =>
@@ -78,21 +82,26 @@ const getSubnamesEffect = Effect.fn("ensforge.getSubnames")(function* (
         }),
     ),
   );
+
   const parent = yield* Effect.try({
     try: () => normalize(decoded.name) as NormalizedName,
     catch: () =>
       new IndexerFilterError({ code: "INVALID_FILTER", message: "The parent name is invalid" }),
   });
+
   const filter: NameFilter = decoded.filter ?? {};
   const order: NameOrder = decoded.order ?? defaultNameOrder;
   const pageSize = decoded.pageSize ?? Math.min(20, config.indexer.maximumPageSize);
+
   if (pageSize > config.indexer.maximumPageSize) {
     return yield* new IndexerFilterError({
       code: "INVALID_FILTER",
       message: `pageSize cannot exceed ${config.indexer.maximumPageSize}`,
     });
   }
+
   const states = getIndexerRuntimeConfig(config.indexer).sourceStates;
+
   const compiled = yield* Effect.try({
     try: () => ({
       v1: compileV1NameFilter(filter, { excludeMigrated: states.v2 === "enabled" }),
@@ -100,15 +109,19 @@ const getSubnamesEffect = Effect.fn("ensforge.getSubnames")(function* (
     }),
     catch: (error) => error as IndexerFilterError,
   });
+
   const binding = makeIndexerCursorBinding(config, "getSubnames", { parent, filter }, order);
+
   const initial: IndexerCursorPositions = {
     v1: { position: null, exhausted: states.v1 !== "enabled" || compiled.v1.excludesSource },
     v2: { position: null, exhausted: states.v2 !== "enabled" || compiled.v2.excludesSource },
   };
+
   const positions =
     decoded.cursor === undefined
       ? initial
       : (yield* decodeIndexerCursor(decoded.cursor, binding)).sources;
+
   const [v1, v2] = yield* Effect.all(
     [
       states.v1 !== "enabled"
@@ -138,10 +151,13 @@ const getSubnamesEffect = Effect.fn("ensforge.getSubnames")(function* (
     ] as const,
     { concurrency: "unbounded" },
   );
+
   const results = [v1, v2].filter(
     (result): result is IndexerSourcePageResult<IndexedName, GetSubnamesError> => result !== null,
   );
+
   const collected = yield* collectIndexerSourcePages(results, config.indexer.failureMode);
+
   const merged = mergeIndexerPages({
     sources: collected.pages,
     limit: pageSize,
@@ -149,7 +165,9 @@ const getSubnamesEffect = Effect.fn("ensforge.getSubnames")(function* (
     identity: (name) => name.namehash.toLowerCase(),
     preference: (name, source) => (name.protocol === "v2" ? 3 : source === "v2" ? 2 : 1),
   });
+
   const pages = new Map(collected.pages.map((page) => [page.protocol, page]));
+
   const next: IndexerCursorPositions = {
     v1: {
       position: merged.positions.v1 ?? positions.v1.position,
@@ -160,7 +178,9 @@ const getSubnamesEffect = Effect.fn("ensforge.getSubnames")(function* (
       exhausted: sourceExhausted(pages.get("v2"), merged.positions.v2, positions.v2.exhausted),
     },
   };
+
   const hasNextPage = collected.pages.some((page) => !next[page.protocol].exhausted);
+
   return {
     items: merged.items,
     pageInfo: {

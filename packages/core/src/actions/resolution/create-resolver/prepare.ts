@@ -19,6 +19,7 @@ import type { CreateResolverParameters } from "./types.js";
 export const prepareCreateResolver: EnsWriteIntentPreparer<CreateResolverParameters, WriteError> =
   Effect.fn("ensforge.createResolver.prepare")(function* (config, parameters, context) {
     const profile = config.deployments;
+
     if (profile.protocol !== "v2") {
       return yield* new WritePlanError({
         code: "INVALID_CALL_PLAN",
@@ -26,7 +27,9 @@ export const prepareCreateResolver: EnsWriteIntentPreparer<CreateResolverParamet
         cause: profile,
       });
     }
+
     const account = typeof context.account === "string" ? context.account : context.account.address;
+
     const admin = yield* Effect.try({
       try: () => Schema.decodeUnknownSync(EthereumAddress)(parameters.admin ?? account),
       catch: () =>
@@ -35,21 +38,26 @@ export const prepareCreateResolver: EnsWriteIntentPreparer<CreateResolverParamet
           message: "Invalid Permissioned Resolver administrator address",
         }),
     });
+
     const setters = parameters.setters ?? [];
+
     if (setters.some((setter) => !Schema.is(Hex)(setter))) {
       return yield* new CodecError({
         code: "INVALID_HEX",
         message: "Invalid Permissioned Resolver initialization setter",
       });
     }
+
     const data = yield* Effect.try({
       try: () => {
         const roles = parameters.roles ?? enhancedAccessControlRoles.allRoles;
+
         const initialization = encodeFunctionData({
           abi: permissionedResolverInitializableV2InterfaceInitializeAbi,
           functionName: "initialize",
           args: [admin, roles, setters],
         });
+
         return encodeFunctionData({
           abi: verifiableFactoryV2DeployProxyAbi,
           functionName: "deployProxy",
@@ -63,6 +71,7 @@ export const prepareCreateResolver: EnsWriteIntentPreparer<CreateResolverParamet
           cause,
         }),
     });
+
     return {
       to: profile.v2.contracts.verifiableFactory,
       data,

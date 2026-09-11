@@ -2,6 +2,7 @@ import type { Account, Address, WalletClient } from "viem";
 
 import type { EthereumAddress } from "../../schemas/identity.js";
 import type { EnsProtocol } from "../../schemas/protocol.js";
+import type { WorkflowParameters, WorkflowProgress } from "../../workflows/types.js";
 import type {
   CallExecutionResult,
   ConfirmationPolicy,
@@ -17,7 +18,7 @@ export interface SubnameParameters {
   readonly name: string;
 }
 
-export interface CreateSubnameParameters extends SubnameParameters {
+export interface CreateSubnameParameters extends WorkflowParameters, SubnameParameters {
   readonly owner: string;
   readonly resolver?: string;
   readonly ttl?: bigint;
@@ -32,7 +33,7 @@ export interface CreateSubnameParameters extends SubnameParameters {
   readonly resume?: CreateSubnameResult;
 }
 
-export interface CreateSubnameResult {
+export interface CreateSubnameResult extends WorkflowProgress {
   readonly name: string;
   readonly parent: string;
   readonly protocol: EnsProtocol;
@@ -79,4 +80,5 @@ export interface TransferSubnameParameters extends SubnameParameters {
 }
 
 export type SubnameWriteResult = CallExecutionResult;
+
 export type SubnameError = WriteError;

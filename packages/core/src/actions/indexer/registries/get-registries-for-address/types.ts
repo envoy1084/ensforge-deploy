@@ -27,6 +27,8 @@ export type GetRegistriesForAddressPage = {
   readonly pageInfo: (typeof GetRegistriesForAddressPage.Type)["pageInfo"];
   readonly sources: (typeof GetRegistriesForAddressPage.Type)["sources"];
 };
+
 export const GetRegistriesForAddressResult = V2IndexerResult(GetRegistriesForAddressPage);
 export type GetRegistriesForAddressResult = V2IndexerResultType<GetRegistriesForAddressPage>;
+
 export type GetRegistriesForAddressError = RegistryIndexerError;

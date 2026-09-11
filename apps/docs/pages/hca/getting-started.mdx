@@ -1,0 +1,50 @@
+---
+title: Getting Started
+description: Add an execution adapter to ENS HCA actions.
+---
+
+# Getting Started
+
+`@ensforge/hca` provides typed execution adapters for ENS hierarchical contract accounts. Core and
+SDK own ENS actions; this package connects those actions to Pimlico or Rhinestone and exposes each
+provider's extensions. There is no separate HCA client.
+
+## Install
+
+Follow [Installation](/hca/installation), then install the optional provider you use.
+
+## Create an adapter
+
+```ts
+import { pimlico } from "@ensforge/hca/pimlico";
+
+const execution = pimlico({ profile, chain, owner, client });
+const submission = await sdk.hca.executeHcaCalls({
+  hca,
+  authorization: { kind: "owner" },
+  calls,
+  execution,
+});
+const status = await sdk.hca.waitForHcaExecution({ submission, execution });
+```
+
+See [`pimlico`](/hca/api/pimlico) for client configuration and sponsorship. Rhinestone provides
+destination sessions through [`rhinestone`](/hca/api/rhinestone), with independent cross-chain funding.
+
+## ENS actions
+
+Account reads, deployment, execution, registration and governance are documented in their existing
+package sections:
+
+- [Core HCA guide](/core/guides/hca) and [getHca](/core/api/actions/hca/get-hca).
+- [SDK HCA guide](/sdk/guides/hca) and [getHca](/sdk/api/hca/get-hca).
+- [React HCA guide](/react/guides/hca) and [useHca](/react/api/hooks/hca/use-hca).
+
+Use the [examples](/hca/examples) for complete integration code and the
+[compatibility guide](/hca/compatibility) for the supported deployment generation.
+
+## Follow a guide
+
+- [Execute with Pimlico](/hca/guides/pimlico): owner execution with optional gas sponsorship.
+- [Rhinestone Sessions](/hca/guides/rhinestone): enable and reuse a session for sponsored updates.
+- [Cross-chain Funding](/hca/funding): fund the HCA before separate ENS registration.

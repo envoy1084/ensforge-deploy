@@ -22,7 +22,9 @@ describe("commitment status", () => {
       maximumAge: 300n,
       currentTime: 159n,
     });
+
     assert.strictEqual(pending.status, "pending");
+
     if (pending.status === "pending") assert.strictEqual(pending.remainingSeconds, 1n);
 
     const ready = classifyCommitmentStatus({
@@ -32,6 +34,7 @@ describe("commitment status", () => {
       maximumAge: 300n,
       currentTime: 160n,
     });
+
     assert.strictEqual(ready.status, "ready");
 
     const expired = classifyCommitmentStatus({
@@ -41,6 +44,7 @@ describe("commitment status", () => {
       maximumAge: 300n,
       currentTime: 400n,
     });
+
     assert.strictEqual(expired.status, "expired");
   });
 });

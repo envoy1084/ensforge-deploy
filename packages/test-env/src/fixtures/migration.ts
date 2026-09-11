@@ -15,7 +15,9 @@ import { seedRead, seedTransaction } from "./contract.js";
 import type { EnsMigrationFixtureManifest, EnsNameFixture } from "./manifest.js";
 
 const activeDuration = 365n * 86_400n;
+
 const premigrationBonus = 62n * 86_400n + 1n;
+
 const migrationData = [
   { name: "label", type: "string" },
   { name: "owner", type: "address" },
@@ -53,6 +55,7 @@ const registerV1MigrationName = Effect.fn("registerV1MigrationName")(function* (
     },
     `Unable to register the ENS v1 migration fixture ${label}.eth`,
   );
+
   return yield* seedRead(
     () =>
       environment.clients.publicClient.readContract({
@@ -106,6 +109,7 @@ const wrapV1 = Effect.fn("wrapV1")(function* (
     `Unable to approve wrapping ${label}.eth`,
     "owner",
   );
+
   yield* seedTransaction(
     environment,
     {
@@ -132,6 +136,7 @@ const seedReservedWriteName = Effect.fn("seedReservedWriteName")(function* (
   wrapping: "unwrapped" | "wrapped" | "locked",
 ) {
   const expiry = yield* registerV1MigrationName(environment, label);
+
   if (wrapping !== "unwrapped") {
     yield* wrapV1(
       environment,
@@ -140,7 +145,9 @@ const seedReservedWriteName = Effect.fn("seedReservedWriteName")(function* (
       wrapping === "locked" ? nameWrapperFuses.cannotUnwrap : nameWrapperFuses.canDoEverything,
     );
   }
+
   yield* reserveV2(environment, label, expiry);
+
   return expiry;
 });
 
@@ -152,6 +159,7 @@ export const seedMigrationFixtures = Effect.fn("seedMigrationFixtures")(function
     environment,
     "v2-reserved-unwrapped",
   );
+
   yield* reserveV2(environment, "v2-reserved-unwrapped", reservedUnwrappedExpiry);
   yield* seedTransaction(
     environment,
@@ -169,6 +177,7 @@ export const seedMigrationFixtures = Effect.fn("seedMigrationFixtures")(function
   );
 
   const reservedWrappedExpiry = yield* registerV1MigrationName(environment, "v2-reserved-wrapped");
+
   yield* wrapV1(environment, "v2-reserved-wrapped", publicResolver);
   yield* reserveV2(environment, "v2-reserved-wrapped", reservedWrappedExpiry);
 
@@ -176,6 +185,7 @@ export const seedMigrationFixtures = Effect.fn("seedMigrationFixtures")(function
     environment,
     "v2-reserved-approved",
   );
+
   yield* seedTransaction(
     environment,
     {
@@ -190,27 +200,32 @@ export const seedMigrationFixtures = Effect.fn("seedMigrationFixtures")(function
     "Unable to approve the unlocked ENS migration controller",
     "owner",
   );
+
   yield* reserveV2(environment, "v2-reserved-approved", reservedApprovedExpiry);
 
   const reservedWrappedLockedExpiry = yield* registerV1MigrationName(
     environment,
     "v2-reserved-wrapped-locked",
   );
+
   yield* wrapV1(
     environment,
     "v2-reserved-wrapped-locked",
     publicResolver,
     nameWrapperFuses.cannotUnwrap,
   );
+
   yield* reserveV2(environment, "v2-reserved-wrapped-locked", reservedWrappedLockedExpiry);
 
   const renewalReservedExpiry = yield* registerV1MigrationName(environment, "v2-renewal-reserved");
+
   yield* reserveV2(environment, "v2-renewal-reserved", renewalReservedExpiry);
 
   const renewalReservedBatchExpiry = yield* registerV1MigrationName(
     environment,
     "v2-renewal-reserved-batch",
   );
+
   yield* reserveV2(environment, "v2-renewal-reserved-batch", renewalReservedBatchExpiry);
 
   const writeUnwrappedExpiry = yield* seedReservedWriteName(
@@ -219,36 +234,42 @@ export const seedMigrationFixtures = Effect.fn("seedMigrationFixtures")(function
     publicResolver,
     "unwrapped",
   );
+
   const writeWrappedExpiry = yield* seedReservedWriteName(
     environment,
     "v2-write-migrate-wrapped",
     publicResolver,
     "wrapped",
   );
+
   const writeWrappedLockedExpiry = yield* seedReservedWriteName(
     environment,
     "v2-write-migrate-locked",
     publicResolver,
     "locked",
   );
+
   const writeBatchUnwrappedExpiry = yield* seedReservedWriteName(
     environment,
     "v2-write-migrate-batch-unwrapped",
     publicResolver,
     "unwrapped",
   );
+
   const writeBatchWrappedExpiry = yield* seedReservedWriteName(
     environment,
     "v2-write-migrate-batch-wrapped",
     publicResolver,
     "wrapped",
   );
+
   const writeParentLockedExpiry = yield* seedReservedWriteName(
     environment,
     "v2-write-migrate-parent",
     publicResolver,
     "locked",
   );
+
   yield* seedTransaction(
     environment,
     {
@@ -268,6 +289,7 @@ export const seedMigrationFixtures = Effect.fn("seedMigrationFixtures")(function
   );
 
   const unlockedExpiry = yield* registerV1MigrationName(environment, "v2-migrated-unlocked");
+
   yield* reserveV2(environment, "v2-migrated-unlocked", unlockedExpiry);
   yield* seedTransaction(
     environment,
@@ -287,6 +309,7 @@ export const seedMigrationFixtures = Effect.fn("seedMigrationFixtures")(function
   );
 
   const lockedExpiry = yield* registerV1MigrationName(environment, "v2-migrated-locked");
+
   yield* wrapV1(environment, "v2-migrated-locked", publicResolver, nameWrapperFuses.cannotUnwrap);
   yield* seedTransaction(
     environment,
@@ -305,6 +328,7 @@ export const seedMigrationFixtures = Effect.fn("seedMigrationFixtures")(function
     "Unable to seed the V1-mirrored child",
     "owner",
   );
+
   yield* reserveV2(environment, "v2-migrated-locked", lockedExpiry);
   yield* seedTransaction(
     environment,
@@ -331,6 +355,7 @@ export const seedMigrationFixtures = Effect.fn("seedMigrationFixtures")(function
       functionName: "getStatus",
       args: [BigInt(labelhash(label))],
     });
+
   const [reservedStatus, unlockedStatus, lockedStatus, unlockedState, lockedRegistry] =
     yield* seedRead(
       () =>
@@ -353,6 +378,7 @@ export const seedMigrationFixtures = Effect.fn("seedMigrationFixtures")(function
         ]),
       "Unable to verify the ENS v2 migration fixture topology",
     );
+
   if (
     reservedStatus !== 1 ||
     unlockedStatus !== 2 ||
@@ -385,6 +411,7 @@ export const seedMigrationFixtures = Effect.fn("seedMigrationFixtures")(function
       ]),
     "Unable to verify the V1-mirrored child topology",
   );
+
   if (
     mirroredStatus !== 0 ||
     mirroredV1Owner.toLowerCase() !== environment.accounts.owner2.toLowerCase()

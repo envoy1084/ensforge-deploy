@@ -16,6 +16,7 @@ describe("defineAction", () => {
     const implementation = vi.fn((_: EnsforgeConfig, input: { readonly value: number }) =>
       Effect.succeed(input.value * 2),
     );
+
     const action = defineAction(implementation);
 
     await expect(action(config, { value: 21 })).resolves.toBe(42);
@@ -26,9 +27,11 @@ describe("defineAction", () => {
 
   it("runs the implementation exactly once per Promise call", async () => {
     let executions = 0;
+
     const action = defineAction((_: EnsforgeConfig, value: number) =>
       Effect.sync(() => {
         executions += 1;
+
         return value;
       }),
     );
@@ -39,8 +42,10 @@ describe("defineAction", () => {
 
   it("preserves failures through the Effect and Promise forms", async () => {
     const failure = { _tag: "TestFailure", message: "synthetic failure" } as const;
+
     const action = defineAction((currentConfig: EnsforgeConfig, __: undefined) => {
       void currentConfig;
+
       return Effect.fail(failure);
     });
 
@@ -56,12 +61,16 @@ describe("defineAction", () => {
       "AbortController",
     ) as unknown as new () => {
       readonly signal: NonNullable<Effect.RunOptions["signal"]>;
+
       abort(): void;
     };
+
     const action = defineAction((currentConfig: EnsforgeConfig, __: undefined) => {
       void currentConfig;
+
       return Effect.never;
     });
+
     const controller = new AbortControllerConstructor();
     const result = action(config, undefined, { signal: controller.signal });
 

@@ -14,6 +14,7 @@ const getAbiEffect = Effect.fn("ensforge.getAbi")(function* (
   parameters: GetAbiParameters,
 ) {
   const name = yield* normalizeName.effect(parameters.name);
+
   return yield* executeRead(
     config,
     parameters,

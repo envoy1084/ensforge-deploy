@@ -11,7 +11,9 @@ export interface SetOperatorApprovalParameters {
 }
 
 export type SetOperatorApprovalResult = CallExecutionResult;
+
 export type SetOperatorApprovalError = WriteError;
+
 export type SetOperatorApprovalIntent = EnsWriteIntent<
   SetOperatorApprovalResult,
   SetOperatorApprovalError

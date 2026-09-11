@@ -27,6 +27,7 @@ const prepare: EnsWriteIntentPreparer<TransferTokenParameters, WriteError> = Eff
   yield* requireOwnershipAuthorization(config, parameters.name, context.account, {
     type: "transfer",
   });
+
   const data = yield* Effect.try({
     try: () =>
       parameters.protocol === "v1"
@@ -47,6 +48,7 @@ const prepare: EnsWriteIntentPreparer<TransferTokenParameters, WriteError> = Eff
         cause,
       }),
   });
+
   return {
     to: parameters.contract,
     data,

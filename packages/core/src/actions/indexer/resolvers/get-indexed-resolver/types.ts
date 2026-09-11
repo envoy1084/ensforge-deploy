@@ -28,4 +28,5 @@ export type GetIndexedResolverParameters = typeof GetIndexedResolverParameters.T
 
 export const GetIndexedResolverResult = Schema.NullOr(IndexedResolver);
 export type GetIndexedResolverResult = typeof GetIndexedResolverResult.Type;
+
 export type GetIndexedResolverError = ResolverIndexerError;

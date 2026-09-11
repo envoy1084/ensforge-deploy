@@ -51,8 +51,11 @@ const sourceExhausted = (
   previouslyExhausted: boolean,
 ): boolean => {
   if (previouslyExhausted) return true;
+
   if (page === undefined) return false;
+
   const last = page.candidates.at(-1)?.position;
+
   return !page.hasNextPage && (last === undefined || last === consumedPosition);
 };
 
@@ -76,9 +79,11 @@ const getNamesEffect = Effect.fn("ensforge.getNames")(function* (
         }),
     ),
   );
+
   const filter: NameFilter = decoded.filter ?? {};
   const order: NameOrder = decoded.order ?? defaultNameOrder;
   const pageSize = decoded.pageSize ?? Math.min(20, config.indexer.maximumPageSize);
+
   if (pageSize > config.indexer.maximumPageSize) {
     return yield* new IndexerFilterError({
       code: "INVALID_FILTER",
@@ -95,8 +100,10 @@ const getNamesEffect = Effect.fn("ensforge.getNames")(function* (
     }),
     catch: (error) => error as IndexerFilterError,
   });
+
   const states = getIndexerRuntimeConfig(config.indexer).sourceStates;
   const binding = makeIndexerCursorBinding(config, "getNames", filter, order);
+
   const initialPositions: IndexerCursorPositions = {
     v1: { position: null, exhausted: states.v1 !== "enabled" || compiled.v1.excludesSource },
     v2: {
@@ -107,6 +114,7 @@ const getNamesEffect = Effect.fn("ensforge.getNames")(function* (
         (filter.protocol === "v1" && states.v1 === "enabled"),
     },
   };
+
   const positions =
     decoded.cursor === undefined
       ? initialPositions
@@ -135,10 +143,13 @@ const getNamesEffect = Effect.fn("ensforge.getNames")(function* (
     ] as const,
     { concurrency: "unbounded" },
   );
+
   const results = [v1Result, v2Result].filter(
     (result): result is IndexerSourcePageResult<IndexedName, GetNamesError> => result !== null,
   );
+
   const collected = yield* collectIndexerSourcePages(results, config.indexer.failureMode);
+
   const merged = mergeIndexerPages({
     sources: collected.pages,
     limit: pageSize,
@@ -148,6 +159,7 @@ const getNamesEffect = Effect.fn("ensforge.getNames")(function* (
   });
 
   const pageByProtocol = new Map(collected.pages.map((page) => [page.protocol, page]));
+
   const nextPositions: IndexerCursorPositions = {
     v1: {
       position: merged.positions.v1 ?? positions.v1.position,
@@ -166,8 +178,10 @@ const getNamesEffect = Effect.fn("ensforge.getNames")(function* (
       ),
     },
   };
+
   const hasNextPage = collected.pages.some((page) => !nextPositions[page.protocol].exhausted);
   const cursor = hasNextPage ? yield* encodeIndexerCursor(binding, nextPositions) : null;
+
   const sources = collected.sources.map((source) =>
     source.status === "complete"
       ? {

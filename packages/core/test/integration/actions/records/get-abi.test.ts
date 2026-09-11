@@ -24,6 +24,7 @@ describe("ABI resolution integration", () => {
   it.effect("resolves migrated v2 and RESERVED v1 ABIs through the v2 resolver", () =>
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
+
       const [migrated, reserved] = yield* Effect.all([
         getAbi.effect(devnet.configs.v2, { name: devnet.fixtures.records.v2.name }),
         getAbi.effect(devnet.configs.v2, { name: devnet.fixtures.records.reserved.name }),
@@ -38,6 +39,7 @@ describe("ABI resolution integration", () => {
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
       const fixture = devnet.fixtures.records.v2;
+
       const [json, zlibJson, cbor] = yield* Effect.all([
         getAbi.effect(devnet.configs.v2, { name: fixture.name, contentTypes: ["json"] }),
         getAbi.effect(devnet.configs.v2, { name: fixture.name, contentTypes: ["zlib-json"] }),
@@ -66,6 +68,7 @@ describe("ABI resolution integration", () => {
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
       const fixture = devnet.fixtures.records.v2;
+
       const result = yield* getAbi.effect(devnet.configs.v2, {
         name: fixture.name,
         contentTypes: ["uri"],
@@ -82,6 +85,7 @@ describe("ABI resolution integration", () => {
   it.effect("returns an unset result when no accepted ABI is available", () =>
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
+
       const result = yield* getAbi.effect(devnet.configs.v2, {
         name: devnet.fixtures.v2.active.name,
         contentTypes: ["json"],
@@ -96,6 +100,7 @@ describe("ABI resolution integration", () => {
     () =>
       Effect.gen(function* () {
         const devnet = getIntegrationDevnet();
+
         const [noResolver, noFormats] = yield* Effect.all([
           getAbi.effect(devnet.configs.v2, { name: devnet.fixtures.v2.noResolver.name }),
           getAbi.effect(devnet.configs.v2, {
@@ -113,6 +118,7 @@ describe("ABI resolution integration", () => {
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
       const fixture = devnet.fixtures.records.v2;
+
       const result = yield* readBatch.effect(devnet.configs.v2, {
         abi: getAbi.request({ name: fixture.name }),
         owner: getOwner.request({ name: fixture.name }),

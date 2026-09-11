@@ -12,6 +12,7 @@ const getNameHistoryEffect = Effect.fn("ensforge.getNameHistory")(function* (
 ) {
   const name = yield* normalizeName.effect(parameters.name);
   const events = yield* getEnsEvents.effect(config, parameters);
+
   return { name, events } satisfies NameHistory;
 });
 

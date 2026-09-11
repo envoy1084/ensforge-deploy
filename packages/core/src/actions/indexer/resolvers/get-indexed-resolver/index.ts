@@ -28,6 +28,7 @@ const getIndexedResolverEffect = Effect.fn("ensforge.getIndexedResolver")(functi
       message: "Indexer actions are disabled for this configuration",
     });
   }
+
   const decoded = yield* Schema.decodeUnknownEffect(GetIndexedResolverParametersSchema)(
     parameters,
   ).pipe(
@@ -39,7 +40,9 @@ const getIndexedResolverEffect = Effect.fn("ensforge.getIndexedResolver")(functi
         }),
     ),
   );
+
   const address = getAddress(decoded.address);
+
   const bindingNamehash = yield* Effect.try({
     try: (): Namehash | null =>
       decoded.namehash ??
@@ -50,17 +53,23 @@ const getIndexedResolverEffect = Effect.fn("ensforge.getIndexedResolver")(functi
         message: "The resolver binding name is invalid",
       }),
   });
+
   const states = getIndexerRuntimeConfig(config.indexer).sourceStates;
+
   if (states.v2 === "enabled") {
     const result = yield* Effect.result(
       queryV2IndexedResolver(config, address, decoded.protocol, bindingNamehash),
     );
+
     if (Result.isSuccess(result) && result.success !== null) return result.success;
+
     if (Result.isFailure(result) && config.indexer.failureMode === "strict") {
       return yield* result.failure;
     }
   }
+
   if (decoded.protocol === "v2" || states.v1 !== "enabled") return null;
+
   return yield* queryV1IndexedResolver(config, address, bindingNamehash).pipe(
     config.indexer.failureMode === "partial"
       ? Effect.orElseSucceed(() => null)

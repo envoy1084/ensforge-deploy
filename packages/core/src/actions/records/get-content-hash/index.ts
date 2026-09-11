@@ -12,6 +12,7 @@ const getContentHashEffect = Effect.fn("ensforge.getContentHash")(function* (
   parameters: GetContentHashParameters,
 ) {
   const name = yield* normalizeName.effect(parameters.name);
+
   return yield* executeRead(config, parameters, resolveContentHash(name));
 });
 

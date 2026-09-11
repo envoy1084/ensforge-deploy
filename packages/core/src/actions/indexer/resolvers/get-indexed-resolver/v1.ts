@@ -35,6 +35,7 @@ export const queryV1IndexedResolver = Effect.fn("queryV1IndexedResolver")(functi
             document: V1GetIndexedResolverDocument,
             variables: { address: address.toLowerCase(), first: 100 },
           });
+
           return yield* requireIndexerData(config, "v1", operationName, response);
         })
       : yield* Effect.gen(function* () {
@@ -47,15 +48,19 @@ export const queryV1IndexedResolver = Effect.fn("queryV1IndexedResolver")(functi
             document: V1GetIndexedResolverBindingDocument,
             variables: { address: address.toLowerCase(), namehash: namehash.toLowerCase() },
           });
+
           return yield* requireIndexerData(config, "v1", operationName, response);
         });
+
   if (data.resolvers.length === 0) return null;
+
   const indexedBlock = yield* decodeIndexedBlock(
     config,
     "v1",
     operationName,
     data["_meta"].block.number,
   );
+
   return yield* normalizeV1IndexedResolver(address, data.resolvers, {
     network: config.network,
     protocol: "v1",

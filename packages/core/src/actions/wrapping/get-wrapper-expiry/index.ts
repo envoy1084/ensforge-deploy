@@ -10,6 +10,7 @@ const getWrapperExpiryEffect = Effect.fn("ensforge.getWrapperExpiry")(function* 
   parameters: WrapperReadParameters,
 ) {
   const route = yield* resolveWrapperRoute(config, parameters.name, parameters);
+
   if (!route.supported) {
     return {
       protocol: "v2",
@@ -17,6 +18,7 @@ const getWrapperExpiryEffect = Effect.fn("ensforge.getWrapperExpiry")(function* 
       reason: "WRAPPER_EXPIRY_NOT_SUPPORTED",
     } as const;
   }
+
   return {
     protocol: "v1",
     supported: true,

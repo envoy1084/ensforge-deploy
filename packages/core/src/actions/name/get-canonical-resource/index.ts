@@ -12,13 +12,16 @@ const getCanonicalResourceEffect = Effect.fn("ensforge.getCanonicalResource")(fu
   parameters: GetNameStateParameters,
 ) {
   const name = yield* normalizeName.effect(parameters.name);
+
   return yield* executeRead(
     config,
     parameters,
     readNameRoute(name).pipe(
       Effect.map((route) => {
         if (route.kind === "v1") return null;
+
         if (route.kind === "available" && route.state.expiry === 0n) return null;
+
         return route.state.resource;
       }),
     ),
@@ -35,4 +38,5 @@ export type {
   GetNameStateError as GetCanonicalResourceError,
   GetNameStateParameters as GetCanonicalResourceParameters,
 } from "../get-name-state/types.js";
+
 export type GetCanonicalResourceResult = bigint | null;

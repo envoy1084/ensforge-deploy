@@ -8,11 +8,13 @@ describe("getExpiry integration", () => {
   it.effect("reads active, grace, and expired v1 registrations", () =>
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
+
       const fixtures = [
         devnet.fixtures.v1.activeUnwrapped,
         devnet.fixtures.v1.grace,
         devnet.fixtures.v1.expired,
       ];
+
       const results = yield* Effect.all(
         fixtures.map((fixture) => getExpiry.effect(devnet.configs.v1, { name: fixture.name })),
         { concurrency: "unbounded" },
@@ -20,6 +22,7 @@ describe("getExpiry integration", () => {
 
       for (const [index, fixture] of fixtures.entries()) {
         const result = results[index];
+
         assert.strictEqual(result?.expiry, fixture.expiry);
         assert.strictEqual(result?.name, fixture.name);
         assert.strictEqual(result?.protocol, "v1");
@@ -50,6 +53,7 @@ describe("getExpiry integration", () => {
       const devnet = getIntegrationDevnet();
       const reserved = devnet.fixtures.migration.reservedUnwrapped;
       const migrated = devnet.fixtures.migration.migratedLocked;
+
       const [reservedResult, migratedResult] = yield* Effect.all(
         [
           getExpiry.effect(devnet.configs.v2, { name: reserved.name }),
@@ -71,6 +75,7 @@ describe("getExpiry integration", () => {
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
       const fixtures = [devnet.fixtures.v2.active, devnet.fixtures.v2.nestedOwnResolver];
+
       const results = yield* Effect.all(
         fixtures.map((fixture) => getExpiry.effect(devnet.configs.v2, { name: fixture.name })),
         { concurrency: "unbounded" },
@@ -78,6 +83,7 @@ describe("getExpiry integration", () => {
 
       for (const [index, fixture] of fixtures.entries()) {
         const result = results[index];
+
         assert.strictEqual(result?.expiry, fixture.expiry);
         assert.strictEqual(result?.name, fixture.name);
         assert.strictEqual(result?.protocol, "v2");
@@ -89,6 +95,7 @@ describe("getExpiry integration", () => {
   it.effect("returns null for an available name", () =>
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
+
       const result = yield* getExpiry.effect(devnet.configs.v2, {
         name: devnet.fixtures.v2.available.name,
       });
@@ -100,6 +107,7 @@ describe("getExpiry integration", () => {
   it.effect("executes prepared expiry requests through one semantic batch", () =>
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
+
       const result = yield* readBatch.effect(devnet.configs.v2, {
         reserved: getExpiry.request({ name: devnet.fixtures.migration.reservedUnwrapped.name }),
         migrated: getExpiry.request({ name: devnet.fixtures.migration.migratedLocked.name }),

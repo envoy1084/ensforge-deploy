@@ -2,7 +2,7 @@
 .env
 .env.*
 !.env.example
-.ensforge/
+**/.ensforge/
 .repos/
 apps/docs/pages.gen.ts
 .turbo/
@@ -12,3 +12,7 @@ node_modules/
 research/
 *.log
 *.tgz
+
+# Local manual verification and draft documentation
+/scripts-temp/
+/tmp-*.md

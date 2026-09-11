@@ -39,30 +39,36 @@ const getWrapperPermissionsEffect = Effect.fn("ensforge.getWrapperPermissions")(
   parameters: AccountCapabilityParameters,
 ) {
   const name = yield* normalizeName.effect(parameters.name);
+
   return yield* executeRead(
     config,
     parameters,
     Effect.gen(function* () {
       const route = yield* readNameRoute(name);
       const ethereum = yield* EthereumClient;
+
       if (route.kind === "v1" || route.kind === "reserved") {
         const deployment = route.kind === "reserved" ? route.v1 : route.deployment;
         const tokenId = BigInt(namehash(name));
+
         const wrapped = yield* ethereum.readContract({
           address: deployment.contracts.nameWrapper,
           abi: nameWrapperV1IsWrappedAbi,
           functionName: "isWrapped",
           args: [namehash(name)],
         });
+
         if (!wrapped) {
           return { supported: false, protocol: "v1", reason: "NAME_NOT_WRAPPED" } as const;
         }
+
         const [owner, fuses, expiry] = yield* ethereum.readContract({
           address: deployment.contracts.nameWrapper,
           abi: nameWrapperV1GetDataAbi,
           functionName: "getData",
           args: [tokenId],
         });
+
         const [approved, operatorApproved, canModify, canExtendSubnames] = yield* Effect.all(
           [
             ethereum.readContract({
@@ -92,6 +98,7 @@ const getWrapperPermissionsEffect = Effect.fn("ensforge.getWrapperPermissions")(
           ] as const,
           { concurrency: "unbounded" },
         );
+
         return {
           supported: true,
           protocol: "v1",
@@ -118,6 +125,7 @@ const getWrapperPermissionsEffect = Effect.fn("ensforge.getWrapperPermissions")(
         route.parentRegistry,
         registryInterfaceIds.wrapperRegistry,
       );
+
       const childRegistry = parentWrapped
         ? route.parentRegistry
         : yield* ethereum.readContract({
@@ -126,14 +134,18 @@ const getWrapperPermissionsEffect = Effect.fn("ensforge.getWrapperPermissions")(
             functionName: "getSubregistry",
             args: [route.label],
           });
+
       const childWrapped =
         parentWrapped || isAddressEqual(childRegistry, zeroAddress)
           ? parentWrapped
           : yield* supportsInterface(childRegistry, registryInterfaceIds.wrapperRegistry);
+
       if (!childWrapped) {
         return { supported: false, protocol: "v2", reason: "NAME_NOT_WRAPPED" } as const;
       }
+
       const anyId = parentWrapped ? route.state.tokenId : 0n;
+
       const [resource, roles] = yield* Effect.all(
         [
           ethereum.readContract({
@@ -151,6 +163,7 @@ const getWrapperPermissionsEffect = Effect.fn("ensforge.getWrapperPermissions")(
         ] as const,
         { concurrency: "unbounded" },
       );
+
       const operatorApproved = parentWrapped
         ? yield* ethereum.readContract({
             address: childRegistry,
@@ -159,6 +172,7 @@ const getWrapperPermissionsEffect = Effect.fn("ensforge.getWrapperPermissions")(
             args: [route.state.latestOwner, parameters.account],
           })
         : false;
+
       return {
         supported: true,
         protocol: "v2",

@@ -14,6 +14,7 @@ import type { CodecError } from "../errors/codec-error.js";
 import type { ConfigError } from "../errors/config-error.js";
 import type { ContractError } from "../errors/contract-error.js";
 import type { DnsImportError } from "../errors/dns-import-error.js";
+import type { HcaError } from "../errors/hca-error.js";
 import type { MigrationError } from "../errors/migration-error.js";
 import type { NameError } from "../errors/name-error.js";
 import type { RegistrationError } from "../errors/registration-error.js";
@@ -22,6 +23,7 @@ import type { ReverseNameError } from "../errors/reverse-name-error.js";
 import type { RpcError } from "../errors/rpc-error.js";
 import type { TransactionError } from "../errors/transaction-error.js";
 import type { WalletError } from "../errors/wallet-error.js";
+import type { WorkflowError } from "../errors/workflow-error.js";
 import type { WritePlanError } from "../errors/write-plan-error.js";
 import type { EnsProtocol } from "../schemas/protocol.js";
 
@@ -34,6 +36,8 @@ export const WriteAtomicity = Schema.Literals(["none", "preferred", "required"])
 export type WriteAtomicity = typeof WriteAtomicity.Type;
 
 export type WriteError =
+  | WorkflowError
+  | HcaError
   | AuthorizationError
   | CodecError
   | ConfigError
@@ -239,4 +243,5 @@ export interface ExecuteWritePlanParameters extends WalletOverrides {
   readonly plan: WritePlan;
   readonly resume?: WritePlanProgress;
 }
+
 import { Schema } from "effect";

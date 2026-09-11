@@ -46,6 +46,7 @@ const readUpgradeState = Effect.fn("ensforge.upgradeResolver.state")(function* (
   const implementation = yield* Effect.try({
     try: () => {
       if (config.deployments.protocol !== "v2") throw new Error("ENSv2 unavailable");
+
       return Schema.decodeUnknownSync(EthereumAddress)(
         parameters.implementation ?? config.deployments.v2.implementations.permissionedResolver,
       );
@@ -56,6 +57,7 @@ const readUpgradeState = Effect.fn("ensforge.upgradeResolver.state")(function* (
         message: "Invalid Permissioned Resolver upgrade implementation",
       }),
   });
+
   const data = yield* Effect.try({
     try: () => Schema.decodeUnknownSync(Hex)(parameters.data ?? "0x"),
     catch: () =>
@@ -64,6 +66,7 @@ const readUpgradeState = Effect.fn("ensforge.upgradeResolver.state")(function* (
         message: "Invalid Permissioned Resolver upgrade data",
       }),
   });
+
   return yield* executeRead(
     config,
     { consistency: "snapshot" },
@@ -74,35 +77,43 @@ const readUpgradeState = Effect.fn("ensforge.upgradeResolver.state")(function* (
           message: "Permissioned Resolver upgrades require ENSv2",
         });
       }
+
       const capabilities = yield* getResolverCapabilities.effect(config, {
         name: parameters.name,
       });
+
       if (capabilities.address === null || !capabilities.permissioned || capabilities.inherited) {
         return yield* new AuthorizationError({
           code: "WRITE_TARGET_UNAVAILABLE",
           message: `No directly attached Permissioned Resolver is available for ${parameters.name}`,
         });
       }
+
       const ethereum = yield* EthereumClient;
+
       const currentImplementation = yield* ethereum.readContract({
         address: config.deployments.v2.contracts.verifiableFactory,
         abi: verifiableFactoryV2VerifyContractAbi,
         functionName: "verifyContract",
         args: [capabilities.address],
       });
+
       const compatible = yield* ethereum.readContract({
         address: implementation,
         abi: permissionedResolverV2CanUpgradeFromAbi,
         functionName: "canUpgradeFrom",
         args: [currentImplementation],
       });
+
       if (!compatible) {
         return yield* new AuthorizationError({
           code: "RECORD_UNSUPPORTED",
           message: `${implementation} is not a compatible Permissioned Resolver upgrade`,
         });
       }
+
       const current = isAddressEqual(currentImplementation, implementation);
+
       if (!current || parameters.force === true) {
         const authorized = yield* ethereum.readContract({
           address: capabilities.address,
@@ -110,6 +121,7 @@ const readUpgradeState = Effect.fn("ensforge.upgradeResolver.state")(function* (
           functionName: "hasRootRoles",
           args: [resolverRoles.upgrade, account],
         });
+
         if (!authorized) {
           return yield* new AuthorizationError({
             code: "UNAUTHORIZED",
@@ -117,6 +129,7 @@ const readUpgradeState = Effect.fn("ensforge.upgradeResolver.state")(function* (
           });
         }
       }
+
       return {
         resolver: capabilities.address,
         currentImplementation,
@@ -133,6 +146,7 @@ const preparer: EnsWriteIntentPreparer<UpgradeResolverParameters, WriteError> = 
 )(function* (config, parameters, context) {
   const account = typeof context.account === "string" ? context.account : context.account.address;
   const state = yield* readUpgradeState(config, parameters, account);
+
   if (state.current && parameters.force !== true) {
     return yield* new WritePlanError({
       code: "INVALID_CALL_PLAN",
@@ -140,6 +154,7 @@ const preparer: EnsWriteIntentPreparer<UpgradeResolverParameters, WriteError> = 
       cause: state,
     });
   }
+
   const data = yield* Effect.try({
     try: () =>
       encodeFunctionData({
@@ -154,6 +169,7 @@ const preparer: EnsWriteIntentPreparer<UpgradeResolverParameters, WriteError> = 
         cause,
       }),
   });
+
   return { to: state.resolver, data, value: 0n, protocol: "v2" };
 });
 
@@ -171,6 +187,7 @@ const implementation = Effect.fn("ensforge.upgradeResolver")(function* (
   const wallet = yield* executeRead(config, {}, resolveWalletContext(parameters));
   const account = typeof wallet.account === "string" ? wallet.account : wallet.account.address;
   const state = yield* readUpgradeState(config, parameters, account);
+
   if (state.current && parameters.force !== true) {
     return {
       status: "current",
@@ -179,13 +196,16 @@ const implementation = Effect.fn("ensforge.upgradeResolver")(function* (
       call: null,
     } as const satisfies UpgradeResolverResult;
   }
+
   const result = yield* executeSequential(config, {
     calls: [makeIntent(parameters)],
     ...(parameters.walletClient === undefined ? {} : { walletClient: parameters.walletClient }),
     ...(parameters.account === undefined ? {} : { account: parameters.account }),
     ...(parameters.confirmation === undefined ? {} : { confirmation: parameters.confirmation }),
   });
+
   const call = result.calls[0];
+
   if (call === undefined) {
     return yield* new WritePlanError({
       code: "INVALID_CALL_PLAN",
@@ -193,6 +213,7 @@ const implementation = Effect.fn("ensforge.upgradeResolver")(function* (
       cause: result,
     });
   }
+
   return {
     status: "upgraded",
     resolver: state.resolver,

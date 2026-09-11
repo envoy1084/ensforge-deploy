@@ -16,6 +16,7 @@ describe("registration pricing integration", () => {
   it.effect("reads ENS v1 native registration pricing and parameters", () =>
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
+
       const [price, parameters] = yield* Effect.all(
         [
           getRegistrationPrice.effect(devnet.configs.v1, {
@@ -28,12 +29,14 @@ describe("registration pricing integration", () => {
       );
 
       assert.strictEqual(price.status, "available");
+
       if (price.status === "available") {
         assert.strictEqual(price.protocol, "v1");
         assert.strictEqual(price.currency.kind, "native");
         assert.strictEqual(price.total, price.base + price.premium);
         assert.isTrue(price.total > 0n);
       }
+
       assert.strictEqual(parameters.protocol, "v1");
       assert.strictEqual(
         parameters.registrar,
@@ -49,6 +52,7 @@ describe("registration pricing integration", () => {
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
       const paymentToken = devnet.fixtures.registration.paymentTokens.usdc.address;
+
       const result = yield* readBatch.effect(devnet.configs.v2, {
         parameters: getRegistrationParameters.request({}),
         support: isPaymentTokenSupported.request({ paymentToken }),
@@ -62,8 +66,11 @@ describe("registration pricing integration", () => {
       assert.strictEqual(result.parameters.protocol, "v2");
       assert.strictEqual(result.parameters.payment.kind, "erc20");
       assert.isTrue(result.support.supported);
+
       if (result.support.supported) assert.strictEqual(result.support.decimals, 6);
+
       assert.strictEqual(result.price.status, "available");
+
       if (result.price.status === "available") {
         assert.strictEqual(result.price.currency.kind, "erc20");
         assert.strictEqual(result.price.total, result.price.base + result.price.premium);
@@ -75,6 +82,7 @@ describe("registration pricing integration", () => {
   it.effect("returns explicit payment and availability states", () =>
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
+
       const [missingToken, unsupportedToken, unavailable] = yield* Effect.all(
         [
           getRegistrationPrice.effect(devnet.configs.v2, {
@@ -103,6 +111,7 @@ describe("registration pricing integration", () => {
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
       const paymentToken = devnet.fixtures.registration.paymentTokens.usdc.address;
+
       const [v1, v2, grace, reserved, expired] = yield* Effect.all(
         [
           getRenewalPrice.effect(devnet.configs.v1, {
@@ -134,13 +143,21 @@ describe("registration pricing integration", () => {
       );
 
       assert.strictEqual(v1.status, "renewable");
+
       if (v1.status === "renewable") assert.strictEqual(v1.route, "v1-controller");
+
       assert.strictEqual(v2.status, "renewable");
+
       if (v2.status === "renewable") assert.strictEqual(v2.route, "v2-registrar");
+
       assert.strictEqual(grace.status, "renewable");
+
       if (grace.status === "renewable") assert.strictEqual(grace.route, "v2-registrar");
+
       assert.strictEqual(reserved.status, "renewable");
+
       if (reserved.status === "renewable") assert.strictEqual(reserved.route, "v1-renewer");
+
       assert.strictEqual(expired.status, "not-renewable");
     }),
   );

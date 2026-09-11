@@ -29,6 +29,8 @@ export type GetRegistryLabelsParameters = typeof GetRegistryLabelsParameters.Typ
 
 export const GetRegistryLabelsPage = IndexerPage(IndexedRegistryName);
 export type GetRegistryLabelsPage = IndexerPageType<IndexedRegistryNameType>;
+
 export const GetRegistryLabelsResult = V2IndexerResult(GetRegistryLabelsPage);
 export type GetRegistryLabelsResult = V2IndexerResultType<GetRegistryLabelsPage>;
+
 export type GetRegistryLabelsError = RegistryIndexerError;

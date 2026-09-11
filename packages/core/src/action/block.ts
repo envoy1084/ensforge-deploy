@@ -12,6 +12,8 @@ export type BlockParameters =
 
 export const getBlockReference = ({ blockNumber, blockTag }: BlockParameters): BlockParameters => {
   if (blockNumber !== undefined) return { blockNumber };
+
   if (blockTag !== undefined) return { blockTag };
+
   return {};
 };

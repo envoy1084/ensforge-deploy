@@ -16,17 +16,23 @@ import {
 import { sepoliaConfig, sepoliaFixtureAccounts, sepoliaNames } from "../setup/sepolia.js";
 
 const indexedV2Name = sepoliaNames.v2.root;
+
 const indexedV2Owner = sepoliaFixtureAccounts.owner;
+
 const fixtureSeededAtBlock = 11_601_253n;
 
 describe("Sepolia indexers", () => {
   it.effect("reports V1 and V2 health and reads exact names from both protocols", () =>
     Effect.gen(function* () {
       const status = yield* getIndexerStatus.effect(sepoliaConfig);
+
       assert.lengthOf(status.sources, 2);
+
       for (const source of status.sources) {
         assert.strictEqual(source.status, "ready", `${source.protocol} is not ready`);
+
         if (source.status !== "ready") continue;
+
         assert.strictEqual(source.health, "healthy");
         assert.isTrue(source.indexedBlock.number > 0n);
       }
@@ -34,18 +40,23 @@ describe("Sepolia indexers", () => {
       const legacy = yield* getIndexedName.effect(sepoliaConfig, {
         name: sepoliaNames.v1.reserved,
       });
+
       assert.isNotNull(legacy);
       assert.strictEqual(legacy?.protocol, "v1");
 
       const native = yield* getIndexedName.effect(sepoliaConfig, { name: indexedV2Name });
+
       assert.isNotNull(native);
       assert.strictEqual(native?.protocol, "v2");
       assert.strictEqual(native?.owner, indexedV2Owner);
 
       const fixture = yield* getIndexedName.effect(sepoliaConfig, { name: sepoliaNames.v2.root });
+
       if (fixture === null && sepoliaNames.v2.root === "ensforge-smoke.eth") {
         const v2 = status.sources.find((source) => source.protocol === "v2");
+
         assert.strictEqual(v2?.status, "ready");
+
         if (v2?.status === "ready") {
           assert.isTrue(
             v2.indexedBlock.number < fixtureSeededAtBlock,
@@ -63,6 +74,7 @@ describe("Sepolia indexers", () => {
       const names = yield* getNames.effect(sepoliaConfig, {
         filter: { name: indexedV2Name, protocol: "v2" },
       });
+
       assert.lengthOf(names.items, 1);
       assert.strictEqual(names.items[0]?.namehash, namehash(indexedV2Name));
 
@@ -72,6 +84,7 @@ describe("Sepolia indexers", () => {
         mode: "starts-with",
         filter: { protocol: "v2" },
       });
+
       assert.isTrue(search.items.some(({ namehash: hash }) => hash === namehash(indexedV2Name)));
 
       const firstChildren = yield* getSubnames.effect(sepoliaConfig, {
@@ -79,17 +92,22 @@ describe("Sepolia indexers", () => {
         filter: { protocol: "v2" },
         pageSize: 2,
       });
+
       assert.lengthOf(firstChildren.items, 2);
       assert.isTrue(firstChildren.pageInfo.hasNextPage);
       assert.isNotNull(firstChildren.pageInfo.cursor);
+
       if (firstChildren.pageInfo.cursor === null) return;
+
       const secondChildren = yield* getSubnames.effect(sepoliaConfig, {
         name: "eth",
         filter: { protocol: "v2" },
         pageSize: 2,
         cursor: firstChildren.pageInfo.cursor,
       });
+
       const firstHashes = new Set(firstChildren.items.map(({ namehash: hash }) => hash));
+
       assert.isTrue(secondChildren.items.every(({ namehash: hash }) => !firstHashes.has(hash)));
     }),
   );
@@ -100,7 +118,9 @@ describe("Sepolia indexers", () => {
         address: indexedV2Owner,
         filter: { protocol: "v2" },
       });
+
       const ownedName = owned.items.find(({ namehash: hash }) => hash === namehash(indexedV2Name));
+
       assert.isDefined(ownedName);
       assert.include(ownedName?.relations ?? [], "owner");
 
@@ -108,9 +128,11 @@ describe("Sepolia indexers", () => {
         address: indexedV2Owner,
         filter: { protocol: "v2" },
       });
+
       const resolvedName = resolved.items.find(
         ({ name }) => name.namehash === namehash(sepoliaNames.v2.profile),
       );
+
       assert.isDefined(resolvedName);
       assert.strictEqual(resolvedName?.verification, "indexed-unverified");
     }),
@@ -121,9 +143,11 @@ describe("Sepolia indexers", () => {
       const decodedV2 = yield* getDecodedName.effect(sepoliaConfig, {
         name: `[${labelhash(indexedV2Name.slice(0, -4)).slice(2)}].eth`,
       });
+
       const decodedV1 = yield* getDecodedName.effect(sepoliaConfig, {
         name: `[${labelhash("vitalik").slice(2)}].eth`,
       });
+
       assert.strictEqual(decodedV2, indexedV2Name);
       assert.strictEqual(decodedV1, sepoliaNames.v1.reserved);
     }),

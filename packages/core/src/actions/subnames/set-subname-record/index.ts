@@ -19,12 +19,15 @@ const setSubnameRecordEffect = Effect.fn("ensforge.setSubnameRecord")(function* 
 ): Effect.fn.Return<SetSubnameRecordResult, SubnameError> {
   const route = yield* resolveSubnameRoute(config, parameters.name);
   const owner = yield* decodeOwnershipAddress(parameters.owner, "subname owner");
+
   const resolver =
     parameters.resolver === undefined
       ? null
       : yield* decodeOwnershipAddress(parameters.resolver, "subname resolver");
+
   const initial = yield* getNameState.effect(config, { name: route.name });
   const created = initial.available;
+
   const create = created
     ? yield* createSubname.effect(config, {
         name: route.name,
@@ -42,13 +45,17 @@ const setSubnameRecordEffect = Effect.fn("ensforge.setSubnameRecord")(function* 
         ...(parameters.resume === undefined ? {} : { resume: parameters.resume }),
       })
     : null;
+
   const mutations: Array<CallExecutionResult> = [];
+
   if (!created && parameters.expiry !== undefined && parameters.expiry !== initial.expiry) {
     mutations.push(
       yield* setSubnameExpiry.effect(config, { name: route.name, expiry: parameters.expiry }),
     );
   }
+
   const records = parameters.records ?? [];
+
   const resolverWrite =
     records.length > 0
       ? yield* setResolverAndRecords.effect(config, {
@@ -64,6 +71,7 @@ const setSubnameRecordEffect = Effect.fn("ensforge.setSubnameRecord")(function* 
             : { confirmation: parameters.confirmation }),
         })
       : null;
+
   if (
     !created &&
     records.length === 0 &&
@@ -77,12 +85,15 @@ const setSubnameRecordEffect = Effect.fn("ensforge.setSubnameRecord")(function* 
       }),
     );
   }
+
   if (!created && (initial.manager === null || !isAddressEqual(initial.manager, owner))) {
     mutations.push(
       yield* setSubnameManager.effect(config, { name: route.name, manager: parameters.owner }),
     );
   }
+
   const finalState = yield* getNameState.effect(config, { name: route.name });
+
   return {
     name: route.name,
     protocol: route.protocol,

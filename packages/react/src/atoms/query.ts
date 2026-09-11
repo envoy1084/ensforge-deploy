@@ -3,7 +3,12 @@ import { Atom, type AsyncResult } from "effect/unstable/reactivity";
 
 import type { Ensforge } from "@ensforge/sdk";
 
-import type { BoundEffectAction } from "../internal/action-types.js";
+import type {
+  ActionParameters,
+  ActionSuccess,
+  ActionFailure,
+  BoundEffectAction,
+} from "../internal/action-types.js";
 import { atomRuntime } from "../internal/runtime.js";
 import { makeReactivityKeys } from "../query/keys.js";
 import {
@@ -12,6 +17,7 @@ import {
   type ResolvedEnsAtomOptions,
 } from "../query/options.js";
 
+// Include the SDK instance in the family key to keep caches separate across clients.
 class QueryAtomInput<Parameters, Failure> extends Data.Class<{
   readonly options: ResolvedEnsAtomOptions<Failure>;
   readonly parameters: Parameters;
@@ -51,16 +57,26 @@ export const configureAtom = <Success, Failure>(
   return atom;
 };
 
-export const makeQueryAtom = <Parameters, Success, Failure>(
+export function makeQueryAtom<Action extends BoundEffectAction<never, unknown, unknown>>(
+  group: string,
+  getAction: (sdk: Ensforge) => Action,
+): EnsAtomFactory<ActionParameters<Action>, ActionSuccess<Action>, ActionFailure<Action>>;
+export function makeQueryAtom<Parameters, Success, Failure>(
   group: string,
   getAction: (sdk: Ensforge) => BoundEffectAction<Parameters, Success, Failure>,
-): EnsAtomFactory<Parameters, Success, Failure> => {
+): EnsAtomFactory<Parameters, Success, Failure>;
+export function makeQueryAtom<Parameters, Success, Failure>(
+  group: string,
+  getAction: (sdk: Ensforge) => BoundEffectAction<Parameters, Success, Failure>,
+): EnsAtomFactory<Parameters, Success, Failure> {
   const family = Atom.family((input: QueryAtomInput<Parameters, Failure>) => {
     const actionEffect = Effect.suspend(() => getAction(input.sdk).effect(input.parameters));
+
     const effect =
       input.options.retry === false
         ? actionEffect
         : actionEffect.pipe(Effect.retry(input.options.retry));
+
     return configureAtom(
       atomRuntime.atom(effect),
       input.options,
@@ -76,4 +92,4 @@ export const makeQueryAtom = <Parameters, Success, Failure>(
         sdk,
       }),
     );
-};
+}

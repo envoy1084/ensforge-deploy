@@ -4,7 +4,9 @@ import { getIndexerRuntimeConfig } from "../../config/indexer-options.js";
 
 export const getV2IndexerUnsupported = (config: EnsforgeConfig): V2IndexerUnsupported | null => {
   const state = getIndexerRuntimeConfig(config.indexer).sourceStates.v2;
+
   if (state === "enabled") return null;
+
   return {
     status: "unsupported",
     network: config.network,

@@ -5,6 +5,7 @@ import { keccak256, stringToHex } from "viem";
 import { defineAction } from "../../../action/action.js";
 import type { EnsforgeConfig } from "../../../config/config.js";
 import { DnsImportError } from "../../../errors/dns-import-error.js";
+import { withWorkflow } from "../../../internal/workflows/run.js";
 import { normalizeName } from "../../../names/normalize.js";
 import type { WriteError, WritePlan } from "../../../write/types.js";
 import { executeWritePlan } from "../../batch/execute-write-plan.js";
@@ -18,6 +19,7 @@ const importDnsNameEffect = Effect.fn("ensforge.importDnsName")(function* (
   parameters: ImportDnsNameParameters,
 ): Effect.fn.Return<ImportDnsNameResult, WriteError> {
   const name = yield* normalizeName.effect(parameters.name);
+
   const planId = `importDnsName:${keccak256(
     stringToHex(
       JSON.stringify({
@@ -28,6 +30,7 @@ const importDnsNameEffect = Effect.fn("ensforge.importDnsName")(function* (
       }),
     ),
   )}`;
+
   if (
     parameters.resume !== undefined &&
     parameters.resume.write !== null &&
@@ -40,12 +43,14 @@ const importDnsNameEffect = Effect.fn("ensforge.importDnsName")(function* (
   }
 
   const importPlan = yield* getDnsImportPlan.effect(config, { name });
+
   if (importPlan.status === "unsupported") {
     return yield* new DnsImportError({
       code: "DNS_REGISTRAR_UNAVAILABLE",
       message: `DNS imports are unavailable for ${name}`,
     });
   }
+
   if (importPlan.status === "already-claimed") {
     return {
       status: "not-required",
@@ -76,6 +81,7 @@ const importDnsNameEffect = Effect.fn("ensforge.importDnsName")(function* (
       },
     ],
   };
+
   const write = yield* executeWritePlan.effect(config, {
     plan,
     ...(parameters.resume?.write === undefined || parameters.resume.write === null
@@ -84,17 +90,20 @@ const importDnsNameEffect = Effect.fn("ensforge.importDnsName")(function* (
     ...(parameters.walletClient === undefined ? {} : { walletClient: parameters.walletClient }),
     ...(parameters.account === undefined ? {} : { account: parameters.account }),
   });
+
   if (write.status !== "completed") {
     return { status: "partial", name, owner: null, resolver: null, write };
   }
 
   const claimed = yield* getDnsClaimStatus.effect(config, { name });
+
   if (claimed.status !== "claimed") {
     return yield* new DnsImportError({
       code: "CLAIM_NOT_CONFIRMED",
       message: `The DNS Registrar did not report ${name} as claimed after execution`,
     });
   }
+
   return {
     status: "completed",
     name,
@@ -105,7 +114,7 @@ const importDnsNameEffect = Effect.fn("ensforge.importDnsName")(function* (
 });
 
 export const importDnsName = defineAction<ImportDnsNameParameters, ImportDnsNameResult, WriteError>(
-  importDnsNameEffect,
+  withWorkflow("importDnsName", importDnsNameEffect),
 );
 
 export type { ImportDnsNameError, ImportDnsNameParameters, ImportDnsNameResult } from "../types.js";

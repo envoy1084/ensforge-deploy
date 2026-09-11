@@ -8,6 +8,7 @@ describe("ENS events integration", () => {
   it.effect("normalizes bounded V1 and V2 event history", () =>
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
+
       const events = yield* getEnsEvents.effect(devnet.configs.v2, {
         fromBlock: devnet.fixtures.events.fromBlock,
         toBlock: devnet.fixtures.events.toBlock,
@@ -24,10 +25,12 @@ describe("ENS events integration", () => {
   it.effect("filters semantic event kinds and name history", () =>
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
+
       const range = {
         fromBlock: devnet.fixtures.events.fromBlock,
         toBlock: devnet.fixtures.events.toBlock,
       } as const;
+
       const [records, history] = yield* Effect.all(
         [
           getEnsEvents.effect(devnet.configs.v2, { ...range, kinds: ["records"] }),
@@ -43,9 +46,11 @@ describe("ENS events integration", () => {
       assert.isTrue(records.every((event) => event.kind === "records"));
       assert.strictEqual(history.name, devnet.fixtures.v1.activeUnwrapped.name);
       assert.isAbove(history.events.length, 0);
+
       for (let index = 1; index < history.events.length; index += 1) {
         const previous = history.events[index - 1];
         const current = history.events[index];
+
         if (previous !== undefined && current !== undefined) {
           assert.isTrue((previous.blockNumber ?? 0n) <= (current.blockNumber ?? 0n));
         }
@@ -56,6 +61,7 @@ describe("ENS events integration", () => {
   it.effect("opens and disposes the JavaScript watcher facade", () =>
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
+
       const unwatch = yield* Effect.promise(() =>
         watchEnsEvents(
           devnet.configs.v2,

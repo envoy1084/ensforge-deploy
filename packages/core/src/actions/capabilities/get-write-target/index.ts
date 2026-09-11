@@ -31,6 +31,7 @@ const getWriteTargetEffect = Effect.fn("ensforge.getWriteTarget")(function* (
   parameters: GetWriteTargetParameters,
 ) {
   const name = yield* normalizeName.effect(parameters.name);
+
   return yield* executeRead(
     config,
     parameters,
@@ -38,13 +39,16 @@ const getWriteTargetEffect = Effect.fn("ensforge.getWriteTarget")(function* (
       const route = yield* readNameRoute(name);
       const protocol = route.kind === "v1" || route.kind === "reserved" ? "v1" : "v2";
       const status = yield* getNameStatus.effect(config, parameters);
+
       if (route.kind === "available" || status === "available" || status === "expired") {
         return { available: false, protocol, reason: "NAME_NOT_REGISTERED" } as const;
       }
 
       const node = namehash(name);
+
       if (isResolverRecord(parameters.operation)) {
         const resolver = yield* findResolver(name);
+
         return resolver === null
           ? ({ available: false, protocol, reason: "RESOLVER_NOT_FOUND" } as const)
           : ({
@@ -64,28 +68,36 @@ const getWriteTargetEffect = Effect.fn("ensforge.getWriteTarget")(function* (
         if (parameters.operation.type === "setExpiry") {
           return { available: false, protocol: "v1", reason: "OPERATION_UNSUPPORTED" } as const;
         }
+
         const deployment = route.kind === "reserved" ? route.v1 : route.deployment;
         const ethereum = yield* EthereumClient;
+
         const wrapped = yield* ethereum.readContract({
           address: deployment.contracts.nameWrapper,
           abi: nameWrapperV1IsWrappedAbi,
           functionName: "isWrapped",
           args: [node],
         });
+
         const analysis = analyzeName(name);
+
         const registrarTransfer =
           parameters.operation.type === "transfer" && analysis.isSecondLevelEth;
+
         const kind = wrapped ? "name-wrapper" : registrarTransfer ? "registrar" : "registry";
+
         const address = wrapped
           ? deployment.contracts.nameWrapper
           : registrarTransfer
             ? deployment.contracts.baseRegistrar
             : deployment.contracts.registry;
+
         const tokenId = wrapped
           ? BigInt(node)
           : registrarTransfer && analysis.ethSecondLevelLabel !== undefined
             ? BigInt(labelhash(analysis.ethSecondLevelLabel))
             : null;
+
         return {
           available: true,
           protocol: "v1",
@@ -103,6 +115,7 @@ const getWriteTargetEffect = Effect.fn("ensforge.getWriteTarget")(function* (
         route.parentRegistry,
         registryInterfaceIds.wrapperRegistry,
       );
+
       return {
         available: true,
         protocol: "v2",

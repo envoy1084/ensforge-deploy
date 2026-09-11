@@ -19,6 +19,7 @@ export {
 export { TestEnvironmentError, TestEnvironmentErrorCode } from "./errors/index.js";
 export { startEnsDevnet, type EnsDevnet, type StartEnsDevnetOptions } from "./ens-devnet.js";
 export {
+  type HcaFixtureManifest,
   type EnsFixtureManifest,
   type EnsMigrationFixtureManifest,
   type EnsNameFixture,
@@ -36,3 +37,4 @@ export {
   type DnsFixtureManifest,
   type EventFixtureManifest,
 } from "./fixtures/index.js";
+export { verifyHcaDeployment } from "./deployments/hca.js";

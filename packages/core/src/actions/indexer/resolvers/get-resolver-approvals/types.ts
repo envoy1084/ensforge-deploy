@@ -27,6 +27,8 @@ export type GetResolverApprovalsParameters = typeof GetResolverApprovalsParamete
 
 export const GetResolverApprovalsPage = IndexerPage(IndexedResolverApproval);
 export type GetResolverApprovalsPage = IndexerPageType<IndexedResolverApprovalType>;
+
 export const GetResolverApprovalsResult = V2IndexerResult(GetResolverApprovalsPage);
 export type GetResolverApprovalsResult = V2IndexerResultType<GetResolverApprovalsPage>;
+
 export type GetResolverApprovalsError = ResolverIndexerError;

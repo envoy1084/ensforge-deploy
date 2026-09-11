@@ -19,11 +19,13 @@ const getAddressEffect = Effect.fn("ensforge.getAddress")(function* (
   parameters: GetAddressParameters,
 ) {
   const name = yield* normalizeName.effect(parameters.name);
+
   const [result] = yield* executeRead(
     config,
     parameters,
     resolveAddresses(name, [parameters.coinType ?? 60n]),
   );
+
   return result === undefined
     ? yield* new ContractError({
         code: "DECODE_FAILED",
@@ -38,6 +40,7 @@ const getAddressesEffect = Effect.fn("ensforge.getAddresses")(function* (
   parameters: GetAddressesParameters,
 ) {
   const name = yield* normalizeName.effect(parameters.name);
+
   return yield* executeRead(config, parameters, resolveAddresses(name, parameters.coinTypes));
 });
 

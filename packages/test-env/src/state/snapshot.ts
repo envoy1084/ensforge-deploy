@@ -36,19 +36,24 @@ export const createDevnetState = Effect.fn("createDevnetState")(function* (
     "Unable to create the ENS devnet baseline snapshot",
     () => client.snapshot(),
   );
+
   const currentSnapshot = yield* Ref.make(snapshotId);
   const lock = yield* Semaphore.make(1);
 
   const reset = lock.withPermits(1)(
     Effect.gen(function* () {
       const id = yield* Ref.get(currentSnapshot);
+
       yield* stateOperation("Unable to restore the ENS devnet baseline snapshot", () =>
         client.revert({ id }),
       );
+
+      // Reverting consumes the snapshot; renew it so later resets have a valid baseline.
       const replacement = yield* stateOperation(
         "Unable to renew the ENS devnet baseline snapshot",
         () => client.snapshot(),
       );
+
       yield* Ref.set(currentSnapshot, replacement);
     }),
   );
@@ -67,9 +72,11 @@ export const createDevnetState = Effect.fn("createDevnetState")(function* (
         cause: seconds,
       });
     }
+
     yield* stateOperation("Unable to advance ENS devnet time", () =>
       client.increaseTime({ seconds }),
     );
+
     yield* stateOperation("Unable to mine the ENS devnet time-advancement block", () =>
       client.mine({ blocks: 1 }),
     );
@@ -88,6 +95,7 @@ export const createDevnetState = Effect.fn("createDevnetState")(function* (
         cause: { blocks, interval },
       });
     }
+
     yield* stateOperation("Unable to mine ENS devnet blocks", () =>
       client.mine({ blocks, interval }),
     );

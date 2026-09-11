@@ -12,6 +12,7 @@ const getNameEffect = Effect.fn("ensforge.getName")(function* (
   parameters: GetNameParameters,
 ) {
   const name = yield* normalizeName.effect(parameters.name);
+
   return yield* executeRead(config, parameters, resolveNameRecord(name));
 });
 

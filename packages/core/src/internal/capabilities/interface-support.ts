@@ -10,6 +10,7 @@ export const supportsInterface = Effect.fn("supportsInterface")(function* (
   interfaceId: Hex,
 ) {
   const ethereum = yield* EthereumClient;
+
   return yield* ethereum
     .readContract({
       address,
@@ -26,6 +27,7 @@ export const supportsInterfaces = Effect.fn("supportsInterfaces")(function* <
   const entries = Object.entries(interfaces) as unknown as ReadonlyArray<
     readonly [keyof Interfaces, Interfaces[keyof Interfaces]]
   >;
+
   const support = yield* Effect.all(
     entries.map(([key, interfaceId]) =>
       supportsInterface(address, interfaceId).pipe(
@@ -34,5 +36,6 @@ export const supportsInterfaces = Effect.fn("supportsInterfaces")(function* <
     ),
     { concurrency: "unbounded" },
   );
+
   return Object.fromEntries(support) as { readonly [Key in keyof Interfaces]: boolean };
 });

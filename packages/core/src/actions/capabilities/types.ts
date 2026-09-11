@@ -10,6 +10,7 @@ import type { GetNameStateError } from "../name/get-name-state/types.js";
 export type CapabilityError = GetNameStateError;
 
 export type NameCapabilityParameters = { readonly name: string } & BlockParameters;
+
 export type AccountCapabilityParameters = NameCapabilityParameters & {
   readonly account: EthereumAddress;
 };

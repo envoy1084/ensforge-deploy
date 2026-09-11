@@ -21,11 +21,13 @@ const getAliasEffect = Effect.fn("ensforge.getAlias")(function* (
   parameters: GetAliasParameters,
 ) {
   const name = yield* normalizeName.effect(parameters.name);
+
   return yield* executeRead(
     config,
     parameters,
     Effect.gen(function* () {
       const discovery = yield* findResolver(name);
+
       if (discovery === null) {
         return {
           supported: false,
@@ -34,10 +36,12 @@ const getAliasEffect = Effect.fn("ensforge.getAlias")(function* (
           reason: "RESOLVER_NOT_FOUND",
         } as const satisfies AliasResult;
       }
+
       const permissioned = yield* supportsInterface(
         discovery.address,
         resolverInterfaceIds.permissionedResolver,
       );
+
       if (!permissioned) {
         return {
           supported: false,
@@ -46,13 +50,16 @@ const getAliasEffect = Effect.fn("ensforge.getAlias")(function* (
           reason: "ALIASING_UNSUPPORTED",
         } as const satisfies AliasResult;
       }
+
       const ethereum = yield* EthereumClient;
+
       const raw = yield* ethereum.readContract({
         address: discovery.address,
         abi: permissionedResolverV2InterfaceGetAliasAbi,
         functionName: "getAlias",
         args: [yield* dnsEncodeName.effect(name)],
       });
+
       const target =
         raw === "0x"
           ? null
@@ -66,6 +73,7 @@ const getAliasEffect = Effect.fn("ensforge.getAlias")(function* (
                       message: `Unable to decode the resolver alias for ${name}`,
                     }),
             });
+
       return {
         supported: true,
         name,

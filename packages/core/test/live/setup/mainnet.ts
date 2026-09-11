@@ -5,6 +5,7 @@ import { createConfig } from "../../../src/index.js";
 
 const readMainnetRpcUrl = (): string => {
   const value = process.env.ENSFORGE_MAINNET_RPC_URL;
+
   if (value === undefined || value.length === 0) {
     throw new Error(
       "ENSFORGE_MAINNET_RPC_URL is required. Run the suite with `ENSFORGE_MAINNET_RPC_URL=https://… pnpm test:live:mainnet`.",
@@ -12,9 +13,11 @@ const readMainnetRpcUrl = (): string => {
   }
 
   const url = new URL(value);
+
   if (url.protocol !== "http:" && url.protocol !== "https:") {
     throw new Error("ENSFORGE_MAINNET_RPC_URL must use HTTP or HTTPS");
   }
+
   return value;
 };
 

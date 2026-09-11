@@ -23,35 +23,46 @@ const getNameStatusEffect = Effect.fn("ensforge.getNameStatus")(function* (
   parameters: GetNameStateParameters,
 ) {
   const name = yield* normalizeName.effect(parameters.name);
+
   return yield* executeRead(
     config,
     parameters,
     Effect.gen(function* () {
       const route = yield* readNameRoute(name);
+
       if (route.kind === "reserved") return route.state.status === 1 ? "reserved" : "grace";
+
       if (route.kind === "available" && route.state.expiry === 0n) return "available";
 
       if (route.kind === "v2") {
         if (route.state.status === 2) return "active";
+
         if (analyzeName(name).ethSecondLevelLabel === undefined) {
           return route.state.status === 0 ? "available" : "expired";
         }
+
         const renewable = yield* (yield* EthereumClient).readContract({
           address: route.deployment.contracts.ethRegistrar,
           abi: ethRegistrarV2IsRenewableAbi,
           functionName: "isRenewable",
           args: [route.label],
         });
+
         return renewable ? "grace" : "expired";
       }
 
       const expiry = yield* getExpiry.effect(config, parameters);
+
       if (expiry === null) {
         const owner = yield* getOwner.effect(config, parameters);
+
         return owner === null ? "available" : "active";
       }
+
       const timestamp = yield* readBlockTimestamp();
+
       if (timestamp <= expiry.expiry) return "active";
+
       return timestamp <= expiry.gracePeriodEnd ? "grace" : "expired";
     }),
   );

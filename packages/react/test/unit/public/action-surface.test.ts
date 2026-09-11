@@ -107,6 +107,7 @@ const queryHooks = [
   "useReadBatch",
   "useReadBatchSettled",
 ] as const;
+
 const mutationHooks = [
   "useExecuteWritePlan",
   "useResumeCalls",
@@ -179,6 +180,7 @@ const mutationHooks = [
   "useUnwrapName",
   "useWrapName",
 ] as const;
+
 const queryAtoms = [
   "estimateCallsAtom",
   "getCallsStatusAtom",
@@ -283,6 +285,7 @@ const queryAtoms = [
   "readBatchAtom",
   "readBatchSettledAtom",
 ] as const;
+
 const mutationAtoms = [
   "createExecuteWritePlanMutationAtom",
   "createResumeCallsMutationAtom",
@@ -368,9 +371,12 @@ describe("public action surface", () => {
       "useRecords",
       "useWatchEnsEvents",
     ]);
+
     for (const name of queryHooks) {
       if (hooksWithoutSuspense.has(name)) continue;
+
       const suspenseName = `${name}Suspense`;
+
       expect(Reflect.get(react, suspenseName), suspenseName).toBeTypeOf("function");
     }
   });

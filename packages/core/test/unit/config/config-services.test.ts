@@ -43,20 +43,24 @@ describe("config Effect services", () => {
   it("provides the same context to Promise and Effect action forms", async () => {
     const publicClient = makeSepoliaPublicClient();
     const config = createConfig({ network: "sepolia", publicClient });
+
     const implementation = Effect.fn("ensforge.test.inspectConfig")(function* (
       currentConfig: EnsforgeConfig,
       parameters: undefined,
     ) {
       void parameters;
+
       return yield* provideConfig(
         currentConfig,
         Effect.gen(function* () {
           const network = yield* EnsNetworkService;
           const client = yield* PublicClientService;
+
           return { network, client: client.client };
         }),
       );
     });
+
     const inspectConfig = defineAction(implementation);
 
     const promiseResult = await inspectConfig(config, undefined);

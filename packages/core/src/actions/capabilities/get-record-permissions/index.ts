@@ -71,11 +71,13 @@ const getRecordPermissionsEffect = Effect.fn("ensforge.getRecordPermissions")(fu
   parameters: GetRecordPermissionsParameters,
 ) {
   const name = yield* normalizeName.effect(parameters.name);
+
   return yield* executeRead(
     config,
     parameters,
     Effect.gen(function* () {
       const resolver = yield* getResolverCapabilities.effect(config, parameters);
+
       if (resolver.address === null) {
         return {
           resolver: null,
@@ -97,13 +99,16 @@ const getRecordPermissionsEffect = Effect.fn("ensforge.getRecordPermissions")(fu
       const ethereum = yield* EthereumClient;
       const resolverAddress = resolver.address;
       const permissioned = resolver.authorization === "role";
+
       const manager =
         resolver.authorization === "owner-delegate"
           ? yield* getManager.effect(config, parameters)
           : null;
+
       let ownerAuthorized = false;
       let operatorAuthorized = false;
       let delegateAuthorized = false;
+
       if (resolver.authorization === "owner-delegate" && manager !== null) {
         ownerAuthorized = manager.toLowerCase() === parameters.account.toLowerCase();
         [operatorAuthorized, delegateAuthorized] = yield* Effect.all(
@@ -127,7 +132,9 @@ const getRecordPermissionsEffect = Effect.fn("ensforge.getRecordPermissions")(fu
           ] as const,
           { concurrency: "unbounded" },
         );
+
         const profile = config.deployments;
+
         if (
           profile.protocol === "v2" &&
           resolverAddress.toLowerCase() === profile.v2.contracts.publicResolver.toLowerCase()
@@ -138,6 +145,7 @@ const getRecordPermissionsEffect = Effect.fn("ensforge.getRecordPermissions")(fu
             functionName: "canModifyName",
             args: [namehash(name), parameters.account],
           });
+
           ownerAuthorized &&= canModify;
           operatorAuthorized &&= canModify;
           delegateAuthorized &&= canModify;
@@ -151,7 +159,9 @@ const getRecordPermissionsEffect = Effect.fn("ensforge.getRecordPermissions")(fu
             record.type === "alias"
               ? resolver.permissioned
               : profileSupported(resolver.profiles, record);
+
           const requiredRole = resolverRecordRole(record);
+
           if (!supported) {
             return {
               record,
@@ -164,6 +174,7 @@ const getRecordPermissionsEffect = Effect.fn("ensforge.getRecordPermissions")(fu
               resource: null,
             } as const satisfies RecordPermission;
           }
+
           if (resolver.authorization === "unknown") {
             return {
               record,
@@ -173,6 +184,7 @@ const getRecordPermissionsEffect = Effect.fn("ensforge.getRecordPermissions")(fu
               resource: null,
             } as const satisfies RecordPermission;
           }
+
           if (!permissioned) {
             const source = ownerAuthorized
               ? "owner"
@@ -181,6 +193,7 @@ const getRecordPermissionsEffect = Effect.fn("ensforge.getRecordPermissions")(fu
                 : delegateAuthorized
                   ? "resolver-delegate"
                   : "none";
+
             return {
               record,
               supported,
@@ -199,6 +212,7 @@ const getRecordPermissionsEffect = Effect.fn("ensforge.getRecordPermissions")(fu
           const part = resolverRecordPart(record);
           const node = namehash(name);
           const exact = record.type === "alias" ? 0n : resolverResource(node, part);
+
           const resources =
             record.type === "alias"
               ? [0n]
@@ -209,6 +223,7 @@ const getRecordPermissionsEffect = Effect.fn("ensforge.getRecordPermissions")(fu
                     resolverResource(namehash(""), part),
                     resolverResource(node, resolverRecordPart({ type: "clear" })),
                   ];
+
           const checks = yield* Effect.all(
             resources.map((resource) =>
               ethereum.readContract({
@@ -220,7 +235,9 @@ const getRecordPermissionsEffect = Effect.fn("ensforge.getRecordPermissions")(fu
             ),
             { concurrency: "unbounded" },
           );
+
           const authorized = checks.some(Boolean);
+
           return {
             record,
             supported,
@@ -236,6 +253,7 @@ const getRecordPermissionsEffect = Effect.fn("ensforge.getRecordPermissions")(fu
         }),
         { concurrency: "unbounded" },
       );
+
       return {
         resolver: resolverAddress,
         inherited: resolver.inherited,

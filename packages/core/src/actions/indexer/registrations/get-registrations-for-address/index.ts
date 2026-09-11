@@ -27,6 +27,7 @@ const getRegistrationsForAddressEffect = Effect.fn("ensforge.getRegistrationsFor
           }),
       ),
     );
+
     return yield* getRegistrationsEffect(config, {
       filter: { ...decoded.filter, registrant: decoded.address },
       ...(decoded.order === undefined ? {} : { order: decoded.order }),

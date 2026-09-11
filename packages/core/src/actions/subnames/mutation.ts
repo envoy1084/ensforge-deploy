@@ -48,6 +48,7 @@ const requireV2Child = (route: V2SubnameRoute) => {
       message: `Registered subname state is unavailable for ${route.name}`,
     });
   }
+
   return null;
 };
 
@@ -55,6 +56,7 @@ const deletePreparer: EnsWriteIntentPreparer<SubnameParameters, WriteError> = Ef
   "ensforge.deleteSubname.prepare",
 )(function* (config, parameters) {
   const route = yield* resolveSubnameRoute(config, parameters.name);
+
   if (route.protocol === "v1") {
     const data = yield* encoded("deleteSubname", () =>
       route.parentWrapped
@@ -69,6 +71,7 @@ const deletePreparer: EnsWriteIntentPreparer<SubnameParameters, WriteError> = Ef
             args: [route.parentNode, route.labelhash, zeroAddress],
           }),
     );
+
     return {
       to: route.parentWrapped
         ? route.deployment.contracts.nameWrapper
@@ -78,7 +81,9 @@ const deletePreparer: EnsWriteIntentPreparer<SubnameParameters, WriteError> = Ef
       protocol: "v1" as const,
     };
   }
+
   const unavailable = requireV2Child(route);
+
   if (unavailable !== null || route.subregistry === null || route.childState === null) {
     return yield* (
       unavailable ??
@@ -88,8 +93,10 @@ const deletePreparer: EnsWriteIntentPreparer<SubnameParameters, WriteError> = Ef
         })
     );
   }
+
   const childState = route.childState;
   const subregistry = route.subregistry;
+
   const data = yield* encoded("deleteSubname", () =>
     encodeFunctionData({
       abi: permissionedRegistryV2InterfaceUnregisterAbi,
@@ -97,6 +104,7 @@ const deletePreparer: EnsWriteIntentPreparer<SubnameParameters, WriteError> = Ef
       args: [childState.tokenId],
     }),
   );
+
   return { to: subregistry, data, value: 0n, protocol: "v2" as const };
 });
 
@@ -105,6 +113,7 @@ const managerPreparer: EnsWriteIntentPreparer<SetSubnameManagerParameters, Write
 )(function* (config, parameters) {
   const route = yield* resolveSubnameRoute(config, parameters.name);
   const manager = yield* decodeOwnershipAddress(parameters.manager, "subname manager");
+
   if (route.protocol === "v1") {
     const data = yield* encoded("setSubnameManager", () =>
       route.parentWrapped
@@ -119,6 +128,7 @@ const managerPreparer: EnsWriteIntentPreparer<SetSubnameManagerParameters, Write
             args: [route.parentNode, route.labelhash, manager],
           }),
     );
+
     return {
       to: route.parentWrapped
         ? route.deployment.contracts.nameWrapper
@@ -128,7 +138,9 @@ const managerPreparer: EnsWriteIntentPreparer<SetSubnameManagerParameters, Write
       protocol: "v1" as const,
     };
   }
+
   const unavailable = requireV2Child(route);
+
   if (unavailable !== null || route.subregistry === null || route.childState === null) {
     return yield* (
       unavailable ??
@@ -138,8 +150,10 @@ const managerPreparer: EnsWriteIntentPreparer<SetSubnameManagerParameters, Write
         })
     );
   }
+
   const childState = route.childState;
   const subregistry = route.subregistry;
+
   const data = yield* encoded("setSubnameManager", () =>
     encodeFunctionData({
       abi: permissionedRegistryV2InterfaceSafeTransferFromAbi,
@@ -147,6 +161,7 @@ const managerPreparer: EnsWriteIntentPreparer<SetSubnameManagerParameters, Write
       args: [childState.latestOwner, manager, childState.tokenId, 1n, "0x"],
     }),
   );
+
   return { to: subregistry, data, value: 0n, protocol: "v2" as const };
 });
 
@@ -154,6 +169,7 @@ const resolverPreparer: EnsWriteIntentPreparer<SetSubnameResolverParameters, Wri
   Effect.fn("ensforge.setSubnameResolver.prepare")(function* (config, parameters) {
     const route = yield* resolveSubnameRoute(config, parameters.name);
     const resolver = yield* decodeOwnershipAddress(parameters.resolver, "subname resolver");
+
     if (route.protocol === "v1") {
       const data = yield* encoded("setSubnameResolver", () =>
         route.childWrapped
@@ -168,6 +184,7 @@ const resolverPreparer: EnsWriteIntentPreparer<SetSubnameResolverParameters, Wri
               args: [route.node, resolver],
             }),
       );
+
       return {
         to: route.childWrapped
           ? route.deployment.contracts.nameWrapper
@@ -177,7 +194,9 @@ const resolverPreparer: EnsWriteIntentPreparer<SetSubnameResolverParameters, Wri
         protocol: "v1" as const,
       };
     }
+
     const unavailable = requireV2Child(route);
+
     if (unavailable !== null || route.subregistry === null || route.childState === null) {
       return yield* (
         unavailable ??
@@ -187,8 +206,10 @@ const resolverPreparer: EnsWriteIntentPreparer<SetSubnameResolverParameters, Wri
           })
       );
     }
+
     const childState = route.childState;
     const subregistry = route.subregistry;
+
     const data = yield* encoded("setSubnameResolver", () =>
       encodeFunctionData({
         abi: permissionedRegistryV2InterfaceSetResolverAbi,
@@ -196,6 +217,7 @@ const resolverPreparer: EnsWriteIntentPreparer<SetSubnameResolverParameters, Wri
         args: [childState.tokenId, resolver],
       }),
     );
+
     return { to: subregistry, data, value: 0n, protocol: "v2" as const };
   });
 
@@ -203,12 +225,14 @@ const expiryPreparer: EnsWriteIntentPreparer<SetSubnameExpiryParameters, WriteEr
   "ensforge.setSubnameExpiry.prepare",
 )(function* (config, parameters) {
   const route = yield* resolveSubnameRoute(config, parameters.name);
+
   if (parameters.expiry > route.parentExpiry && route.parentExpiry !== 0n) {
     return yield* new AuthorizationError({
       code: "WRITE_TARGET_UNAVAILABLE",
       message: `Subname expiry cannot exceed the parent expiry for ${route.name}`,
     });
   }
+
   if (route.protocol === "v1") {
     if (!route.childWrapped) {
       return yield* new AuthorizationError({
@@ -216,6 +240,7 @@ const expiryPreparer: EnsWriteIntentPreparer<SetSubnameExpiryParameters, WriteEr
         message: `Expiry is unavailable for unwrapped V1 subname ${route.name}`,
       });
     }
+
     const data = yield* encoded("setSubnameExpiry", () =>
       encodeFunctionData({
         abi: nameWrapperV1ExtendExpiryAbi,
@@ -223,6 +248,7 @@ const expiryPreparer: EnsWriteIntentPreparer<SetSubnameExpiryParameters, WriteEr
         args: [route.parentNode, route.labelhash, parameters.expiry],
       }),
     );
+
     return {
       to: route.deployment.contracts.nameWrapper,
       data,
@@ -230,7 +256,9 @@ const expiryPreparer: EnsWriteIntentPreparer<SetSubnameExpiryParameters, WriteEr
       protocol: "v1" as const,
     };
   }
+
   const unavailable = requireV2Child(route);
+
   if (unavailable !== null || route.subregistry === null || route.childState === null) {
     return yield* (
       unavailable ??
@@ -240,8 +268,10 @@ const expiryPreparer: EnsWriteIntentPreparer<SetSubnameExpiryParameters, WriteEr
         })
     );
   }
+
   const childState = route.childState;
   const subregistry = route.subregistry;
+
   const data = yield* encoded("setSubnameExpiry", () =>
     encodeFunctionData({
       abi: permissionedRegistryV2InterfaceRenewAbi,
@@ -249,10 +279,14 @@ const expiryPreparer: EnsWriteIntentPreparer<SetSubnameExpiryParameters, WriteEr
       args: [childState.tokenId, parameters.expiry],
     }),
   );
+
   return { to: subregistry, data, value: 0n, protocol: "v2" as const };
 });
 
 export const deleteSubname = makeSingleWriteAction("deleteSubname", deletePreparer);
+
 export const setSubnameManager = makeSingleWriteAction("setSubnameManager", managerPreparer);
+
 export const setSubnameResolver = makeSingleWriteAction("setSubnameResolver", resolverPreparer);
+
 export const setSubnameExpiry = makeSingleWriteAction("setSubnameExpiry", expiryPreparer);

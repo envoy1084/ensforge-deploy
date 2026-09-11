@@ -10,6 +10,7 @@ describe("Sepolia indexed records", () => {
       const inventory = yield* getIndexedRecords.effect(sepoliaConfig, {
         name: sepoliaNames.v1.reserved,
       });
+
       assert.isTrue(inventory.bindings.some(({ source }) => source.protocol === "v1"));
     }),
   );
@@ -19,9 +20,11 @@ describe("Sepolia indexed records", () => {
       const inventory = yield* getIndexedRecords.effect(sepoliaConfig, {
         name: sepoliaNames.v2.profile,
       });
+
       const current = inventory.bindings.find(
         ({ current: isCurrent, source }) => isCurrent && source.protocol === "v2",
       );
+
       assert.isDefined(current);
       assert.include(current?.records.coinTypes ?? [], 60n);
 
@@ -29,6 +32,7 @@ describe("Sepolia indexed records", () => {
         name: sepoliaNames.v2.profile,
         filter: { kinds: ["address"] },
       });
+
       assert.isAbove(history.items.length, 0);
       assert.isTrue(history.items.every(({ kind }) => kind === "address"));
       assert.isTrue(

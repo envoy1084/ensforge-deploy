@@ -5,6 +5,7 @@ import { useRef, type ReactNode } from "react";
 import { RegistryContext, RegistryProvider } from "@effect/atom-react";
 import type { AtomRegistry } from "effect/unstable/reactivity";
 
+import { createIndexedDbWorkflowStorage } from "@ensforge/core/storage/browser";
 import { Ensforge, type CreateConfigParameters } from "@ensforge/sdk";
 import {
   createEnsforge as createWagmiEnsforge,
@@ -45,8 +46,14 @@ export const EnsforgeProvider = (props: EnsforgeProviderProps) => {
       sdk:
         props.sdk ??
         ("wagmiConfig" in props.config
-          ? createWagmiEnsforge(props.config)
-          : new Ensforge(props.config)),
+          ? createWagmiEnsforge({
+              ...props.config,
+              storage: props.config.storage ?? createIndexedDbWorkflowStorage(),
+            })
+          : new Ensforge({
+              ...props.config,
+              storage: props.config.storage ?? createIndexedDbWorkflowStorage(),
+            })),
     });
   }
 

@@ -39,27 +39,33 @@ export const decodeV1NamePosition = Effect.fn("decodeV1NamePosition")(function* 
         cause,
       }),
   });
+
   if (decoded.field !== order.field) {
     return yield* new IndexerPaginationError({
       code: "CURSOR_MISMATCH",
       message: "The V1 indexer position does not match the requested order",
     });
   }
+
   return decoded;
 });
 
 export const compileV1NamePosition = (position: V1NamePosition, order: NameOrder): V1NameWhere => {
   const field =
     order.field === "createdAt" ? "createdAt" : order.field === "expiry" ? "expiryDate" : "name";
+
   const direction = order.direction === "asc" ? "gt" : "lt";
   const idDirection = order.direction === "asc" ? "id_gt" : "id_lt";
+
   if (position.value === null) return { [field]: null, [idDirection]: position.namehash };
 
   const after: Array<Record<string, unknown>> = [
     { [`${field}_${direction}`]: position.value },
     { [field]: position.value, [idDirection]: position.namehash },
   ];
+
   if (order.direction === "desc") after.push({ [field]: null });
+
   return { or: after };
 };
 

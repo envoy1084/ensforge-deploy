@@ -18,10 +18,13 @@ export const resolveAvatarRecord: (
 ) => Effect.Effect<Exclude<AvatarResult, null>, GatewayError> = Effect.fn("resolveAvatarRecord")(
   function* (client, name, record, chainId, policy, gatewayUrls) {
     const nftChain = /^eip155:(\d+)\//i.exec(record)?.[1];
+
     if (nftChain !== undefined && Number(nftChain) !== chainId) {
       return { status: "unsupported-chain", record, chainId: Number(nftChain) };
     }
+
     if (/^https?:\/\//i.test(record)) yield* validateGatewayUrl(record, policy);
+
     for (const gateway of Object.values(gatewayUrls ?? {})) {
       if (gateway !== undefined) yield* validateGatewayUrl(gateway, policy);
     }

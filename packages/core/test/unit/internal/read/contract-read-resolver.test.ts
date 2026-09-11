@@ -11,9 +11,13 @@ import {
 import { makeContractReadRequest } from "../../../../src/internal/read/contract-read.js";
 
 const registry = "0x0000000000000000000000000000000000000001";
+
 const alice = "0x0000000000000000000000000000000000000002";
+
 const bob = "0x0000000000000000000000000000000000000003";
+
 const otherRegistry = "0x0000000000000000000000000000000000000004";
+
 const ownerAbi = [
   {
     type: "function",
@@ -23,8 +27,11 @@ const ownerAbi = [
     outputs: [{ name: "", type: "address" }],
   },
 ] as const;
+
 const firstNode = `0x${"01".repeat(32)}` as const;
+
 const secondNode = `0x${"02".repeat(32)}` as const;
+
 const thirdNode = `0x${"03".repeat(32)}` as const;
 
 const requestOwner = (
@@ -50,9 +57,11 @@ describe("ContractReadResolver", () => {
       { status: "success", result: alice },
       { status: "success", result: bob },
     ]);
+
     const resolver = makeContractReadResolver({
       publicClient: { multicall } as unknown as Pick<PublicClient, "multicall">,
     });
+
     const [first, second] = await Promise.all([
       requestOwner(firstNode),
       requestOwner(secondNode, undefined, otherRegistry),
@@ -85,6 +94,7 @@ describe("ContractReadResolver", () => {
       [secondNode, bob],
       [thirdNode, otherRegistry],
     ]);
+
     const multicall = vi.fn().mockImplementation(({ contracts }) =>
       Promise.resolve(
         contracts.map(({ args }: { readonly args: readonly [`0x${string}`] }) => ({
@@ -93,10 +103,12 @@ describe("ContractReadResolver", () => {
         })),
       ),
     );
+
     const resolver = makeContractReadResolver({
       publicClient: { multicall } as unknown as Pick<PublicClient, "multicall">,
       multicallBatchSize: 36,
     });
+
     const requests = await Promise.all([
       requestOwner(firstNode),
       requestOwner(secondNode),
@@ -123,18 +135,22 @@ describe("ContractReadResolver", () => {
   it("limits concurrent Multicall3 chunks with the shared semaphore", async () => {
     let active = 0;
     let maximumActive = 0;
+
     const multicall = vi.fn().mockImplementation(async () => {
       active += 1;
       maximumActive = Math.max(maximumActive, active);
       await new Promise<void>((resolve) => setTimeout(resolve, 5));
       active -= 1;
+
       return [{ status: "success", result: alice }];
     });
+
     const resolver = makeContractReadResolver({
       publicClient: { multicall } as unknown as Pick<PublicClient, "multicall">,
       multicallBatchSize: 36,
       readSemaphore: Semaphore.makeUnsafe(2),
     });
+
     const requests = await Promise.all([
       requestOwner(firstNode),
       requestOwner(secondNode),
@@ -156,16 +172,20 @@ describe("ContractReadResolver", () => {
 
   it("isolates a transport failure to its Multicall3 chunk", async () => {
     const cause = new Error("first chunk unavailable");
+
     const multicall = vi.fn().mockImplementation(({ contracts }) => {
       const [{ args }] = contracts as [{ readonly args: readonly [`0x${string}`] }];
+
       return args[0] === firstNode
         ? Promise.reject(cause)
         : Promise.resolve([{ status: "success", result: bob }]);
     });
+
     const resolver = makeContractReadResolver({
       publicClient: { multicall } as unknown as Pick<PublicClient, "multicall">,
       multicallBatchSize: 36,
     });
+
     const [first, second] = await Promise.all([requestOwner(firstNode), requestOwner(secondNode)]);
 
     const result = await Effect.runPromise(
@@ -188,9 +208,11 @@ describe("ContractReadResolver", () => {
 
   it("deduplicates identical reads within a resolver batch", async () => {
     const multicall = vi.fn().mockResolvedValue([{ status: "success", result: alice }]);
+
     const resolver = makeContractReadResolver({
       publicClient: { multicall } as unknown as Pick<PublicClient, "multicall">,
     });
+
     const [first, duplicate] = await Promise.all([
       requestOwner(firstNode),
       requestOwner(firstNode),
@@ -219,9 +241,11 @@ describe("ContractReadResolver", () => {
         },
       ]),
     );
+
     const resolver = makeContractReadResolver({
       publicClient: { multicall } as unknown as Pick<PublicClient, "multicall">,
     });
+
     const [first, second] = await Promise.all([
       requestOwner(firstNode, 1n),
       requestOwner(secondNode, 2n),
@@ -247,9 +271,11 @@ describe("ContractReadResolver", () => {
       .mockImplementation(({ account }: { account: `0x${string}` }) =>
         Promise.resolve([{ status: "success", result: account }]),
       );
+
     const resolver = makeContractReadResolver({
       publicClient: { multicall } as unknown as Pick<PublicClient, "multicall">,
     });
+
     const [first, second] = await Promise.all([
       requestOwner(firstNode, undefined, registry, alice),
       requestOwner(secondNode, undefined, registry, bob),
@@ -269,13 +295,16 @@ describe("ContractReadResolver", () => {
 
   it("completes each read with its individual success or failure", async () => {
     const cause = new Error("owner lookup reverted");
+
     const multicall = vi.fn().mockResolvedValue([
       { status: "success", result: alice },
       { status: "failure", error: cause },
     ]);
+
     const resolver = makeContractReadResolver({
       publicClient: { multicall } as unknown as Pick<PublicClient, "multicall">,
     });
+
     const [first, second] = await Promise.all([requestOwner(firstNode), requestOwner(secondNode)]);
 
     const result = await Effect.runPromise(
@@ -301,9 +330,11 @@ describe("ContractReadResolver", () => {
   it("completes every grouped read when the aggregate request fails", async () => {
     const cause = new Error("RPC unavailable");
     const multicall = vi.fn().mockRejectedValue(cause);
+
     const resolver = makeContractReadResolver({
       publicClient: { multicall } as unknown as Pick<PublicClient, "multicall">,
     });
+
     const [first, second] = await Promise.all([requestOwner(firstNode), requestOwner(secondNode)]);
 
     const result = await Effect.runPromise(
@@ -329,9 +360,11 @@ describe("ContractReadResolver", () => {
 
   it("fails entries that have no corresponding Multicall3 result", async () => {
     const multicall = vi.fn().mockResolvedValue([{ status: "success", result: alice }]);
+
     const resolver = makeContractReadResolver({
       publicClient: { multicall } as unknown as Pick<PublicClient, "multicall">,
     });
+
     const [first, second] = await Promise.all([requestOwner(firstNode), requestOwner(secondNode)]);
 
     const result = await Effect.runPromise(

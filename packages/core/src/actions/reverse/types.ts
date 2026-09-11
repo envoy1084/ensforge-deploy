@@ -16,4 +16,5 @@ export interface SetContractPrimaryNameParameters extends SetPrimaryNameParamete
 }
 
 export type ReverseNameWriteResult = CallExecutionResult;
+
 export type ReverseNameWriteError = WriteError;

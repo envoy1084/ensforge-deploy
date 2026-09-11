@@ -4,6 +4,7 @@ import { normalize } from "viem/ens";
 
 const isCanonicalName = Schema.makeFilter<string>((value) => {
   if (value === "") return true;
+
   if (value.startsWith(".") || value.endsWith(".") || value.includes("..")) {
     return "Expected an ENS name without empty labels";
   }
@@ -17,6 +18,7 @@ const isCanonicalName = Schema.makeFilter<string>((value) => {
 
 const isCanonicalLabel = Schema.makeFilter<string>((value) => {
   if (value.length === 0) return "Expected a non-empty ENS label";
+
   if (value.includes(".")) return "Expected one ENS label without dots";
 
   try {

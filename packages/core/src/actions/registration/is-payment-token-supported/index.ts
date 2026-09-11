@@ -22,6 +22,7 @@ const isPaymentTokenSupportedEffect = Effect.fn("ensforge.isPaymentTokenSupporte
     parameters,
     Effect.gen(function* () {
       const { profile } = yield* DeploymentService;
+
       if (profile.protocol === "v1") {
         return {
           protocol: "v1",
@@ -29,10 +30,12 @@ const isPaymentTokenSupportedEffect = Effect.fn("ensforge.isPaymentTokenSupporte
           reason: "NATIVE_PAYMENT_ONLY",
         } satisfies PaymentTokenSupport;
       }
+
       const result = yield* readPaymentTokenSupport(
         profile.v2.contracts.rentPriceOracle,
         parameters.paymentToken,
       );
+
       return result.supported
         ? ({
             protocol: "v2",

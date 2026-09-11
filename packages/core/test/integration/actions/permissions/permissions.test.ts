@@ -28,6 +28,7 @@ describe("permission writes integration", () => {
   it.effect("prepares explicit operator and V1 token approval targets", () =>
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
+
       const simulations = yield* Effect.all(
         [
           simulateCalls.effect(devnet.configs.v1, {
@@ -95,37 +96,45 @@ describe("permission writes integration", () => {
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
       const name = devnet.fixtures.permissions.v1.resolverDelegate.name;
+
       yield* setResolverDelegateApproval.effect(devnet.configs.v1, {
         name,
         delegate: devnet.accounts.owner2,
         approved: true,
       });
+
       const granted = yield* getResolverDelegateApproval.effect(devnet.configs.v1, {
         name,
         owner: devnet.accounts.owner,
         delegate: devnet.accounts.owner2,
       });
+
       yield* setResolverDelegateApproval.effect(devnet.configs.v1, {
         name,
         delegate: devnet.accounts.owner2,
         approved: false,
       });
+
       const revoked = yield* getResolverDelegateApproval.effect(devnet.configs.v1, {
         name,
         owner: devnet.accounts.owner,
         delegate: devnet.accounts.owner2,
       });
+
       const v2Name = devnet.fixtures.permissions.v2.resolverDelegate.name;
+
       yield* setResolverDelegateApproval.effect(devnet.configs.v2, {
         name: v2Name,
         delegate: devnet.accounts.owner2,
         approved: true,
       });
+
       const v2Granted = yield* getResolverDelegateApproval.effect(devnet.configs.v2, {
         name: v2Name,
         owner: devnet.accounts.owner,
         delegate: devnet.accounts.owner2,
       });
+
       yield* setResolverDelegateApproval.effect(devnet.configs.v2, {
         name: v2Name,
         delegate: devnet.accounts.owner2,
@@ -143,26 +152,31 @@ describe("permission writes integration", () => {
       const devnet = getIntegrationDevnet();
       const name = devnet.fixtures.v2.active.name;
       const roles = registryRoles.setUri;
+
       yield* grantRegistryRoles.effect(devnet.configs.v2, {
         name,
         account: devnet.accounts.owner2,
         roles,
       });
+
       const granted = yield* hasRegistryRoles.effect(devnet.configs.v2, {
         name,
         account: devnet.accounts.owner2,
         roles,
       });
+
       yield* revokeRegistryRoles.effect(devnet.configs.v2, {
         name,
         account: devnet.accounts.owner2,
         roles,
       });
+
       const revoked = yield* hasRegistryRoles.effect(devnet.configs.v2, {
         name,
         account: devnet.accounts.owner2,
         roles,
       });
+
       const adminDenied = yield* simulateCalls
         .effect(devnet.configs.v2, {
           calls: [
@@ -186,44 +200,52 @@ describe("permission writes integration", () => {
       const devnet = getIntegrationDevnet();
       const name = devnet.fixtures.permissions.v2.permissionedResolver.name;
       const record = { type: "text" as const, key: "com.ensforge.phase13.exact" };
+
       yield* grantResolverRoles.effect(devnet.configs.v2, {
         name,
         account: devnet.accounts.owner2,
         record,
       });
+
       const exact = yield* hasResolverRoles.effect(devnet.configs.v2, {
         name,
         account: devnet.accounts.owner2,
         roles: resolverRoles.setText,
         record,
       });
+
       yield* revokeResolverRoles.effect(devnet.configs.v2, {
         name,
         account: devnet.accounts.owner2,
         record,
       });
+
       const exactRevoked = yield* hasResolverRoles.effect(devnet.configs.v2, {
         name,
         account: devnet.accounts.owner2,
         roles: resolverRoles.setText,
         record,
       });
+
       yield* grantResolverRootRoles.effect(devnet.configs.v2, {
         name,
         account: devnet.accounts.owner2,
         roles: resolverRoles.setAbi,
       });
+
       const root = yield* hasResolverRoles.effect(devnet.configs.v2, {
         name,
         account: devnet.accounts.owner2,
         roles: resolverRoles.setAbi,
         record: { type: "abi", contentType: 1n },
       });
+
       yield* revokeResolverRootRoles.effect(devnet.configs.v2, {
         name,
         account: devnet.accounts.owner2,
         roles: resolverRoles.setAbi,
       });
+
       const rootRevoked = yield* hasResolverRoles.effect(devnet.configs.v2, {
         name,
         account: devnet.accounts.owner2,
@@ -243,6 +265,7 @@ describe("permission writes integration", () => {
       const devnet = getIntegrationDevnet();
       const publicName = devnet.fixtures.permissions.v1.resolverDelegate.name;
       const permissionedName = devnet.fixtures.permissions.v2.permissionedResolver.name;
+
       const denied = yield* setRecordPermissions
         .effect(devnet.configs.v1, {
           name: publicName,
@@ -251,6 +274,7 @@ describe("permission writes integration", () => {
           approved: true,
         })
         .pipe(Effect.flip);
+
       const publicResult = yield* setRecordPermissions.effect(devnet.configs.v1, {
         name: publicName,
         account: devnet.accounts.owner2,
@@ -258,6 +282,7 @@ describe("permission writes integration", () => {
         approved: true,
         allowScopeWidening: true,
       });
+
       const exactResult = yield* setRecordPermissions.effect(devnet.configs.v2, {
         name: permissionedName,
         account: devnet.accounts.owner2,
@@ -268,6 +293,7 @@ describe("permission writes integration", () => {
         approved: true,
         mode: "sequential",
       });
+
       const [text, address] = yield* Effect.all(
         [
           hasResolverRoles.effect(devnet.configs.v2, {
@@ -285,6 +311,7 @@ describe("permission writes integration", () => {
         ] as const,
         { concurrency: "unbounded" },
       );
+
       yield* setRecordPermissions.effect(devnet.configs.v2, {
         name: permissionedName,
         account: devnet.accounts.owner2,
@@ -308,9 +335,11 @@ describe("permission writes integration", () => {
       assert.strictEqual(publicResult.model, "public-resolver-delegate");
       assert.isTrue(publicResult.widened);
       assert.strictEqual(exactResult.model, "permissioned-resolver-roles");
+
       if (exactResult.model === "permissioned-resolver-roles") {
         assert.lengthOf(exactResult.permissions, 2);
       }
+
       assert.isTrue(text.supported && text.authorized);
       assert.isTrue(address.supported && address.authorized);
     }),
@@ -319,6 +348,7 @@ describe("permission writes integration", () => {
   it.effect("rejects unauthorized permission administration", () =>
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
+
       const denied = yield* simulateCalls
         .effect(devnet.configs.v2, {
           calls: [

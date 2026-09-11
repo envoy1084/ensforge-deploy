@@ -35,18 +35,24 @@ const fragmentDependencies = (document: string, fragments: ReadonlyArray<string>
       ),
     ),
   );
+
   const selected = new Set<string>();
+
   const visitSpreads = (file: string) => {
     visit(parse(readFileSync(file, "utf8")), {
       FragmentSpread(node) {
         const dependency = fragmentFiles.get(node.name.value);
+
         if (dependency === undefined || selected.has(dependency)) return;
+
         selected.add(dependency);
         visitSpreads(dependency);
       },
     });
   };
+
   visitSpreads(document);
+
   return [...selected];
 };
 
@@ -59,6 +65,7 @@ const protocolOutput = (protocol: "v1" | "v2") => {
       .filter((document) => !document.startsWith(`${documentsRoot}/fragments/`))
       .map((document) => {
         const output = relative(documentsRoot, document).replace(/\.graphql$/u, ".ts");
+
         return [
           `src/internal/indexer/generated/${protocol}/${output}`,
           {

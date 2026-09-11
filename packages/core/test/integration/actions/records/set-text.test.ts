@@ -37,6 +37,7 @@ describe("setText integration", () => {
         account: devnet.fixtures.permissions.operator,
         mode: "sequential",
       });
+
       const record = yield* getText.effect(devnet.configs.v2, {
         name: fixture.name,
         key: fixture.textKey,
@@ -52,6 +53,7 @@ describe("setText integration", () => {
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
       const fixture = devnet.fixtures.permissions.v2.permissionedResolver;
+
       const error = yield* simulateCalls
         .effect(devnet.configs.v2, {
           calls: [

@@ -83,6 +83,7 @@ const resolverMulticallPreparer: EnsWriteIntentPreparer<SetRecordsParameters, Se
   Effect.fn("ensforge.setRecords.prepare")(function* (config, parameters, context) {
     const name = yield* normalizeName.effect(parameters.name);
     const intents = getSetRecordIntents(name, parameters.records);
+
     if (intents.length === 0) {
       return yield* new WritePlanError({
         code: "INVALID_CALL_PLAN",
@@ -90,10 +91,12 @@ const resolverMulticallPreparer: EnsWriteIntentPreparer<SetRecordsParameters, Se
         cause: parameters.records,
       });
     }
+
     const prepared = yield* Effect.forEach(
       intents,
       Effect.fn("ensforge.setRecords.prepareRecord")(function* (intent, index) {
         const preparer = getWriteIntentPreparer(intent);
+
         if (preparer === undefined) {
           return yield* new WritePlanError({
             code: "INTENT_NOT_PREPARABLE",
@@ -101,13 +104,16 @@ const resolverMulticallPreparer: EnsWriteIntentPreparer<SetRecordsParameters, Se
             cause: intent,
           });
         }
+
         return yield* preparer(config, intent.parameters, {
           ...context,
           index: context.index + index,
         });
       }),
     );
+
     const target = prepared[0];
+
     if (target === undefined || target.data === undefined) {
       return yield* new WritePlanError({
         code: "INVALID_CALL_PLAN",
@@ -115,6 +121,7 @@ const resolverMulticallPreparer: EnsWriteIntentPreparer<SetRecordsParameters, Se
         cause: prepared,
       });
     }
+
     if (
       prepared.some(
         (call) =>
@@ -129,6 +136,7 @@ const resolverMulticallPreparer: EnsWriteIntentPreparer<SetRecordsParameters, Se
         cause: prepared,
       });
     }
+
     const data = yield* Effect.try({
       try: () =>
         encodeFunctionData({
@@ -143,6 +151,7 @@ const resolverMulticallPreparer: EnsWriteIntentPreparer<SetRecordsParameters, Se
           cause,
         }),
     });
+
     return {
       to: target.to,
       data,
@@ -168,7 +177,9 @@ const executeResolverMulticall = Effect.fn("ensforge.setRecords.resolverMultical
     ...(parameters.account === undefined ? {} : { account: parameters.account }),
     ...(parameters.confirmation === undefined ? {} : { confirmation: parameters.confirmation }),
   });
+
   const call = result.calls[0];
+
   if (call === undefined || call.status === "not-started") {
     return yield* new WritePlanError({
       code: "INVALID_CALL_PLAN",
@@ -176,6 +187,7 @@ const executeResolverMulticall = Effect.fn("ensforge.setRecords.resolverMultical
       cause: result,
     });
   }
+
   return {
     mode: "resolver",
     atomic: true,
@@ -190,6 +202,7 @@ const setRecordsEffect = Effect.fn("ensforge.setRecords")(function* (
 ) {
   const aggregate = makeResolverMulticallIntent(parameters);
   const aggregation = parameters.aggregation ?? "auto";
+
   const useResolverMulticall =
     aggregation === "resolver" ||
     (aggregation === "auto" &&
@@ -204,9 +217,11 @@ const setRecordsEffect = Effect.fn("ensforge.setRecords")(function* (
           }),
         ),
       ));
+
   if (useResolverMulticall) {
     return yield* executeResolverMulticall(config, parameters);
   }
+
   if (parameters.mode === "sequential" && parameters.atomicity === "required") {
     return yield* new WalletError({
       code: "ATOMICITY_UNAVAILABLE",
@@ -214,6 +229,7 @@ const setRecordsEffect = Effect.fn("ensforge.setRecords")(function* (
       cause: parameters,
     });
   }
+
   return yield* sendCalls.effect(config, {
     calls: getSetRecordIntents(parameters.name, parameters.records),
     ...(parameters.walletClient === undefined ? {} : { walletClient: parameters.walletClient }),

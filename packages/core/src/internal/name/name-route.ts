@@ -68,6 +68,7 @@ export const readNameRoute = Effect.fn("readNameRoute")(function* (
   DeploymentService | EthereumClient | ReadContext
 > {
   const deployments = yield* DeploymentService;
+
   if (deployments.profile.protocol === "v1") {
     return { kind: "v1", protocol: "v1", deployment: deployments.profile.v1 };
   }
@@ -75,6 +76,7 @@ export const readNameRoute = Effect.fn("readNameRoute")(function* (
   const deployment = deployments.profile.v2;
   const v1 = deployments.profile.v1;
   const analysis = analyzeName(name);
+
   if (analysis.label === undefined) {
     return v1 === undefined
       ? {
@@ -90,6 +92,7 @@ export const readNameRoute = Effect.fn("readNameRoute")(function* (
 
   const ethereum = yield* EthereumClient;
   const dnsName = yield* dnsEncodeName.effect(name);
+
   const parentRegistry = yield* ethereum.readContract({
     address: deployment.contracts.universalResolver,
     abi: universalResolverV2InterfaceFindParentRegistryAbi,
@@ -116,6 +119,7 @@ export const readNameRoute = Effect.fn("readNameRoute")(function* (
     functionName: "getState",
     args: [BigInt(labelhash(analysis.label))],
   });
+
   if (state.status !== 0 && state.status !== 1 && state.status !== 2) {
     return yield* new ContractError({
       code: "DECODE_FAILED",
@@ -123,9 +127,12 @@ export const readNameRoute = Effect.fn("readNameRoute")(function* (
       cause: state,
     });
   }
+
   const secondLevelLabel = analysis.ethSecondLevelLabel;
+
   const shouldCheckReservedRenewal =
     state.status === 0 && isAddressEqual(state.latestOwner, zeroAddress);
+
   const reservedRenewable =
     secondLevelLabel === undefined || !shouldCheckReservedRenewal
       ? false
@@ -155,6 +162,7 @@ export const readNameRoute = Effect.fn("readNameRoute")(function* (
       functionName: "findResolver",
       args: [dnsName],
     });
+
     if (isAddressEqual(resolver, deployment.migration.ensV1Resolver)) {
       return { kind: "v1", protocol: "v1", deployment: v1 };
     }

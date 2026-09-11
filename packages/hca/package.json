@@ -1,0 +1,95 @@
+{
+  "name": "@ensforge/hca",
+  "version": "0.0.0",
+  "description": "Typed execution adapters and persistence for ENS HCA accounts",
+  "keywords": [
+    "ens",
+    "ethereum",
+    "name-service",
+    "sdk",
+    "typescript",
+    "viem",
+    "wagmi",
+    "web3"
+  ],
+  "homepage": "https://ensforge.com",
+  "bugs": "https://github.com/thenamespace/ensforge/issues",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thenamespace/ensforge.git",
+    "directory": "packages/hca"
+  },
+  "files": [
+    "dist",
+    "patches"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "imports": {
+    "#/*": "./src/*.ts"
+  },
+  "exports": {
+    ".": {
+      "workspace-source": "./src/index.ts",
+      "default": "./dist/index.js"
+    },
+    "./pimlico": {
+      "workspace-source": "./src/providers/pimlico.ts",
+      "default": "./dist/pimlico.js"
+    },
+    "./remote": {
+      "workspace-source": "./src/remote/index.ts",
+      "default": "./dist/remote.js"
+    },
+    "./rhinestone": {
+      "workspace-source": "./src/providers/rhinestone.ts",
+      "default": "./dist/rhinestone.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "imports": {
+      "#/*": "./dist/*.js"
+    },
+    "exports": {
+      ".": "./dist/index.js",
+      "./pimlico": "./dist/pimlico.js",
+      "./remote": "./dist/remote.js",
+      "./rhinestone": "./dist/rhinestone.js",
+      "./package.json": "./package.json"
+    },
+    "access": "public",
+    "provenance": true
+  },
+  "scripts": {
+    "build": "tsdown",
+    "dev": "tsdown --watch",
+    "lint": "oxlint --deny-warnings .",
+    "typecheck": "tsc --noEmit",
+    "pack:check": "publint && attw --pack . --profile esm-only",
+    "prepack": "pnpm build"
+  },
+  "dependencies": {
+    "@ensforge/contracts": "workspace:*",
+    "@ensforge/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@rhinestone/sdk": "1.8.0",
+    "permissionless": "0.4.0"
+  },
+  "peerDependencies": {
+    "@rhinestone/sdk": "1.8.0",
+    "effect": "^4.0.0-rc.112",
+    "permissionless": "^0.4.0",
+    "viem": "^2.56.0"
+  },
+  "peerDependenciesMeta": {
+    "@rhinestone/sdk": {
+      "optional": true
+    },
+    "permissionless": {
+      "optional": true
+    }
+  }
+}

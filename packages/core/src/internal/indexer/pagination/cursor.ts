@@ -54,6 +54,7 @@ export const makeIndexerCursorBinding = (
   order: unknown,
 ): IndexerCursorBinding => {
   const states = getIndexerRuntimeConfig(config.indexer).sourceStates;
+
   return {
     action,
     network: config.network,
@@ -68,15 +69,20 @@ export const makeIndexerCursorBinding = (
 
 const stableValue = (value: unknown): unknown => {
   if (typeof value === "bigint") return { $bigint: value.toString() };
+
   if (Array.isArray(value)) return value.map(stableValue);
+
   if (value !== null && typeof value === "object") {
     const entries = Object.entries(value).filter(([, child]) => child !== undefined);
+
     const sorted = Arr.sort(
       entries,
       Order.mapInput(Order.String, ([key]: [string, unknown]) => key),
     );
+
     return Object.fromEntries(sorted.map(([key, child]) => [key, stableValue(child)]));
   }
+
   return value;
 };
 
@@ -85,7 +91,9 @@ export const fingerprintIndexerValue = (value: unknown) =>
 
 const encodeBase64Url = (value: string): string => {
   let binary = "";
+
   for (const byte of new TextEncoder().encode(value)) binary += String.fromCharCode(byte);
+
   return btoa(binary).replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/u, "");
 };
 
@@ -94,7 +102,9 @@ const decodeBase64Url = (value: string): string => {
     .replaceAll("-", "+")
     .replaceAll("_", "/")
     .padEnd(Math.ceil(value.length / 4) * 4, "=");
+
   const binary = atob(padded);
+
   return new TextDecoder().decode(Uint8Array.from(binary, (character) => character.charCodeAt(0)));
 };
 
@@ -136,6 +146,7 @@ export const decodeIndexerCursor = Effect.fn("decodeIndexerCursor")(function* (
   const payload = yield* Effect.try({
     try: () => {
       if (!cursor.startsWith("v1.")) throw new Error("Unsupported cursor version");
+
       return Schema.decodeUnknownSync(IndexerCursorPayload)(
         JSON.parse(decodeBase64Url(cursor.slice(3))),
       );
@@ -149,6 +160,7 @@ export const decodeIndexerCursor = Effect.fn("decodeIndexerCursor")(function* (
   });
 
   const expected = payloadFor(binding, payload.sources);
+
   if (
     payload.action !== expected.action ||
     payload.network !== expected.network ||
@@ -161,5 +173,6 @@ export const decodeIndexerCursor = Effect.fn("decodeIndexerCursor")(function* (
       message: "The indexer cursor does not match this query",
     });
   }
+
   return payload;
 });

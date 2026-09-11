@@ -8,6 +8,8 @@ export default defineConfig({
     capabilities: "src/entrypoints/capabilities.ts",
     dns: "src/entrypoints/dns.ts",
     events: "src/entrypoints/events.ts",
+    "hca/admin": "src/entrypoints/hca-admin.ts",
+    hca: "src/entrypoints/hca.ts",
     index: "src/index.ts",
     indexer: "src/entrypoints/indexer.ts",
     migration: "src/entrypoints/migration.ts",

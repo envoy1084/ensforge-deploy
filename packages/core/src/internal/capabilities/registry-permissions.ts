@@ -15,6 +15,7 @@ export const readRegistryPermissionTarget = Effect.fn("readRegistryPermissionTar
   name: NormalizedName,
 ) {
   const route = yield* readNameRoute(name);
+
   if (route.kind === "v1" || route.kind === "reserved") {
     return {
       supported: false,
@@ -27,6 +28,7 @@ export const readRegistryPermissionTarget = Effect.fn("readRegistryPermissionTar
     route.parentRegistry,
     registryInterfaceIds.permissionedRegistry,
   );
+
   if (!supported) {
     return {
       supported: false,
@@ -37,12 +39,14 @@ export const readRegistryPermissionTarget = Effect.fn("readRegistryPermissionTar
 
   const ethereum = yield* EthereumClient;
   const anyId = BigInt(labelhash(route.label));
+
   const resource = yield* ethereum.readContract({
     address: route.parentRegistry,
     abi: permissionedRegistryV2InterfaceGetResourceAbi,
     functionName: "getResource",
     args: [anyId],
   });
+
   return {
     supported: true,
     protocol: "v2",

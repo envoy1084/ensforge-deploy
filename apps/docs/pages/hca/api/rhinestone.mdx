@@ -1,0 +1,45 @@
+---
+title: rhinestone
+description: Create a Rhinestone session-execution adapter for the supported ENS HCA.
+---
+
+# rhinestone
+
+Create a Rhinestone session-execution adapter for the supported ENS HCA.
+
+## Import
+
+```ts
+import { rhinestone } from "@ensforge/hca/rhinestone";
+```
+
+## Usage
+
+```ts
+const execution = rhinestone({ profile, chain, owner, sessionSigner, sdk: { apiKey } });
+```
+
+## Parameters
+
+```ts
+options: RhinestoneOptions;
+```
+
+Required: `profile`, `chain`, `owner`, `sessionSigner`, `sdk`. Optional: `sessionSalt`, `policy`, `crossChain`, `sponsored`. The returned adapter exposes `extensions.sessions.prepare`, `extensions.sessions.enable`, and `crossChain`. See [Providers](/hca/providers) and [Funding](/hca/funding).
+
+Use the default sponsored execution mode. `sponsored: false` is not a supported release path;
+see [Compatibility](/hca/compatibility) for the unresolved refund-route limitation.
+
+## Return Type
+
+RhinestoneExecutionAdapter
+
+## Error
+
+Invalid identity, configuration and unsupported authorization remain explicit errors. Provider transport
+and simulation failures must be reconciled before repeating a submission.
+
+## Related
+
+- [Examples](/hca/examples)
+- [Compatibility](/hca/compatibility)

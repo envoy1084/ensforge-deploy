@@ -17,6 +17,7 @@ import {
 import { format } from "oxfmt";
 
 const root = resolve(import.meta.dirname, "..");
+
 const sources = {
   v1: [
     {
@@ -43,6 +44,7 @@ const formatSchema = Effect.fn("formatSchema")(function* (schema) {
         cause,
       }),
   });
+
   if (result.errors.length > 0) {
     return yield* new SchemaRefreshError({
       message: "Schema formatting returned errors",
@@ -50,17 +52,20 @@ const formatSchema = Effect.fn("formatSchema")(function* (schema) {
       cause: result.errors,
     });
   }
+
   return result.code;
 });
 
 const requestSchema = Effect.fn("requestSchema")(function* ({ url }) {
   const client = yield* HttpClient.HttpClient;
+
   const request = yield* HttpClientRequest.post(url).pipe(
     HttpClientRequest.bodyJson({
       operationName: "IntrospectionQuery",
       query: getIntrospectionQuery({ descriptions: true }),
     }),
   );
+
   const response = yield* client.execute(request).pipe(
     Effect.mapError(
       (cause) =>
@@ -71,6 +76,7 @@ const requestSchema = Effect.fn("requestSchema")(function* ({ url }) {
         }),
     ),
   );
+
   const body = yield* response.json.pipe(
     Effect.mapError(
       (cause) =>
@@ -98,6 +104,7 @@ const requestSchema = Effect.fn("requestSchema")(function* ({ url }) {
           cause,
         }),
     });
+
     return yield* formatSchema(schema);
   }
 
@@ -124,6 +131,7 @@ const writeSchema = Effect.fn("writeSchema")(function* (protocol, schema, protoc
   const fileSystem = yield* FileSystem.FileSystem;
   const directory = resolve(root, "graphql/indexer", protocol);
   const retrievedAt = DateTime.formatIso(yield* DateTime.now);
+
   yield* fileSystem.makeDirectory(directory, { recursive: true });
   yield* Effect.all(
     [
@@ -150,7 +158,9 @@ const program = Effect.gen(function* () {
   const v1Schemas = yield* Effect.all(sources.v1.map(introspect), {
     concurrency: "unbounded",
   });
+
   const v1Fingerprints = v1Schemas.map(fingerprint);
+
   if (new Set(v1Fingerprints).size !== 1) {
     return yield* new SchemaRefreshError({
       message: `ENSv1 schemas differ between Mainnet and Sepolia: ${v1Fingerprints.join(", ")}`,
@@ -159,6 +169,7 @@ const program = Effect.gen(function* () {
   }
 
   const v2Schema = yield* introspect(sources.v2[0]);
+
   yield* Effect.all(
     [writeSchema("v1", v1Schemas[0], sources.v1), writeSchema("v2", v2Schema, sources.v2)],
     { concurrency: "unbounded" },
@@ -166,4 +177,5 @@ const program = Effect.gen(function* () {
 });
 
 const nodeLayer = Layer.merge(NodeServices.layer, NodeHttpClient.layerUndici);
+
 NodeRuntime.runMain(program.pipe(Effect.provide(nodeLayer)));

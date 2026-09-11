@@ -74,6 +74,7 @@ export const resolveNameWithResolver = Effect.fn("resolveNameWithResolver")(func
   const ethereum = yield* EthereumClient;
   const context = yield* ReadContext;
   const block = context.block;
+
   const parameters = {
     address: universalResolver,
     functionName: "resolveWithResolver",

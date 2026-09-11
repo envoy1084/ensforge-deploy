@@ -14,8 +14,10 @@ export const getResolverAuthorizationModel = (
     profile.v1?.contracts.publicResolver,
     profile.v2?.contracts.publicResolver,
   ];
+
   const known = publicResolvers.some(
     (address) => address?.toLowerCase() === resolver.toLowerCase(),
   );
+
   return known ? "owner-delegate" : "unknown";
 };

@@ -26,6 +26,7 @@ describe("resolver lifecycle integration", () => {
       const v1Name = devnet.fixtures.v1.resolverLifecycle.name;
       const v2Name = devnet.fixtures.v2.resolverLifecycle.name;
       const permissionedResolver = devnet.fixtures.permissions.v2.permissionedResolver.resolver;
+
       const denied = yield* simulateCalls
         .effect(devnet.configs.v2, {
           calls: [setResolver.call({ name: v2Name, resolver: permissionedResolver })],
@@ -41,6 +42,7 @@ describe("resolver lifecycle integration", () => {
         name: v2Name,
         resolver: permissionedResolver,
       });
+
       const [v1, v2] = yield* Effect.all(
         [
           getResolver.effect(devnet.configs.v1, { name: v1Name }),
@@ -48,7 +50,9 @@ describe("resolver lifecycle integration", () => {
         ] as const,
         { concurrency: "unbounded" },
       );
+
       yield* setResolver.effect(devnet.configs.v2, { name: v2Name, resolver: zeroAddress });
+
       const cleared = yield* getResolver.effect(devnet.configs.v2, { name: v2Name });
 
       assert.instanceOf(denied, AuthorizationError);
@@ -66,13 +70,16 @@ describe("resolver lifecycle integration", () => {
       const parameters = { salt: 12_001n } as const;
       const predicted = yield* predictResolverAddress.effect(devnet.configs.v2, parameters);
       const created = yield* createResolver.effect(devnet.configs.v2, parameters);
+
       const predictedAfterDeployment = yield* predictResolverAddress.effect(
         devnet.configs.v2,
         parameters,
       );
 
       yield* setResolver.effect(devnet.configs.v2, { name, resolver: created.resolver });
+
       const capabilities = yield* getResolverCapabilities.effect(devnet.configs.v2, { name });
+
       yield* setResolver.effect(devnet.configs.v2, { name, resolver: zeroAddress });
 
       assert.strictEqual(created.status, "deployed");
@@ -100,29 +107,36 @@ describe("resolver lifecycle integration", () => {
       yield* setResolver.effect(devnet.configs.v2, { name: v2Name, resolver: zeroAddress });
 
       const v1 = yield* getOrCreateResolver.effect(devnet.configs.v1, { name: v1Name });
+
       const v2Public = yield* getOrCreateResolver.effect(devnet.configs.v2, {
         name: devnet.fixtures.v2.active.name,
       });
+
       const deployed = yield* getOrCreateResolver.effect(devnet.configs.v2, {
         name: v2Name,
         salt: 12_002n,
       });
+
       yield* setResolver.effect(devnet.configs.v2, {
         name: v2Name,
         resolver: deployed.resolver,
       });
+
       const existing = yield* getOrCreateResolver.effect(devnet.configs.v2, { name: v2Name });
       const current = yield* upgradeResolver.effect(devnet.configs.v2, { name: v2Name });
+
       const denied = yield* simulateCalls
         .effect(devnet.configs.v2, {
           calls: [upgradeResolver.call({ name: v2Name, force: true })],
           account: devnet.accounts.owner2,
         })
         .pipe(Effect.flip);
+
       const upgraded = yield* upgradeResolver.effect(devnet.configs.v2, {
         name: v2Name,
         force: true,
       });
+
       yield* setResolver.effect(devnet.configs.v2, { name: v2Name, resolver: zeroAddress });
 
       assert.strictEqual(v1.status, "existing");
@@ -145,16 +159,20 @@ describe("resolver lifecycle integration", () => {
       const devnet = getIntegrationDevnet();
       const v1Name = devnet.fixtures.v1.resolverLifecycle.name;
       const v2Name = devnet.fixtures.v2.resolverLifecycle.name;
+
       const v1 = yield* setResolverAndRecords.effect(devnet.configs.v1, {
         name: v1Name,
         records: [{ type: "text", key: "com.ensforge.lifecycle", value: "v1" }],
       });
+
       const parameters = {
         name: v2Name,
         salt: 12_003n,
         records: [{ type: "text" as const, key: "com.ensforge.lifecycle", value: "v2" }],
       };
+
       const deployed = yield* setResolverAndRecords.effect(devnet.configs.v2, parameters);
+
       const partial = {
         ...deployed,
         write: {
@@ -164,10 +182,12 @@ describe("resolver lifecycle integration", () => {
           currentStage: "set-resolver",
         },
       };
+
       const resumed = yield* setResolverAndRecords.effect(devnet.configs.v2, {
         ...parameters,
         resume: partial,
       });
+
       const mismatched = yield* setResolverAndRecords
         .effect(devnet.configs.v2, {
           ...parameters,
@@ -175,10 +195,12 @@ describe("resolver lifecycle integration", () => {
           resume: resumed,
         })
         .pipe(Effect.flip);
+
       const reused = yield* setResolverAndRecords.effect(devnet.configs.v2, {
         name: v2Name,
         records: [{ type: "text", key: "com.ensforge.lifecycle", value: "v2-updated" }],
       });
+
       const [resolver, text] = yield* Effect.all(
         [
           getResolver.effect(devnet.configs.v2, { name: v2Name }),
@@ -189,6 +211,7 @@ describe("resolver lifecycle integration", () => {
         ] as const,
         { concurrency: "unbounded" },
       );
+
       yield* setResolver.effect(devnet.configs.v2, { name: v2Name, resolver: zeroAddress });
 
       assert.strictEqual(v1.resolverSource, "existing");
@@ -214,12 +237,15 @@ describe("resolver lifecycle integration", () => {
       const devnet = getIntegrationDevnet();
       const name = devnet.fixtures.v2.inheritedResolver.name;
       const inherited = yield* getResolverCapabilities.effect(devnet.configs.v2, { name });
+
       const replaced = yield* setResolverAndRecords.effect(devnet.configs.v2, {
         name,
         salt: 12_004n,
         records: [{ type: "text", key: "com.ensforge.lifecycle", value: "replaced" }],
       });
+
       const attached = yield* getResolverCapabilities.effect(devnet.configs.v2, { name });
+
       yield* setResolver.effect(devnet.configs.v2, { name, resolver: zeroAddress });
 
       assert.isTrue(inherited.inherited);

@@ -12,12 +12,15 @@ import {
 import { getIntegrationDevnet } from "../../setup/devnet.js";
 
 const duration = 365n * 86_400n;
+
 const v1Secret = "0x1717171717171717171717171717171717171717171717171717171717171717";
+
 const v2Secret = "0x2727272727272727272727272727272727272727272727272727272727272727";
 
 const advanceTime = (seconds: bigint) =>
   Effect.gen(function* () {
     const { configs } = getIntegrationDevnet();
+
     yield* Effect.tryPromise(() =>
       configs.v1.publicClient.request({
         method: "evm_increaseTime",
@@ -33,6 +36,7 @@ describe("registration writes integration", () => {
   it.effect("enforces maxPrice before committing a registration", () =>
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
+
       const error = yield* registerName
         .effect(devnet.configs.v1, {
           name: "phase17-expensive.eth",
@@ -52,6 +56,7 @@ describe("registration writes integration", () => {
   it.effect("rejects low-level completion without a commitment and redacts the secret", () =>
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
+
       const error = yield* completeRegistration
         .effect(devnet.configs.v1, {
           name: "phase17-no-commitment.eth",
@@ -70,12 +75,14 @@ describe("registration writes integration", () => {
   it.effect("rejects duplicate names before starting a multi-name workflow", () =>
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
+
       const registration = {
         name: "phase17-duplicate.eth",
         owner: devnet.accounts.owner,
         secret: v1Secret,
         duration,
       } as const;
+
       const error = yield* registerNames
         .effect(devnet.configs.v1, { registrations: [registration, registration] })
         .pipe(Effect.flip);
@@ -93,6 +100,7 @@ describe("registration writes integration", () => {
       const paymentToken = devnet.fixtures.registration.paymentTokens.usdc.address;
 
       yield* approvePaymentToken.effect(devnet.configs.v2, { paymentToken, amount: 0n });
+
       const v1Waiting = yield* registerName.effect(devnet.configs.v1, {
         name: v1Name,
         owner: devnet.accounts.owner,
@@ -100,6 +108,7 @@ describe("registration writes integration", () => {
         duration,
         records: [{ type: "text", key: "phase", value: "seventeen-v1" }],
       });
+
       const v2Waiting = yield* registerName.effect(devnet.configs.v2, {
         name: v2Name,
         owner: devnet.accounts.owner,
@@ -120,6 +129,7 @@ describe("registration writes integration", () => {
           ? devnet.fixtures.registration.v1.minCommitmentAge
           : devnet.fixtures.registration.v2.minCommitmentAge) + 1n,
       );
+
       const v1Completed = yield* registerName.effect(devnet.configs.v1, {
         name: v1Name,
         owner: devnet.accounts.owner,
@@ -128,6 +138,7 @@ describe("registration writes integration", () => {
         records: [{ type: "text", key: "phase", value: "seventeen-v1" }],
         resume: v1Waiting,
       });
+
       const v2Completed = yield* registerName.effect(devnet.configs.v2, {
         name: v2Name,
         owner: devnet.accounts.owner,
@@ -136,6 +147,7 @@ describe("registration writes integration", () => {
         paymentToken,
         resume: v2Waiting,
       });
+
       const record = yield* getText.effect(devnet.configs.v1, { name: v1Name, key: "phase" });
 
       assert.strictEqual(v1Completed.status, "completed");
@@ -152,6 +164,7 @@ describe("registration writes integration", () => {
         records: [{ type: "text", key: "phase", value: "seventeen-v1" }],
         resume: v1Completed,
       });
+
       assert.strictEqual(resumedAfterRegistration.status, "completed");
     }),
   );
@@ -159,6 +172,7 @@ describe("registration writes integration", () => {
   it.effect("resumes multiple independent registrations without hiding per-name progress", () =>
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
+
       const registrations = [
         {
           name: "phase17-batch-a.eth",
@@ -173,15 +187,19 @@ describe("registration writes integration", () => {
           duration,
         },
       ] as const;
+
       const waiting = yield* registerNames.effect(devnet.configs.v1, { registrations });
+
       assert.strictEqual(waiting.status, "waiting");
       assert.lengthOf(waiting.registrations, 2);
 
       yield* advanceTime(devnet.fixtures.registration.v1.minCommitmentAge + 1n);
+
       const firstAttempt = yield* registerNames.effect(devnet.configs.v1, {
         registrations,
         resume: waiting,
       });
+
       const completed =
         firstAttempt.status === "completed"
           ? firstAttempt

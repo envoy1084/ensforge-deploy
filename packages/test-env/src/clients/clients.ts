@@ -53,10 +53,13 @@ export const createDevnetClients = (rpcUrl: string, multicall3: Address): Devnet
       },
     },
   });
+
   const transport = http(rpcUrl, { retryCount: 0, timeout: 5_000 });
   const publicClient = createPublicClient({ chain, transport });
+
   const createAccountClient = (account: Address) =>
     createWalletClient({ account, chain, transport });
+
   const walletClients = {
     deployer: createAccountClient(devnetAccounts.deployer),
     owner: createAccountClient(devnetAccounts.owner),
@@ -111,6 +114,7 @@ export const verifyDevnetClients = Effect.fn("verifyDevnetClients")(function* (
         cause,
       }),
   });
+
   const missingAccounts = devnetUnlockedAccounts.filter(
     (expected) => !unlockedAccounts.some((actual) => isAddressEqual(actual, expected)),
   );

@@ -19,6 +19,7 @@ describe("Mainnet provider and deployments", () => {
 
       const now = BigInt(Math.floor(Date.now() / 1_000));
       const age = now - block.timestamp;
+
       assert.strictEqual(chainId, 1);
       assert.isTrue(block.number > 0n);
       assert.isTrue(age >= -60n && age <= 600n, `Latest block is ${age} seconds old`);
@@ -30,6 +31,7 @@ describe("Mainnet provider and deployments", () => {
       const contracts = Object.entries(mainnetV1Deployment.contracts) as ReadonlyArray<
         readonly [string, Address]
       >;
+
       const deployed = yield* Effect.forEach(
         contracts,
         ([name, address]) =>

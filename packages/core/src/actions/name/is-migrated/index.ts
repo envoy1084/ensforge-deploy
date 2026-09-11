@@ -16,20 +16,24 @@ const isMigratedEffect = Effect.fn("ensforge.isMigrated")(function* (
   parameters: GetNameStateParameters,
 ) {
   const name = yield* normalizeName.effect(parameters.name);
+
   return yield* executeRead(
     config,
     parameters,
     Effect.gen(function* () {
       const route = yield* readNameRoute(name);
+
       if (route.kind !== "v2" || isAddressEqual(route.state.latestOwner, zeroAddress)) return false;
 
       const ethereum = yield* EthereumClient;
+
       const roles = yield* ethereum.readContract({
         address: route.parentRegistry,
         abi: permissionedRegistryV2InterfaceRolesAbi,
         functionName: "roles",
         args: [route.state.resource, route.state.latestOwner],
       });
+
       return (roles & registryRoles.wasReserved) !== 0n;
     }),
   );

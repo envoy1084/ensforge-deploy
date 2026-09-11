@@ -30,6 +30,7 @@ export const findResolver = Effect.fn("findResolver")(function* (
   const deployment = yield* DeploymentService;
   const ethereum = yield* EthereumClient;
   const dnsName = yield* dnsEncodeName.effect(name);
+
   const universalResolver =
     deployment.profile.protocol === "v1"
       ? deployment.profile.v1.contracts.universalResolver

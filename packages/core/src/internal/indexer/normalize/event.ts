@@ -12,8 +12,11 @@ import { normalizeV2RecordEvent } from "./record-event.js";
 import { decodeAddress, decodeBigInt, decodeDomainNamehash, decodeHex } from "./scalars.js";
 
 type V1DomainEvent = V1GetEventsQuery["domainEvents"][number];
+
 type V1RegistrationEvent = V1GetEventsQuery["registrationEvents"][number];
+
 type V1ResolverEvent = V1GetEventsQuery["resolverEvents"][number];
+
 type V2Event = V2GetEventsQuery["eventConnection"]["edges"][number]["node"];
 
 const JsonObject = Schema.Record(Schema.String, Schema.Unknown);
@@ -37,16 +40,20 @@ const nullableHex = (value: unknown) =>
 const stringFrom = (payload: Readonly<Record<string, unknown>>, ...keys: ReadonlyArray<string>) => {
   for (const key of keys) {
     const value = payload[key];
+
     if (Predicate.isString(value)) return value;
   }
+
   return null;
 };
 
 const bigintFrom = (payload: Readonly<Record<string, unknown>>, ...keys: ReadonlyArray<string>) => {
   for (const key of keys) {
     const value = payload[key];
+
     if (Predicate.isNumber(value) || Predicate.isString(value)) return nullableBigInt(value);
   }
+
   return null;
 };
 
@@ -59,8 +66,11 @@ const namehashFrom = (
   payload: Readonly<Record<string, unknown>>,
 ): Namehash | null => {
   if (direct !== null && direct !== undefined) return decodeDomainNamehash(direct);
+
   if (name !== null) return decodeDomainNamehash(makeNamehash(name), name);
+
   const candidate = stringFrom(payload, "namehash", "node");
+
   return candidate === null ? null : decodeDomainNamehash(candidate);
 };
 
@@ -118,6 +128,7 @@ export const normalizeV1DomainEvent = (
     contractAddress: null,
     data: null,
   });
+
   switch (event["__typename"]) {
     case "Transfer":
     case "WrappedTransfer":
@@ -155,6 +166,7 @@ export const normalizeV1RegistrationEvent = (
   context: { readonly network: EnsNetworkId; readonly indexedBlock: bigint },
 ): IndexedEvent => {
   const name = event.registration.domain.name;
+
   const common = eventBase(context, "v1", {
     id: event.id,
     type: event["__typename"],
@@ -166,6 +178,7 @@ export const normalizeV1RegistrationEvent = (
     contractAddress: null,
     data: null,
   });
+
   switch (event["__typename"]) {
     case "NameRegistered":
       return {
@@ -198,6 +211,7 @@ export const normalizeV1ResolverEvent = (
 ): IndexedEvent => {
   const domain = event.resolver.domain;
   const name = domain?.name ?? null;
+
   const common = eventBase(context, "v1", {
     id: event.id,
     type: event["__typename"],
@@ -209,6 +223,7 @@ export const normalizeV1ResolverEvent = (
     contractAddress: event.resolver.address,
     data: null,
   });
+
   const recordKind =
     event["__typename"] === "AddrChanged" || event["__typename"] === "MulticoinAddrChanged"
       ? ("address" as const)
@@ -227,6 +242,7 @@ export const normalizeV1ResolverEvent = (
                   : event["__typename"] === "AuthorisationChanged"
                     ? ("authorization" as const)
                     : ("version" as const);
+
   return {
     ...common,
     kind: "record",
@@ -248,6 +264,7 @@ export const normalizeV2Event = (
   const protocol = Schema.decodeUnknownSync(Schema.Literals(["v1", "v2"]))(event.protocol);
   const payload = parseData(event.data);
   const name = event.name ?? stringFrom(payload, "name");
+
   const common = eventBase(context, protocol, {
     id: event.id,
     type: event.type,
@@ -263,6 +280,7 @@ export const normalizeV2Event = (
   switch (event.type.toLowerCase()) {
     case "nameregistered": {
       const details = event.asNameRegistered;
+
       return {
         ...common,
         kind: "registration",
@@ -277,6 +295,7 @@ export const normalizeV2Event = (
     }
     case "labelregistered": {
       const details = event.asLabelRegistered;
+
       return {
         ...common,
         kind: "registration",
@@ -297,6 +316,7 @@ export const normalizeV2Event = (
       };
     case "transfer": {
       const details = event.asTransfer;
+
       return {
         ...common,
         kind: "transfer",
@@ -370,13 +390,17 @@ export const normalizeV2Event = (
     case "authorizationchanged":
     case "versionchanged": {
       if (common.namehash === null) return { ...common, kind: "unknown", eventType: event.type };
+
       const record = normalizeV2RecordEvent(event, { ...context, namehash: common.namehash });
+
       return recordEvent(common, record);
     }
     default: {
       const type = event.type.toLowerCase();
+
       if (type.includes("migrat"))
         return { ...common, kind: "migration", owner: addressFrom(payload, "owner", "registrant") };
+
       if (type.includes("subregistry"))
         return {
           ...common,
@@ -384,6 +408,7 @@ export const normalizeV2Event = (
           registry: addressFrom(payload, "registry"),
           subregistry: addressFrom(payload, "subregistry"),
         };
+
       if (type.includes("role"))
         return {
           ...common,
@@ -393,6 +418,7 @@ export const normalizeV2Event = (
           roles: bigintFrom(payload, "roles", "role"),
           active: !type.includes("revok") && payload.active !== false,
         };
+
       return { ...common, kind: "unknown", eventType: event.type };
     }
   }

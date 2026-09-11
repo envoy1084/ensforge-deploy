@@ -40,11 +40,13 @@ export const queryV2Events = Effect.fn("queryV2Events")(function* (
     let indexedBlock = 0n;
     let hasNextPage = true;
     const types = selectedEventTypes(filter);
+
     const namehash =
       filter.namehash ?? (filter.name === undefined ? undefined : makeNamehash(filter.name));
 
     while (candidates.length <= limit && hasNextPage) {
       const v1Enabled = getIndexerRuntimeConfig(config.indexer).sourceStates.v1 === "enabled";
+
       const where: V2GetEventsQueryVariables["where"] = {
         ...(namehash === undefined ? {} : { namehash }),
         ...(v1Enabled ? { protocol: "v2" } : {}),
@@ -62,6 +64,7 @@ export const queryV2Events = Effect.fn("queryV2Events")(function* (
           : { timestamp_lt: Number(filter.timestampBefore) }),
         ...(types === undefined ? {} : { type_in: types }),
       };
+
       const response = yield* requestIndexer<V2GetEventsQuery, V2GetEventsQueryVariables>(config, {
         protocol: "v2",
         operationName,
@@ -73,13 +76,16 @@ export const queryV2Events = Effect.fn("queryV2Events")(function* (
           orderDirection: order.direction,
         },
       });
+
       const data = yield* requireIndexerData(config, "v2", operationName, response);
+
       indexedBlock = yield* decodeIndexedBlock(
         config,
         "v2",
         operationName,
         data["_meta"].block.number,
       );
+
       const normalized = yield* Effect.try({
         try: () =>
           data.eventConnection.edges.map(({ cursor, node }) => ({
@@ -96,9 +102,13 @@ export const queryV2Events = Effect.fn("queryV2Events")(function* (
             cause,
           }),
       });
+
       candidates.push(...normalized.filter(({ item }) => matchesEventFilter(item, filter)));
+
       const next = data.eventConnection.pageInfo.endCursor;
+
       hasNextPage = data.eventConnection.pageInfo.hasNextPage;
+
       if (hasNextPage && (next === null || next === after)) {
         return yield* new IndexerDecodeError({
           code: "INVALID_RESPONSE",
@@ -109,8 +119,10 @@ export const queryV2Events = Effect.fn("queryV2Events")(function* (
           cause: data.eventConnection.pageInfo,
         });
       }
+
       after = next;
     }
+
     return {
       indexedBlock,
       page: {
@@ -132,6 +144,7 @@ export const queryV2Events = Effect.fn("queryV2Events")(function* (
       },
     };
   }
+
   return {
     status: "complete",
     page: result.success.page,

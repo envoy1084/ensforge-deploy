@@ -13,4 +13,5 @@ export type GetResolverMetadataParameters = typeof GetResolverMetadataParameters
 
 export const GetResolverMetadataResult = V2IndexerResult(Schema.NullOr(IndexedResolverMetadata));
 export type GetResolverMetadataResult = V2IndexerResultType<IndexedResolverMetadata | null>;
+
 export type GetResolverMetadataError = ResolverIndexerError;

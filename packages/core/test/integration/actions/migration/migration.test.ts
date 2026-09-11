@@ -14,6 +14,7 @@ describe("migration reads integration", () => {
   it.effect("classifies every seeded migration route", () =>
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
+
       const result = yield* Effect.all(
         {
           unwrapped: getMigrationStatus.effect(devnet.configs.v2, {
@@ -50,6 +51,7 @@ describe("migration reads integration", () => {
   it.effect("returns the token standard and receiver for every transferable route", () =>
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
+
       const result = yield* readBatch.effect(devnet.configs.v2, {
         unwrapped: getMigrationTarget.request({
           name: devnet.fixtures.migration.reservedUnwrapped.name,
@@ -64,6 +66,7 @@ describe("migration reads integration", () => {
       });
 
       assert.isTrue(result.unwrapped.supported);
+
       if (result.unwrapped.supported) {
         assert.strictEqual(result.unwrapped.route, "unwrapped");
         assert.strictEqual(result.unwrapped.tokenStandard, "erc721");
@@ -72,11 +75,17 @@ describe("migration reads integration", () => {
           devnet.deployments.v2.migration.unlockedMigrationController,
         );
       }
+
       assert.isTrue(result.unlocked.supported);
+
       if (result.unlocked.supported) assert.strictEqual(result.unlocked.route, "wrapped-unlocked");
+
       assert.isTrue(result.locked.supported);
+
       if (result.locked.supported) assert.strictEqual(result.locked.route, "wrapped-locked");
+
       assert.isTrue(result.child.supported);
+
       if (result.child.supported) assert.strictEqual(result.child.route, "locked-child");
     }),
   );
@@ -85,6 +94,7 @@ describe("migration reads integration", () => {
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
       const name = devnet.fixtures.migration.reservedWrapped.name;
+
       const [ownerEligibility, unauthorizedEligibility, ready, authorizationRequired] =
         yield* Effect.all(
           [
@@ -119,6 +129,7 @@ describe("migration reads integration", () => {
   it.effect("reports completed, available, and pre-V2 states without throwing", () =>
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
+
       const [migrated, available, v1] = yield* Effect.all(
         [
           getMigrationPlan.effect(devnet.configs.v2, {

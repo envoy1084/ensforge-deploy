@@ -34,8 +34,11 @@ const phaseAbi = [
     outputs: [],
   },
 ] as const;
+
 const contentHashValue = "bafybeigdyrzt5sfp7udm7hu76u3dgn4hz6l4n5yhzf3xj7o2k5v5z5z5zi";
+
 const interfaceId = "0x01ffc9a7";
+
 const pubkey = {
   x: "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   y: "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
@@ -78,15 +81,18 @@ describe("resolver write integration", () => {
       const devnet = getIntegrationDevnet();
       const fixture = devnet.fixtures.records.v1;
       const name = devnet.fixtures.v1.recordWrites.name;
+
       const bitcoinAddress = yield* Effect.sync(() =>
         decodeAddressRecord({ coinType: 0n, data: fixture.addresses.bitcoin.value }),
       );
+
       assert.isNotNull(bitcoinAddress);
 
       const result = yield* sendCalls.effect(devnet.configs.v1, {
         calls: completeRecordCalls(devnet, name, "v1", bitcoinAddress),
         mode: "sequential",
       });
+
       const records = yield* getRecords.effect(devnet.configs.v1, {
         name,
         records: {
@@ -122,18 +128,21 @@ describe("resolver write integration", () => {
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
       const fixture = devnet.fixtures.permissions.v2.permissionedResolver;
+
       const bitcoinAddress = yield* Effect.sync(() =>
         decodeAddressRecord({
           coinType: 0n,
           data: devnet.fixtures.records.v1.addresses.bitcoin.value,
         }),
       );
+
       assert.isNotNull(bitcoinAddress);
 
       const result = yield* sendCalls.effect(devnet.configs.v2, {
         calls: completeRecordCalls(devnet, fixture.name, "v2-role", bitcoinAddress),
         mode: "sequential",
       });
+
       const records = yield* getRecords.effect(devnet.configs.v2, {
         name: fixture.name,
         records: {
@@ -166,15 +175,18 @@ describe("resolver write integration", () => {
   it.effect("supports Public Resolver delegates without granting inherited resolver control", () =>
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
+
       const v1Call = setTexts.call({
         name: devnet.fixtures.permissions.v1.resolverDelegate.name,
         texts: [{ key: "com.ensforge.delegate", value: "v1" }],
       });
+
       const v2Call = setData.call({
         name: devnet.fixtures.permissions.v2.resolverDelegate.name,
         key: "com.ensforge.delegate",
         value: "0x02",
       });
+
       const [v1, v2] = yield* Effect.all(
         [
           sendCalls.effect(devnet.configs.v1, {
@@ -190,6 +202,7 @@ describe("resolver write integration", () => {
         ] as const,
         { concurrency: 1 },
       );
+
       const inherited = yield* simulateCalls
         .effect(devnet.configs.v2, {
           calls: [
@@ -214,6 +227,7 @@ describe("resolver write integration", () => {
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
       const fixture = devnet.fixtures.permissions.v2.permissionedResolver;
+
       const scoped = yield* sendCalls.effect(devnet.configs.v2, {
         calls: [
           setTexts.call({
@@ -224,6 +238,7 @@ describe("resolver write integration", () => {
         account: devnet.fixtures.permissions.operator,
         mode: "sequential",
       });
+
       const denied = yield* simulateCalls
         .effect(devnet.configs.v2, {
           calls: [
@@ -238,11 +253,13 @@ describe("resolver write integration", () => {
           account: devnet.fixtures.permissions.operator,
         })
         .pipe(Effect.flip);
+
       const empty = yield* simulateCalls
         .effect(devnet.configs.v2, {
           calls: [setTexts.call({ name: fixture.name, texts: [] })],
         })
         .pipe(Effect.flip);
+
       const missingResolver = yield* simulateCalls
         .effect(devnet.configs.v2, {
           calls: [
@@ -270,9 +287,11 @@ describe("resolver write integration", () => {
       const devnet = getIntegrationDevnet();
       const name = devnet.fixtures.v1.activeUnwrapped.name;
       const walletClient = devnet.configs.v1.walletClient;
+
       if (walletClient === undefined) {
         return yield* Effect.die(new Error("The integration config must include a wallet client"));
       }
+
       const customResolverConfig = createTestConfig({
         deployments: {
           protocol: "v1",
@@ -287,11 +306,13 @@ describe("resolver write integration", () => {
         publicClient: devnet.configs.v1.publicClient,
         walletClient,
       });
+
       const permissions = yield* getRecordPermissions.effect(customResolverConfig, {
         name,
         account: devnet.accounts.owner,
         records: [{ type: "text", key: "com.ensforge.custom-simulation" }],
       });
+
       const simulated = yield* simulateCalls.effect(customResolverConfig, {
         calls: [
           setText.call({

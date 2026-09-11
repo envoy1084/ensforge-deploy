@@ -23,11 +23,13 @@ export const resolveNameRecord = Effect.fn("resolveNameRecord")(function* (name:
         cause,
       }),
   });
+
   const results = yield* resolveRecords(name, [call]);
 
   if (results === null) return { name: null } as const;
 
   const encodedResult = results[0];
+
   if (encodedResult === undefined) {
     return yield* new ContractError({
       code: "DECODE_FAILED",

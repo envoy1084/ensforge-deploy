@@ -21,6 +21,7 @@ export const prepareResolverWrite = Effect.fn("prepareResolverWrite")(function* 
 ) {
   const name = yield* normalizeName.effect(parameters.name);
   const operation = parameters.records[0];
+
   if (operation === undefined) {
     return yield* new WritePlanError({
       code: "INVALID_CALL_PLAN",
@@ -32,7 +33,9 @@ export const prepareResolverWrite = Effect.fn("prepareResolverWrite")(function* 
   const account = (
     typeof parameters.account === "string" ? parameters.account : parameters.account.address
   ) as EthereumAddress;
+
   const target = yield* getWriteTarget.effect(config, { name, operation });
+
   if (!target.available || target.kind !== "resolver") {
     return yield* new AuthorizationError({
       code: "WRITE_TARGET_UNAVAILABLE",
@@ -45,7 +48,9 @@ export const prepareResolverWrite = Effect.fn("prepareResolverWrite")(function* 
     account,
     records: parameters.records,
   });
+
   const unsupported = permissions.records.find((permission) => !permission.supported);
+
   if (unsupported !== undefined) {
     return yield* new AuthorizationError({
       code: "RECORD_UNSUPPORTED",
@@ -56,6 +61,7 @@ export const prepareResolverWrite = Effect.fn("prepareResolverWrite")(function* 
   const unauthorized = permissions.records.find(
     (permission) => permission.authorization.status === "unauthorized",
   );
+
   if (unauthorized !== undefined) {
     return yield* new AuthorizationError({
       code: "UNAUTHORIZED",

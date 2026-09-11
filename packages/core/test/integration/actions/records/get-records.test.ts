@@ -18,6 +18,7 @@ describe("resolver profile integration", () => {
       const devnet = getIntegrationDevnet();
       const fixture = devnet.fixtures.records.v2;
       const decodedContentHash = decodeContentHash(fixture.contenthash);
+
       assert.isNotNull(decodedContentHash);
 
       const result = yield* getRecords.effect(devnet.configs.v2, {
@@ -74,6 +75,7 @@ describe("resolver profile integration", () => {
   it.effect("uses v1, migrated v2, and RESERVED routing without changing the API", () =>
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
+
       const [v1, migrated, reserved] = yield* Effect.all([
         getRecords.effect(devnet.configs.v1, {
           name: devnet.fixtures.records.v1.name,
@@ -102,6 +104,7 @@ describe("resolver profile integration", () => {
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
       const name = devnet.fixtures.v2.noResolver.name;
+
       const result = yield* getRecords.effect(devnet.configs.v2, {
         name,
         records: {
@@ -145,6 +148,7 @@ describe("resolver profile integration", () => {
   it.effect("rejects an invalid selector before executing the resolver call", () =>
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
+
       const error = yield* Effect.flip(
         getRecords.effect(devnet.configs.v2, {
           name: devnet.fixtures.records.v2.name,
@@ -160,6 +164,7 @@ describe("resolver profile integration", () => {
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
       const fixture = devnet.fixtures.records.v2;
+
       const result = yield* readBatch.effect(devnet.configs.v2, {
         profile: getRecords.request({
           name: fixture.name,

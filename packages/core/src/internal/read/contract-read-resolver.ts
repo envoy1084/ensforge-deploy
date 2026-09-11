@@ -20,6 +20,7 @@ export const executeContractRead = Effect.fn("executeContractRead")(function* <S
   resolver: ContractReadResolver,
 ): Effect.fn.Return<Success, ViemError> {
   const result = yield* Effect.request(request as ContractReadRequest, resolver);
+
   return result as Success;
 });
 
@@ -41,6 +42,7 @@ export const makeContractReadResolver = ({
 
       for (const entry of entries) {
         const existing = uniqueRequests.get(entry.request.requestKey);
+
         if (existing === undefined) {
           uniqueRequests.set(entry.request.requestKey, {
             request: entry.request,
@@ -59,14 +61,17 @@ export const makeContractReadResolver = ({
 
       for (const pending of unique) {
         const callSize = (pending.request.callData.length - 2) / 2;
+
         if (currentChunk.length > 0 && currentChunkSize + callSize > multicallBatchSize) {
           chunks.push(currentChunk);
           currentChunk = [];
           currentChunkSize = 0;
         }
+
         currentChunk.push(pending);
         currentChunkSize += callSize;
       }
+
       if (currentChunk.length > 0) chunks.push(currentChunk);
 
       yield* Effect.annotateCurrentSpan({
@@ -102,6 +107,7 @@ export const makeContractReadResolver = ({
 
       for (const [chunkIndex, chunk] of chunks.entries()) {
         const outcome = outcomes[chunkIndex];
+
         if (outcome === undefined) continue;
 
         if (Result.isFailure(outcome)) {
@@ -110,6 +116,7 @@ export const makeContractReadResolver = ({
               entry.completeUnsafe(Exit.fail(outcome.failure));
             }
           }
+
           continue;
         }
 

@@ -9,6 +9,7 @@ export const devnetAccountRoles = [
 ] as const;
 
 export type DevnetAccountRole = (typeof devnetAccountRoles)[number];
+
 export type DevnetAccounts = Readonly<Record<DevnetAccountRole, Address>>;
 
 export const devnetAccounts = Object.freeze({

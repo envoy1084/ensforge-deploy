@@ -21,12 +21,14 @@ describe("renewal writes integration", () => {
   it.effect("rejects unavailable names and enforces maxPrice", () =>
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
+
       const unavailable = yield* renewName
         .effect(devnet.configs.v1, {
           name: devnet.fixtures.v1.available.name,
           duration,
         })
         .pipe(Effect.flip);
+
       const expensive = yield* renewName
         .effect(devnet.configs.v1, {
           name: devnet.fixtures.v1.activeUnwrapped.name,
@@ -48,6 +50,7 @@ describe("renewal writes integration", () => {
       const paymentToken = devnet.fixtures.registration.paymentTokens.dai.address;
       const nativeName = devnet.fixtures.v2.renewalBatch.name;
       const reservedName = devnet.fixtures.migration.renewalReservedBatch.name;
+
       const calls = yield* prepareCalls.effect(devnet.configs.v2, {
         calls: [
           renewName.call({ name: nativeName, duration, paymentToken }),
@@ -80,6 +83,7 @@ describe("renewal writes integration", () => {
       const name = devnet.fixtures.v1.renewal.name;
       const before = yield* getExpiry.effect(devnet.configs.v1, { name });
       const renewed = yield* renewName.effect(devnet.configs.v1, { name, duration });
+
       const resumed = yield* renewName.effect(devnet.configs.v1, {
         name,
         duration,
@@ -122,12 +126,15 @@ describe("renewal writes integration", () => {
       const name = devnet.fixtures.v2.renewal.name;
       const paymentToken = devnet.fixtures.registration.paymentTokens.usdc.address;
       const before = yield* getExpiry.effect(devnet.configs.v2, { name });
+
       yield* approvePaymentToken.effect(devnet.configs.v2, { paymentToken, amount: 0n });
+
       const renewed = yield* renewName.effect(devnet.configs.v2, {
         name,
         duration,
         paymentToken,
       });
+
       assert.strictEqual(
         renewed.status,
         "completed",
@@ -146,17 +153,20 @@ describe("renewal writes integration", () => {
       const name = devnet.fixtures.migration.renewalReserved.name;
       const paymentToken = devnet.fixtures.registration.paymentTokens.usdc.address;
       const before = yield* getExpiry.effect(devnet.configs.v2, { name });
+
       yield* approveRenewalPayment.effect(devnet.configs.v2, {
         name,
         duration,
         paymentToken,
         amount: 0n,
       });
+
       const renewed = yield* renewName.effect(devnet.configs.v2, {
         name,
         duration,
         paymentToken,
       });
+
       assert.strictEqual(
         renewed.status,
         "completed",
@@ -172,13 +182,16 @@ describe("renewal writes integration", () => {
   it.effect("uses V1 bulk renewal for compatible names", () =>
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
+
       const names = [
         devnet.fixtures.v1.renewalBatchOne.name,
         devnet.fixtures.v1.renewalBatchTwo.name,
       ] as const;
+
       const before = yield* Effect.forEach(names, (name) =>
         getExpiry.effect(devnet.configs.v1, { name }),
       );
+
       const result = yield* renewNames.effect(devnet.configs.v1, {
         renewals: names.map((name) => ({ name, duration })),
       });
@@ -201,16 +214,20 @@ describe("renewal writes integration", () => {
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
       const paymentToken = devnet.fixtures.registration.paymentTokens.dai.address;
+
       const renewals = [
         { name: devnet.fixtures.v2.renewalBatch.name, duration, paymentToken },
         { name: devnet.fixtures.migration.renewalReservedBatch.name, duration, paymentToken },
       ] as const;
+
       yield* approvePaymentToken.effect(devnet.configs.v2, { paymentToken, amount: 0n });
       yield* approveRenewalPayment.effect(devnet.configs.v2, {
         ...renewals[1],
         amount: 0n,
       });
+
       const result = yield* renewNames.effect(devnet.configs.v2, { renewals });
+
       const resumed = yield* renewNames.effect(devnet.configs.v2, {
         renewals,
         resume: result,

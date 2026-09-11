@@ -11,6 +11,7 @@ describe("Mainnet indexed resolvers", () => {
   it.effect("reads V1 resolver bindings", () =>
     Effect.gen(function* () {
       const name = yield* getIndexedName.effect(mainnetConfig, { name: mainnetNames.reverse });
+
       if (name?.resolver === null || name === null) return assert.fail("expected a V1 resolver");
 
       const resolver = yield* getIndexedResolver.effect(mainnetConfig, {
@@ -18,6 +19,7 @@ describe("Mainnet indexed resolvers", () => {
         protocol: "v1",
         name: mainnetNames.reverse,
       });
+
       assert.strictEqual(resolver?.protocol, "v1");
       assert.isTrue(
         resolver?.bindings.some((binding) => binding.namehash === namehash(mainnetNames.reverse)),

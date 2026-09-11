@@ -28,25 +28,31 @@ const getResolverRolesEffect = Effect.fn("ensforge.getResolverRoles")(function* 
   parameters: GetResolverRolesParameters,
 ) {
   const name = yield* normalizeName.effect(parameters.name);
+
   return yield* executeRead(
     config,
     parameters,
     Effect.gen(function* () {
       const target = yield* readResolverPermissionTarget(name);
+
       if (!target.supported) return target;
+
       const resource = resolverResource(
         target.node,
         parameters.record === undefined
           ? "0x0000000000000000000000000000000000000000000000000000000000000000"
           : resolverRecordPart(parameters.record),
       );
+
       const ethereum = yield* EthereumClient;
+
       const roles = yield* ethereum.readContract({
         address: target.resolver,
         abi: permissionedResolverV2InterfaceRolesAbi,
         functionName: "roles",
         args: [resource, parameters.account],
       });
+
       return { ...target, resource, account: parameters.account, roles } as const;
     }),
   );

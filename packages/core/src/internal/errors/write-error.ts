@@ -24,7 +24,9 @@ export const isWalletCallBundleUnsupported = (cause: unknown): boolean => {
   ) {
     return true;
   }
+
   const invalidRequest = findViemErrorCause(cause, InvalidRequestRpcError);
+
   return (
     invalidRequest !== undefined &&
     /unsupported method.*wallet_(?:getCapabilities|sendCalls)/i.test(invalidRequest.details)
@@ -50,6 +52,7 @@ export function walletRequestError(
       cause,
     });
   }
+
   if (
     findViemErrorCause(cause, UnauthorizedProviderError) !== undefined ||
     findViemErrorCause(cause, UnsupportedChainIdError) !== undefined
@@ -60,6 +63,7 @@ export function walletRequestError(
       cause,
     });
   }
+
   if (findViemErrorCause(cause, AtomicityNotSupportedError) !== undefined) {
     return new WalletError({
       code: "ATOMICITY_UNAVAILABLE",
@@ -67,6 +71,7 @@ export function walletRequestError(
       cause,
     });
   }
+
   if (operation === "capabilities") {
     return new WalletError({
       code: "CAPABILITY_REQUEST_FAILED",
@@ -74,6 +79,7 @@ export function walletRequestError(
       cause,
     });
   }
+
   if (operation === "sendCalls") {
     return new WalletError({
       code: "BATCH_SUBMISSION_FAILED",
@@ -81,6 +87,7 @@ export function walletRequestError(
       cause,
     });
   }
+
   return viemErrorToEffectError(cause, "writeContract");
 }
 

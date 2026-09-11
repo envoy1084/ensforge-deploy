@@ -27,10 +27,8 @@ export default defineConfig({
     text: "Suggest changes to this page",
   },
   head: (_path, { frontmatter }) => ({
-    canonical:
-      typeof frontmatter?.canonical === "string"
-        ? new URL(frontmatter.canonical, siteUrl).href
-        : undefined,
+    // Vocs serializes this callback. Relative URLs resolve against its configured base URL.
+    canonical: typeof frontmatter?.canonical === "string" ? frontmatter.canonical : undefined,
     link: [{ href: "/site.webmanifest", rel: "manifest" }],
     meta: {
       keywords:
@@ -52,7 +50,7 @@ export default defineConfig({
   },
   ogImageUrl: (_path, { baseUrl }) =>
     `${baseUrl ?? ""}/api/og?title=%title&description=%description`,
-  renderStrategy: "dynamic",
+  renderStrategy: "partial-static",
   rootDir: ".",
   search: {
     boostDocument(documentId) {
@@ -74,6 +72,7 @@ export default defineConfig({
   topNav: [
     { link: "/react/getting-started", text: "React" },
     { link: "/sdk/getting-started", text: "SDK" },
+    { link: "/hca/getting-started", text: "HCA" },
     { link: "/core/getting-started", text: "Core" },
     { link: "/contracts/getting-started", text: "Contracts" },
     {

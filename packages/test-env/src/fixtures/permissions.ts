@@ -37,6 +37,7 @@ export const seedPermissionFixtures = Effect.fn("seedPermissionFixtures")(functi
   const permissionedName = "v2-write-ready.eth";
   const permissionedNode = namehash(permissionedName);
   const permissionedTextKey = "avatar";
+
   const permissionedResource = BigInt(
     keccak256(
       encodePacked(
@@ -63,6 +64,7 @@ export const seedPermissionFixtures = Effect.fn("seedPermissionFixtures")(functi
     functionName: "initialize",
     args: [environment.accounts.owner, enhancedAccessControlRoles.allRoles, []],
   });
+
   const permissionedResolver = yield* seedRead(
     () =>
       environment.clients.publicClient
@@ -80,6 +82,7 @@ export const seedPermissionFixtures = Effect.fn("seedPermissionFixtures")(functi
         .then(({ result }) => result),
     "Unable to predict the permissioned resolver fixture",
   );
+
   yield* seedTransaction(
     environment,
     {
@@ -95,6 +98,7 @@ export const seedPermissionFixtures = Effect.fn("seedPermissionFixtures")(functi
     "Unable to deploy the permissioned resolver fixture",
     "owner",
   );
+
   yield* seedTransaction(
     environment,
     {
@@ -106,6 +110,7 @@ export const seedPermissionFixtures = Effect.fn("seedPermissionFixtures")(functi
     "Unable to attach the permissioned resolver fixture",
     "owner",
   );
+
   yield* seedTransaction(
     environment,
     {
@@ -122,6 +127,7 @@ export const seedPermissionFixtures = Effect.fn("seedPermissionFixtures")(functi
     "Unable to grant the scoped permissioned resolver role",
     "owner",
   );
+
   yield* seedTransaction(
     environment,
     {
@@ -133,6 +139,7 @@ export const seedPermissionFixtures = Effect.fn("seedPermissionFixtures")(functi
     "Unable to approve the ENS v1 wrapper operator",
     "owner",
   );
+
   yield* seedTransaction(
     environment,
     {
@@ -144,6 +151,7 @@ export const seedPermissionFixtures = Effect.fn("seedPermissionFixtures")(functi
     "Unable to approve the ENS v1 resolver delegate",
     "owner",
   );
+
   yield* seedTransaction(
     environment,
     {
@@ -155,6 +163,7 @@ export const seedPermissionFixtures = Effect.fn("seedPermissionFixtures")(functi
     "Unable to approve the ENS v2 registry operator",
     "owner",
   );
+
   yield* seedTransaction(
     environment,
     {
@@ -166,6 +175,7 @@ export const seedPermissionFixtures = Effect.fn("seedPermissionFixtures")(functi
     "Unable to grant the scoped ENS v2 resolver role",
     "owner",
   );
+
   yield* seedTransaction(
     environment,
     {

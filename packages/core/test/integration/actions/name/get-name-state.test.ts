@@ -63,6 +63,7 @@ describe("name state integration", () => {
   it.effect("classifies ENS v1 availability and lifecycle boundaries", () =>
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
+
       const [available, grace, expired] = yield* Effect.all(
         [
           getNameState.effect(devnet.configs.v1, { name: devnet.fixtures.v1.available.name }),
@@ -111,6 +112,7 @@ describe("name state integration", () => {
   it.effect("distinguishes unlocked and locked ENS v2 migrations", () =>
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
+
       const [unlocked, locked] = yield* Effect.all(
         [
           getNameState.effect(devnet.configs.v2, {
@@ -136,6 +138,7 @@ describe("name state integration", () => {
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
       const fixture = devnet.fixtures.migration.reservedWrapped;
+
       const [state, reserved, protocol] = yield* Effect.all(
         [
           getNameState.effect(devnet.configs.v2, { name: fixture.name }),
@@ -164,6 +167,7 @@ describe("name state integration", () => {
   it.effect("classifies native ENS v2 available, grace, and expired states", () =>
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
+
       const [available, grace, expired] = yield* Effect.all(
         [
           getNameState.effect(devnet.configs.v2, { name: devnet.fixtures.v2.available.name }),
@@ -190,6 +194,7 @@ describe("name state integration", () => {
       const devnet = getIntegrationDevnet();
       const fixture = devnet.fixtures.migration.migratedLocked;
       const parameters = { name: fixture.name };
+
       const result = yield* readBatch.effect(devnet.configs.v2, {
         manager: getManager.request(parameters),
         registrant: getRegistrant.request(parameters),

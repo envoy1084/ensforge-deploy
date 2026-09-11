@@ -1,0 +1,82 @@
+---
+title: Execution adapters
+description: Direct owner execution, provider adapters, review and transaction tracking.
+---
+
+# Execution adapters
+
+`executeHcaCalls` uses the owner wallet when `execution` is absent. When supplied, the adapter
+prepares, simulates, authorizes and submits the operation. Session authorization requires an adapter.
+There is no separate HCA client.
+
+```ts
+const submission = await sdk.hca.executeHcaCalls({
+  hca,
+  authorization: { kind: "owner" },
+  calls: [{ to: recipient, value: 0n }],
+});
+const outcome = await sdk.hca.waitForHcaExecution({ submission });
+```
+
+A returned submission is a tracking reference, not confirmation of success. Inspect `outcome.status`
+and receipts. Timeouts and `unknown` states must be reconciled before another submission.
+
+## Prepare and inspect
+
+`prepareHcaCalls` accepts raw `{ to, data?, value? }` calls or supported ENS `.call(...)` intents.
+An ENS intent is prepared with the HCA as the executing account. Call preparation validates the
+account and authorization, fingerprints the call batch, and rejects generic self-calls.
+
+```ts
+const parameters = {
+  hca,
+  authorization: { kind: "owner" as const },
+  calls: [sdk.records.setText.call({ name, key: "url", value: "https://example.com" })],
+};
+const plan = await sdk.hca.prepareHcaCalls(parameters);
+const submission = await sdk.hca.executeHcaCalls({ ...parameters, execution });
+const outcome = await sdk.hca.waitForHcaExecution({ submission, execution });
+```
+
+`executeHcaCalls` prepares the inputs again; it does not accept a `plan` parameter. Inspect `plan`
+before advancing if your UI needs a preview.
+
+Use the same compatible adapter when reading, waiting for or watching an adapter submission.
+`watchHcaExecution` exposes streaming status; interruption stops local observation, not the chain.
+Direct owner execution requires a deployed account and the immutable owner wallet. Counterfactual
+owner calls must include the expected owner and use an adapter advertising that capability.
+
+## Provider contract
+
+`createExecutionAdapter(definition)` validates a typed provider definition:
+
+| Member                                    | Responsibility                                                                |
+| ----------------------------------------- | ----------------------------------------------------------------------------- |
+| `id`, `chainId`, `profileId`              | Identify the provider and supported deployment                                |
+| `configurationFingerprint`                | Stable, public configuration identity across restarts                         |
+| `capabilities`                            | Explicitly advertise supported authorization, deployment and funding features |
+| `supports`                                | Check a prepared ENS HCA plan                                                 |
+| `prepare`                                 | Produce provider payload and a bounded execution review                       |
+| `authorize`                               | Obtain authorization for that reviewed payload                                |
+| `submit`                                  | Broadcast and return a tracking locator/reference                             |
+| `getStatus`                               | Reconcile provider progress with receipts                                     |
+| `schemas.prepared`, `schemas.authorized`  | Validate opaque provider payloads                                             |
+| `submission.schema`, `submission.version` | Persist tracking fields with a versioned codec                                |
+| `policy`                                  | Optional caller policy for reviewing execution                                |
+| `extensions`                              | Optional provider-specific session, funding or recovery features              |
+
+The returned adapter also exposes `serializeSubmission` and `restoreSubmission`. Restoring requires
+expected chain, HCA, deployment profile and plan fingerprint. Never persist private keys, API keys,
+authorized transaction payloads or whole provider clients. A submission codec should retain only
+fields needed for tracking.
+
+The concrete definition and returned interfaces are `ExecutionAdapterDefinition` and
+`TypedExecutionAdapter` from `@ensforge/hca`. Built-in providers retain their richer return types;
+Rhinestone exposes `execution.extensions.sessions` and `execution.crossChain`.
+
+## Explicit management paths
+
+Deposits, withdrawals and upgrades use dedicated actions. `withdrawHcaDeposit` handles the exact
+owner-authorized self-call required by the deployed account. Generic module installation and HCA
+ownership transfer are not supported by this generation. Factory/gate ownership actions under
+`sdk.hca.admin` manage governance contracts, not the HCA's immutable owner.

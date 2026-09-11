@@ -1,0 +1,116 @@
+---
+title: Independent cross-chain funding
+description: Fund the destination HCA before ordinary ENS registration.
+---
+
+# Independent cross-chain funding
+
+Funding is a Rhinestone extension: `execution.crossChain`. ENS registration never automatically
+bridges or spends source-chain funds. First complete the funding operation, confirm the destination
+balance, then run ordinary HCA registration with your chosen execution adapter.
+
+The implemented route supports a plain EOA source account and ERC-20 Permit2 authorization. It does
+not imply support for every smart account, native token, source chain or settlement layer. No public
+route manifest is enabled by default. Supply independently verified `RhinestoneFundingRoute` entries
+and `sourceClients` in the adapter's `crossChain` options.
+
+## Funding sequence
+
+1. `quoteFunding(config, { id, routeId, source, destinationHca, amount, maximumSourceSpend })`.
+2. Inspect the quote's source spend, lifetime and exact `approvals`.
+3. Send and confirm approval calls on the source chain, in their returned order.
+4. `fund(config, { quote })` persists intent and submits funding authorization.
+5. `waitForFunding(config, { id })` or `getFundingStatus(config, { id })` tracks it.
+6. Check destination funds before calling `startHcaRegistration` or resuming a paused registration.
+
+Amounts use token base units. `maximumSourceSpend` bounds the total source debit, including applicable
+provider fees. Source funding sponsorship and destination execution sponsorship are independent.
+A funding quote's identifier is not the registration workflow ID. Config storage is used by default.
+
+The [funding example](/hca/examples) implements ordered approvals and status waiting. Route manifests
+include source/destination chain and token identities, settlement layer, arbiter, settlement address,
+qualifier bytes and expected contract code hashes. Never construct trusted routes from quote output.
+For upgradeable contracts, also pin `storageSlots` (implementation slot and expected value) and
+include the implementation address and code hash in the same contract list. Proxy bytecode alone
+does not detect an implementation upgrade.
+
+## Recovery and cancellation
+
+`cancelFunding` cancels eligible local work before the durable submission claim. It does not undo
+source approvals or stop a submitted intent. `recoverFunding({ id, intentId })` attaches a recovered
+provider tracking identifier without submitting again. `getFundingCleanup({ id })` returns explicit
+Permit2 nonce invalidation and allowance-reset calls for the caller to review and send.
+
+Status distinguishes source claims and destination receipt state. `destinationBalance` reports funds
+currently available. Observed token movements do not authenticate the provider's intent ID against
+the signed mandate or prove cross-chain finality. Unknown or partial settlement needs manual
+reconciliation. A manual Base Sepolia → Sepolia USDC run confirmed hosted settlement, the destination receipt
+and the source claim. Other routes and partial-settlement recovery still require independent verification.
+
+## Configure and use a route
+
+Create the adapter with your reviewed manifest and source client. `route` below is an independently
+verified `RhinestoneFundingRoute`, not a route copied from an orchestrator response. Keep its contract
+pins in application configuration and review upgrades before changing them.
+
+```ts
+import { rhinestone } from "@ensforge/hca/rhinestone";
+import { createPublicClient, http } from "viem";
+import { baseSepolia, sepolia } from "viem/chains";
+
+const sourceClient = createPublicClient({
+  chain: baseSepolia,
+  transport: http(baseSepoliaRpcUrl),
+});
+const execution = rhinestone({
+  profile,
+  chain: sepolia,
+  owner,
+  sessionSigner,
+  sdk: { apiKey },
+  crossChain: {
+    routes: [route],
+    sourceClients: { [baseSepolia.id]: sourceClient },
+  },
+});
+```
+
+Quote with a stable application operation ID and an explicit spend ceiling. For a six-decimal USDC
+route, `1_000_000n` is one USDC. The source wallet must use `owner` and `baseSepolia` here.
+
+```ts
+const quote = await execution.crossChain.quoteFunding(sdk.config, {
+  id: fundingId,
+  routeId: route.id,
+  source: { chain: baseSepolia, account: owner, publicClient: sourceClient },
+  destinationHca: hca,
+  amount: 1_000_000n,
+  maximumSourceSpend: 2_000_000n,
+});
+
+// Review sourceSpend and approvals before authorizing the source debit.
+for (const call of quote.approvals) {
+  const hash = await sourceWallet.sendTransaction({
+    ...call,
+    account: owner,
+    chain: baseSepolia,
+  });
+  const receipt = await sourceClient.waitForTransactionReceipt({ hash });
+  if (receipt.status !== "success") throw new Error("Source approval reverted");
+}
+
+const funding = await execution.crossChain.fund(sdk.config, { quote });
+const status = await execution.crossChain.waitForFunding(sdk.config, { id: funding.id });
+```
+
+Keep shared storage across restarts. After submission, call `getFundingStatus` or `waitForFunding`
+with the saved ID; do not quote and submit another transfer to recover a timeout. The type-checked
+[funding example](/hca/examples#browser-and-server-examples) also validates the source wallet identity.
+
+For an ERC-20 route, the source EOA needs the source token budget and native gas for approval
+transactions. The destination HCA receives the destination token. The session signer does not need
+funds for sponsored destination execution; the owner needs destination-chain gas for deployment and
+session enablement. Registration consumes its payment token separately from gas sponsorship.
+
+When status is `funded`, start or resume ordinary [HCA registration](/sdk/api/hca/start-hca-registration).
+Funding does not automatically register a name, enable a session or grant resolver permissions.

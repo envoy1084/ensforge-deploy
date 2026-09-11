@@ -17,6 +17,7 @@ export const resolveRecords = Effect.fn("resolveRecords")(function* (
   if (calls.length === 0) return [];
 
   const firstCall = calls[0];
+
   if (firstCall === undefined) return [];
 
   const data =
@@ -36,13 +37,17 @@ export const resolveRecords = Effect.fn("resolveRecords")(function* (
               cause,
             }),
         });
+
   const deployment = yield* DeploymentService;
   const protocol = deployment.profile.protocol;
+
   const universalResolver =
     protocol === "v1"
       ? deployment.profile.v1.contracts.universalResolver
       : deployment.profile.v2.contracts.universalResolver;
+
   const dnsName = yield* dnsEncodeName.effect(name);
+
   const resolved = yield* resolveName({
     universalResolver,
     protocol,
@@ -58,6 +63,7 @@ export const resolveRecords = Effect.fn("resolveRecords")(function* (
   if (resolved === null) return null;
 
   const [encodedResults] = resolved;
+
   const results = yield* Effect.try({
     try: () =>
       calls.length === 1

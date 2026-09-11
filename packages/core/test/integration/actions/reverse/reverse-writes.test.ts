@@ -25,7 +25,9 @@ const configFor = (devnet: IntegrationDevnet, protocol: "v1" | "v2", account: `0
     rpcUrls: { default: { http: [devnet.rpcUrl] } },
     contracts: { multicall3: { address: devnet.deployments.multicall3, blockCreated: 0 } },
   });
+
   const transport = http(devnet.rpcUrl, { retryCount: 0, timeout: 10_000 });
+
   return createTestConfig({
     deployments:
       protocol === "v1"
@@ -46,9 +48,11 @@ describe("reverse-name writes integration", () => {
       const devnet = getIntegrationDevnet();
       const v1Fixture = devnet.fixtures.reverse.verifiedV1;
       const v2Fixture = devnet.fixtures.reverse.verifiedV2;
+
       if (v1Fixture.name === undefined || v2Fixture.name === undefined) {
         return yield* Effect.die(new Error("The verified reverse fixtures have no names"));
       }
+
       const v2Config = configFor(devnet, "v2", v2Fixture.address);
 
       const [v1Prepared, v2Prepared] = yield* Effect.all(
@@ -62,6 +66,7 @@ describe("reverse-name writes integration", () => {
         ] as const,
         { concurrency: "unbounded" },
       );
+
       const [v1Write, v2Write] = yield* Effect.all(
         [
           setPrimaryName.effect(devnet.configs.v1, { name: v1Fixture.name }),
@@ -85,13 +90,16 @@ describe("reverse-name writes integration", () => {
       const devnet = getIntegrationDevnet();
       const v1Fixture = devnet.fixtures.reverse.verifiedV1;
       const v2Fixture = devnet.fixtures.reverse.verifiedV2;
+
       if (v1Fixture.name === undefined || v2Fixture.name === undefined) {
         return yield* Effect.die(new Error("The verified reverse fixtures have no names"));
       }
+
       const v2Config = configFor(devnet, "v2", v2Fixture.address);
 
       yield* clearPrimaryName.effect(devnet.configs.v1, {});
       yield* clearPrimaryName.effect(v2Config, {});
+
       const cleared = yield* Effect.all(
         [
           getPrimaryName.effect(devnet.configs.v1, { address: v1Fixture.address }),
@@ -99,6 +107,7 @@ describe("reverse-name writes integration", () => {
         ] as const,
         { concurrency: "unbounded" },
       );
+
       yield* setPrimaryName.effect(devnet.configs.v1, { name: v1Fixture.name });
       yield* setPrimaryName.effect(v2Config, { name: v2Fixture.name });
 
@@ -110,9 +119,11 @@ describe("reverse-name writes integration", () => {
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
       const fixture = devnet.fixtures.reverse.verifiedV1;
+
       if (fixture.name === undefined) {
         return yield* Effect.die(new Error("The verified V1 reverse fixture has no name"));
       }
+
       const name = fixture.name;
       const operatorConfig = configFor(devnet, "v1", devnet.accounts.operator);
 
@@ -138,6 +149,7 @@ describe("reverse-name writes integration", () => {
             })
             .pipe(Effect.asVoid),
       );
+
       const primaryName = yield* getPrimaryName.effect(devnet.configs.v1, {
         address: fixture.address,
       });
@@ -151,6 +163,7 @@ describe("reverse-name writes integration", () => {
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
       const fixture = devnet.fixtures.reverse.verifiedContract;
+
       if (fixture.name === undefined) {
         return yield* Effect.die(new Error("The verified contract fixture has no name"));
       }
@@ -168,6 +181,7 @@ describe("reverse-name writes integration", () => {
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
       const v2Fixture = devnet.fixtures.reverse.verifiedV2;
+
       if (v2Fixture.name === undefined) {
         return yield* Effect.die(new Error("The verified V2 reverse fixture has no name"));
       }
@@ -175,15 +189,18 @@ describe("reverse-name writes integration", () => {
       const staged = yield* prepareCalls.effect(devnet.configs.v2, {
         calls: [setPrimaryName.call({ name: v2Fixture.name, verifyForward: false })],
       });
+
       const mismatch = yield* Effect.flip(
         setPrimaryName.effect(devnet.configs.v2, { name: v2Fixture.name }),
       );
+
       const unauthorized = yield* Effect.flip(
         setPrimaryNameForAddress.effect(devnet.configs.v2, {
           address: v2Fixture.address,
           name: v2Fixture.name,
         }),
       );
+
       const notContract = yield* Effect.flip(
         setContractPrimaryName.effect(devnet.configs.v2, {
           contract: devnet.accounts.owner,
@@ -193,14 +210,19 @@ describe("reverse-name writes integration", () => {
 
       assert.lengthOf(staged, 1);
       assert.instanceOf(mismatch, ReverseNameError);
+
       if (mismatch instanceof ReverseNameError) {
         assert.strictEqual(mismatch.code, "FORWARD_ADDRESS_MISMATCH");
       }
+
       assert.instanceOf(unauthorized, AuthorizationError);
+
       if (unauthorized instanceof AuthorizationError) {
         assert.strictEqual(unauthorized.code, "UNAUTHORIZED");
       }
+
       assert.instanceOf(notContract, ReverseNameError);
+
       if (notContract instanceof ReverseNameError) {
         assert.strictEqual(notContract.code, "TARGET_NOT_CONTRACT");
       }

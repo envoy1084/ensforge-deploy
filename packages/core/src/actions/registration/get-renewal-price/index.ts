@@ -24,12 +24,14 @@ const getRenewalPriceEffect = Effect.fn("ensforge.getRenewalPrice")(function* (
 ) {
   const name = yield* normalizeName.effect(parameters.name);
   const label = yield* getSecondLevelEthLabel(name);
+
   return yield* executeRead(
     config,
     parameters,
     Effect.gen(function* () {
       const route = yield* readNameRoute(name);
       const renewable = yield* isRenewable.effect(config, parameters);
+
       if (!renewable) {
         return {
           status: "not-renewable",
@@ -40,14 +42,17 @@ const getRenewalPriceEffect = Effect.fn("ensforge.getRenewalPrice")(function* (
       }
 
       const ethereum = yield* EthereumClient;
+
       if (route.kind === "v1") {
         const renewer = route.deployment.contracts.ethRegistrarController;
+
         const quote = yield* ethereum.readContract({
           address: renewer,
           abi: ethRegistrarControllerV1RentPriceAbi,
           functionName: "rentPrice",
           args: [label, parameters.duration],
         });
+
         return {
           status: "renewable",
           name,
@@ -63,18 +68,23 @@ const getRenewalPriceEffect = Effect.fn("ensforge.getRenewalPrice")(function* (
       if (parameters.paymentToken === undefined) {
         return { status: "payment-token-required", name, protocol: route.protocol } as const;
       }
+
       const renewer =
         route.kind === "reserved"
           ? route.deployment.migration.ethRenewerV1
           : route.deployment.contracts.ethRegistrar;
+
       const abi =
         route.kind === "reserved" ? ethRenewerV1RenewalPriceAbi : ethRegistrarV2RenewalPriceAbi;
+
       const priceOracle = yield* ethereum.readContract({
         address: renewer,
         abi,
         functionName: "rentPriceOracle",
       });
+
       const support = yield* readPaymentTokenSupport(priceOracle, parameters.paymentToken);
+
       if (!support.supported) {
         return {
           status: "unsupported-payment-token",
@@ -83,12 +93,14 @@ const getRenewalPriceEffect = Effect.fn("ensforge.getRenewalPrice")(function* (
           paymentToken: parameters.paymentToken,
         } as const;
       }
+
       const price = yield* ethereum.readContract({
         address: renewer,
         abi,
         functionName: "getRenewPrice",
         args: [label, parameters.duration, parameters.paymentToken],
       });
+
       return {
         status: "renewable",
         name,

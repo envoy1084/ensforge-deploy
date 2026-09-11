@@ -11,8 +11,11 @@ import {
 import { startCcipGateway } from "../../../fixtures/ccip-gateway.js";
 
 const sender = "0x0000000000000000000000000000000000000001" as const;
+
 const data = "0x1234" as const;
+
 const parameters = (urls: ReadonlyArray<string>): CcipRequestParameters => ({ data, sender, urls });
+
 const withGateway = <Success, Failure>(
   use: (gateway: Awaited<ReturnType<typeof startCcipGateway>>) => Effect.Effect<Success, Failure>,
 ) =>
@@ -21,6 +24,7 @@ const withGateway = <Success, Failure>(
       Effect.promise(gateway.close),
     ).pipe(Effect.flatMap(use)),
   );
+
 const failure = <Success>(effect: Effect.Effect<Success>) =>
   Effect.tryPromise({
     try: () => Effect.runPromise(effect),
@@ -35,6 +39,7 @@ describe("CCIP gateway requester", () => {
           ...defaultGatewayOptions,
           allowedHosts: ["127.0.0.1"],
         });
+
         const result = yield* Effect.promise(() =>
           request(parameters([`${gateway.url}/get/{sender}/{data}`])),
         );
@@ -54,7 +59,9 @@ describe("CCIP gateway requester", () => {
         const result = yield* Effect.promise(() => request(parameters([`${gateway.url}/post`])));
 
         assert.strictEqual(result, "0xcafe");
+
         const post = gateway.requests[0];
+
         assert.isDefined(post);
         assert.deepStrictEqual(JSON.parse(post.body), { data, sender });
         assert.strictEqual(post.method, "POST");
@@ -66,6 +73,7 @@ describe("CCIP gateway requester", () => {
     withGateway((gateway) =>
       Effect.gen(function* () {
         const request = makeCcipRequest(defaultGatewayOptions);
+
         const result = yield* Effect.promise(() =>
           request(parameters([`${gateway.url}/error/{data}`, `${gateway.url}/result/{data}`])),
         );
@@ -83,14 +91,17 @@ describe("CCIP gateway requester", () => {
     withGateway((gateway) =>
       Effect.gen(function* () {
         const request = makeCcipRequest({ ...defaultGatewayOptions, maxRedirects: 1 });
+
         const result = yield* Effect.promise(() =>
           request(parameters([`${gateway.url}/redirect`])),
         );
+
         assert.strictEqual(result, "0xbeef");
 
         const error = yield* failure(
           Effect.promise(() => request(parameters([`${gateway.url}/loop`]))),
         );
+
         assert.instanceOf(error, GatewayError);
         assert.strictEqual(error.code, "GATEWAY_NOT_ALLOWED");
       }),
@@ -104,6 +115,7 @@ describe("CCIP gateway requester", () => {
           ...defaultGatewayOptions,
           deniedHosts: ["127.0.0.1"],
         });
+
         const error = yield* failure(
           Effect.promise(() => request(parameters([`${gateway.url}/result`]))),
         );
@@ -122,6 +134,7 @@ describe("CCIP gateway requester", () => {
           ...defaultGatewayOptions,
           allowedHosts: ["127.0.0.1"],
         });
+
         const error = yield* failure(
           Effect.promise(() => request(parameters([`${gateway.url}/redirect-denied`]))),
         );
@@ -140,6 +153,7 @@ describe("CCIP gateway requester", () => {
     withGateway((gateway) =>
       Effect.gen(function* () {
         const request = makeCcipRequest({ ...defaultGatewayOptions, timeout: 10 });
+
         const error = yield* failure(
           Effect.promise(() => request(parameters([`${gateway.url}/slow`]))),
         );
@@ -155,13 +169,16 @@ describe("CCIP gateway requester", () => {
       Effect.gen(function* () {
         const controller = new AbortController();
         const request = makeCcipRequest(defaultGatewayOptions);
+
         const pending = request({
           ...parameters([`${gateway.url}/slow`]),
           requestOptions: { signal: controller.signal },
         });
+
         controller.abort(new Error("cancelled"));
 
         const error = yield* failure(Effect.promise(() => pending));
+
         assert.notInstanceOf(error, GatewayError);
       }),
     ),
@@ -171,21 +188,26 @@ describe("CCIP gateway requester", () => {
     withGateway((gateway) =>
       Effect.gen(function* () {
         const bounded = makeCcipRequest({ ...defaultGatewayOptions, maxResponseSize: 32 });
+
         const oversized = yield* failure(
           Effect.promise(() => bounded(parameters([`${gateway.url}/oversized`]))),
         );
+
         assert.instanceOf(oversized, GatewayError);
         assert.strictEqual(oversized.code, "GATEWAY_NOT_ALLOWED");
 
         const request = makeCcipRequest(defaultGatewayOptions);
+
         const malformed = yield* failure(
           Effect.promise(() => request(parameters([`${gateway.url}/malformed`]))),
         );
+
         assert.match(String(malformed), /malformed CCIP data/);
 
         const invalidJson = yield* failure(
           Effect.promise(() => request(parameters([`${gateway.url}/invalid-json`]))),
         );
+
         assert.instanceOf(invalidJson, SyntaxError);
       }),
     ),
@@ -193,6 +215,7 @@ describe("CCIP gateway requester", () => {
 
   it("preserves disabled and custom CCIP requesters", () => {
     const customRequest = async () => data;
+
     const disabled = { ccipRead: false } as PublicClient;
     const custom = { ccipRead: { request: customRequest } } as unknown as PublicClient;
 

@@ -59,6 +59,7 @@ export const queryV2Registrations = Effect.fn("queryV2Registrations")(function* 
           ? {}
           : { expiryDate_lt: Number(filter.expiryBefore) }),
       };
+
       const response = yield* requestIndexer<
         V2GetRegistrationsQuery,
         V2GetRegistrationsQueryVariables
@@ -74,13 +75,16 @@ export const queryV2Registrations = Effect.fn("queryV2Registrations")(function* 
           orderDirection: order.direction,
         },
       });
+
       const data = yield* requireIndexerData(config, "v2", operationName, response);
+
       indexedBlock = yield* decodeIndexedBlock(
         config,
         "v2",
         operationName,
         data["_meta"].block.number,
       );
+
       const normalized = yield* Effect.all(
         data.registrationConnection.edges.map(({ cursor, node }) =>
           normalizeV2Registration(node, { network: config.network, indexedBlock }).pipe(
@@ -89,9 +93,13 @@ export const queryV2Registrations = Effect.fn("queryV2Registrations")(function* 
         ),
         { concurrency: "unbounded" },
       );
+
       candidates.push(...normalized.filter(({ item }) => matchesRegistrationFilter(item, filter)));
+
       const next = data.registrationConnection.pageInfo.endCursor;
+
       hasNextPage = data.registrationConnection.pageInfo.hasNextPage;
+
       if (hasNextPage && (next === null || next === after)) {
         return yield* new IndexerDecodeError({
           code: "INVALID_RESPONSE",
@@ -102,8 +110,10 @@ export const queryV2Registrations = Effect.fn("queryV2Registrations")(function* 
           cause: data.registrationConnection.pageInfo,
         });
       }
+
       after = next;
     }
+
     return { indexedBlock, page: { protocol: "v2" as const, candidates, hasNextPage } };
   }).pipe(Effect.result);
 
@@ -118,6 +128,7 @@ export const queryV2Registrations = Effect.fn("queryV2Registrations")(function* 
       },
     };
   }
+
   return {
     status: "complete",
     page: result.success.page,

@@ -24,11 +24,13 @@ export const resolveData = Effect.fn("resolveData")(function* (name: NormalizedN
         cause,
       }),
   });
+
   const results = yield* resolveRecords(name, [call]);
 
   if (results === null) return { key, value: null } as const;
 
   const encodedResult = results[0];
+
   if (encodedResult === undefined) {
     return yield* new ContractError({
       code: "DECODE_FAILED",

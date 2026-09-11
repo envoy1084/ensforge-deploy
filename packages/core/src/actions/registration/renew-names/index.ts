@@ -9,6 +9,7 @@ import { RenewalError } from "../../../errors/renewal-error.js";
 import { provideConfig } from "../../../internal/config/context.js";
 import { viemErrorToEffectError } from "../../../internal/errors/viem-error.js";
 import { resolveWalletContext } from "../../../internal/services/wallet-client.js";
+import { withWorkflow } from "../../../internal/workflows/run.js";
 import { normalizeName } from "../../../names/normalize.js";
 import type { WriteError, WritePlan } from "../../../write/types.js";
 import { executeWritePlan } from "../../batch/execute-write-plan.js";
@@ -31,6 +32,7 @@ import type {
 const confirmed = { type: "confirmed" } as const;
 
 type Quote = Extract<RenewalPriceResult, { status: "renewable" }>;
+
 type Entry = {
   readonly index: number;
   readonly parameters: RenewNamesParameters["renewals"][number];
@@ -87,16 +89,20 @@ const renewNamesEffect = Effect.fn("ensforge.renewNames")(function* (
       message: "renewNames requires at least one renewal",
     });
   }
+
   const names = yield* Effect.forEach(parameters.renewals, (renewal) =>
     normalizeName.effect(renewal.name),
   );
+
   if (new Set(names).size !== names.length) {
     return yield* new RenewalError({
       code: "RENEWAL_FAILED",
       message: "renewNames cannot contain duplicate names",
     });
   }
+
   const id = planId(parameters, names);
+
   if (parameters.resume?.write.status === "completed") {
     if (parameters.resume.write.planId !== id) {
       return yield* new RenewalError({
@@ -104,6 +110,7 @@ const renewNamesEffect = Effect.fn("ensforge.renewNames")(function* (
         message: "Renewal resume data does not match the supplied renewals",
       });
     }
+
     const renewals = yield* Effect.forEach(parameters.resume.renewals, (renewal) =>
       Effect.all(
         [
@@ -119,6 +126,7 @@ const renewNamesEffect = Effect.fn("ensforge.renewNames")(function* (
         })),
       ),
     );
+
     return { ...parameters.resume, renewals };
   }
 
@@ -149,6 +157,7 @@ const renewNamesEffect = Effect.fn("ensforge.renewNames")(function* (
       ),
     { concurrency: config.reads.concurrency },
   );
+
   for (const entry of entries) {
     if (entry.parameters.maxPrice !== undefined && entry.quote.price > entry.parameters.maxPrice) {
       return yield* new RenewalError({
@@ -157,7 +166,9 @@ const renewNamesEffect = Effect.fn("ensforge.renewNames")(function* (
       });
     }
   }
+
   const totalPrice = entries.reduce((sum, entry) => sum + entry.quote.price, 0n);
+
   if (parameters.maxTotalPrice !== undefined && totalPrice > parameters.maxTotalPrice) {
     return yield* new RenewalError({
       code: "TOTAL_PRICE_EXCEEDS_MAXIMUM",
@@ -166,13 +177,17 @@ const renewNamesEffect = Effect.fn("ensforge.renewNames")(function* (
   }
 
   const grouped = new Map<string, Array<Entry>>();
+
   for (const entry of entries) {
     const token = entry.quote.currency.kind === "erc20" ? entry.quote.currency.address : "native";
+
     const v1Arguments =
       entry.quote.route === "v1-controller"
         ? `${entry.parameters.duration}:${entry.parameters.referrer ?? "default"}`
         : "mixed";
+
     const key = `${entry.quote.route}:${entry.quote.renewer}:${token}:${v1Arguments}`;
+
     grouped.set(key, [...(grouped.get(key) ?? []), entry]);
   }
 
@@ -181,21 +196,28 @@ const renewNamesEffect = Effect.fn("ensforge.renewNames")(function* (
   const stages: Array<WritePlan["stages"][number]> = [];
   const approvals: Array<RenewalApproval> = [];
   let groupIndex = 0;
+
   for (const group of grouped.values()) {
     const first = group[0];
+
     if (first === undefined) continue;
+
     const renewalStageId = `renew-group-${groupIndex}`;
+
     const groupCompleted = parameters.resume?.write.completedStages.some(
       (stage) => stage.id === renewalStageId,
     );
+
     let approval = parameters.resume?.approvals.find(
       (candidate) =>
         candidate.spender === first.quote.renewer &&
         candidate.token ===
           (first.quote.currency.kind === "erc20" ? first.quote.currency.address : null),
     );
+
     if (first.quote.currency.kind === "erc20" && approval === undefined && !groupCompleted) {
       const currency = first.quote.currency;
+
       const allowance = yield* Effect.tryPromise({
         try: () =>
           config.publicClient.readContract({
@@ -206,7 +228,9 @@ const renewNamesEffect = Effect.fn("ensforge.renewNames")(function* (
           }),
         catch: (cause) => viemErrorToEffectError(cause, "readContract"),
       });
+
       const groupPrice = group.reduce((sum, entry) => sum + entry.quote.price, 0n);
+
       approval = {
         required: allowance < groupPrice,
         spender: first.quote.renewer,
@@ -217,7 +241,9 @@ const renewNamesEffect = Effect.fn("ensforge.renewNames")(function* (
         ),
       };
     }
+
     if (approval !== undefined) approvals.push(approval);
+
     if (approval?.required && approval.token !== null) {
       stages.push({
         type: "calls",
@@ -235,7 +261,9 @@ const renewNamesEffect = Effect.fn("ensforge.renewNames")(function* (
         confirmation: confirmed,
       });
     }
+
     const contractBatch = supportsContractRenewalBatch(first.quote.route);
+
     stages.push({
       type: "calls",
       id: renewalStageId,
@@ -253,6 +281,7 @@ const renewNamesEffect = Effect.fn("ensforge.renewNames")(function* (
       atomicity: contractBatch || group.length === 1 ? "none" : "preferred",
       confirmation: parameters.confirmation ?? confirmed,
     });
+
     groupIndex += 1;
   }
 
@@ -270,7 +299,9 @@ const renewNamesEffect = Effect.fn("ensforge.renewNames")(function* (
           : new RenewalError({ code: "RENEWAL_FAILED", message: "Unable to renew names" }),
       ),
     );
+
   const completedIds = new Set(write.completedStages.map((stage) => stage.id));
+
   const renewals = yield* Effect.forEach(
     entries,
     Effect.fn("ensforge.renewNames.result")(function* (entry) {
@@ -279,16 +310,19 @@ const renewNamesEffect = Effect.fn("ensforge.renewNames")(function* (
       const stageId = `renew-group-${containingGroup}`;
       const stage = write.completedStages.find((candidate) => candidate.id === stageId);
       const entryCall = group?.findIndex((candidate) => candidate === entry) ?? -1;
+
       const callResult =
         stage?.result.mode === "sequential" && entryCall >= 0
           ? stage.result.calls[entryCall]
           : undefined;
+
       const completed =
         completedIds.has(stageId) ||
         (group !== undefined &&
           !supportsContractRenewalBatch(entry.quote.route) &&
           callResult !== undefined &&
           callResult.status !== "not-started");
+
       if (!completed) {
         return {
           name: entry.quote.name,
@@ -302,6 +336,7 @@ const renewNamesEffect = Effect.fn("ensforge.renewNames")(function* (
           finalState: null,
         } satisfies RenewNamesResult["renewals"][number];
       }
+
       const [expiry, finalState] = yield* Effect.all(
         [
           getExpiry.effect(config, { name: entry.name }),
@@ -309,6 +344,7 @@ const renewNamesEffect = Effect.fn("ensforge.renewNames")(function* (
         ] as const,
         { concurrency: "unbounded" },
       );
+
       return {
         name: entry.quote.name,
         protocol: entry.quote.protocol,
@@ -322,6 +358,7 @@ const renewNamesEffect = Effect.fn("ensforge.renewNames")(function* (
       } satisfies RenewNamesResult["renewals"][number];
     }),
   );
+
   return {
     status: write.status === "completed" ? "completed" : "partial",
     renewals,
@@ -332,7 +369,7 @@ const renewNamesEffect = Effect.fn("ensforge.renewNames")(function* (
 });
 
 export const renewNames = defineAction<RenewNamesParameters, RenewNamesResult, WriteError>(
-  renewNamesEffect,
+  withWorkflow("renewNames", renewNamesEffect),
 );
 
 export type { RenewNamesParameters, RenewNamesResult } from "../types.js";

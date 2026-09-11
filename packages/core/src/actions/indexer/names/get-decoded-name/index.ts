@@ -33,11 +33,15 @@ const getDecodedNameEffect = Effect.fn("ensforge.getDecodedName")(function* (
         }),
     ),
   );
+
   const labels = decoded.name.split(".");
+
   const encoded = labels.flatMap((label, index) => {
     const match = encodedLabel.exec(label);
+
     return match?.[1] === undefined ? [] : [{ index, hash: `0x${match[1]}` }];
   });
+
   if (encoded.length === 0) {
     return yield* Effect.try({
       try: () => normalize(decoded.name),
@@ -51,21 +55,27 @@ const getDecodedNameEffect = Effect.fn("ensforge.getDecodedName")(function* (
     catch: () =>
       new IndexerFilterError({ code: "INVALID_FILTER", message: "The encoded name is invalid" }),
   });
+
   const indexed = yield* Effect.result(getIndexedName.effect(config, { namehash: hash }));
+
   if (Result.isSuccess(indexed) && indexed.success?.name.kind === "normalized") {
     return indexed.success.name.value;
   }
+
   if (Result.isFailure(indexed) && config.indexer.failureMode === "strict") {
     return yield* indexed.failure;
   }
+
   if (Result.isSuccess(indexed) && indexed.success?.name.kind === "encoded") {
     const known = indexed.success.name.value.split(".");
+
     for (const [index, label] of known.entries()) {
       if (!encodedLabel.test(label)) labels[index] = label;
     }
   }
 
   const unresolved = encoded.filter(({ index }) => encodedLabel.test(labels[index] ?? ""));
+
   if (unresolved.length === 0) {
     return yield* Effect.try({
       try: () => normalize(labels.join(".")),
@@ -78,17 +88,21 @@ const getDecodedNameEffect = Effect.fn("ensforge.getDecodedName")(function* (
     const recovered = yield* Effect.all(
       unresolved.map(({ index, hash: rawHash }) => {
         const labelHash = Schema.decodeUnknownSync(Labelhash)(rawHash);
+
         return Effect.result(getV1Label(config, labelHash)).pipe(
           Effect.map((result) => ({ index, labelHash, result })),
         );
       }),
       { concurrency: "unbounded" },
     );
+
     for (const { index, labelHash, result } of recovered) {
       if (Result.isFailure(result)) {
         if (config.indexer.failureMode === "strict") return yield* result.failure;
+
         continue;
       }
+
       if (
         result.success !== null &&
         labelhash(result.success).toLowerCase() === labelHash.toLowerCase()
@@ -99,6 +113,7 @@ const getDecodedNameEffect = Effect.fn("ensforge.getDecodedName")(function* (
   }
 
   const value = labels.join(".");
+
   if (labels.every((label) => !encodedLabel.test(label))) {
     return yield* Effect.try({
       try: () => normalize(value),
@@ -106,6 +121,7 @@ const getDecodedNameEffect = Effect.fn("ensforge.getDecodedName")(function* (
         new IndexerFilterError({ code: "INVALID_FILTER", message: "The decoded name is invalid" }),
     });
   }
+
   return decoded.allowIncomplete === true ? value : null;
 });
 

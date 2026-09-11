@@ -23,6 +23,8 @@ export const getV1Label = Effect.fn("getV1Label")(function* (
     document: V1GetLabelDocument,
     variables: { labelhash: hash },
   });
+
   const data = yield* requireIndexerData(config, "v1", operationName, response);
+
   return data.domains[0]?.labelName ?? null;
 });

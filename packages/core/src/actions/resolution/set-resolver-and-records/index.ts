@@ -6,6 +6,7 @@ import { defineAction } from "../../../action/action.js";
 import type { EnsforgeConfig } from "../../../config/config.js";
 import { CodecError } from "../../../errors/codec-error.js";
 import { WritePlanError } from "../../../errors/write-plan-error.js";
+import { withWorkflow } from "../../../internal/workflows/run.js";
 import { namehash } from "../../../names/hashes.js";
 import { normalizeName } from "../../../names/normalize.js";
 import { EthereumAddress } from "../../../schemas/identity.js";
@@ -50,10 +51,12 @@ const selectResolver = Effect.fn("ensforge.setResolverAndRecords.selectResolver"
   if (parameters.resume !== undefined) {
     const protocol = yield* getProtocol.effect(config, { name });
     const resolver = yield* decodeResolver(parameters.resume.resolver, name);
+
     const suppliedResolver =
       parameters.resolver === undefined
         ? resolver
         : yield* decodeResolver(parameters.resolver, name);
+
     if (protocol !== parameters.resume.protocol || !isAddressEqual(resolver, suppliedResolver)) {
       return yield* new WritePlanError({
         code: "INVALID_CALL_PLAN",
@@ -61,6 +64,7 @@ const selectResolver = Effect.fn("ensforge.setResolverAndRecords.selectResolver"
         cause: parameters.resume,
       });
     }
+
     return {
       protocol,
       resolver,
@@ -75,8 +79,10 @@ const selectResolver = Effect.fn("ensforge.setResolverAndRecords.selectResolver"
     ] as const,
     { concurrency: "unbounded" },
   );
+
   if (parameters.resolver !== undefined) {
     const resolver = yield* decodeResolver(parameters.resolver, name);
+
     return {
       protocol,
       resolver,
@@ -94,11 +100,14 @@ const selectResolver = Effect.fn("ensforge.setResolverAndRecords.selectResolver"
     !capabilities.inherited &&
     capabilities.authorization !== "none" &&
     capabilities.authorization !== "unknown";
+
   if (compatible && capabilities.address !== null) {
     return { protocol, resolver: capabilities.address, resolverSource: "existing" };
   }
+
   if (protocol === "v1") {
     const deployment = config.deployments.v1;
+
     if (deployment === undefined) {
       return yield* new WritePlanError({
         code: "INVALID_CALL_PLAN",
@@ -106,6 +115,7 @@ const selectResolver = Effect.fn("ensforge.setResolverAndRecords.selectResolver"
         cause: config.deployments,
       });
     }
+
     return {
       protocol,
       resolver: deployment.contracts.publicResolver,
@@ -121,6 +131,7 @@ const selectResolver = Effect.fn("ensforge.setResolverAndRecords.selectResolver"
     ...(parameters.walletClient === undefined ? {} : { walletClient: parameters.walletClient }),
     ...(parameters.account === undefined ? {} : { account: parameters.account }),
   });
+
   return { protocol, resolver, resolverSource: "deployed" };
 });
 
@@ -152,6 +163,7 @@ const makePlan = (
   parameters: SetResolverAndRecordsParameters,
 ): WritePlan => {
   const stages: Array<WriteStage> = [];
+
   if (selection.resolverSource === "deployed") {
     stages.push({
       type: "calls",
@@ -169,6 +181,7 @@ const makePlan = (
       confirmation: { type: "confirmed" },
     });
   }
+
   if (selection.resolverSource !== "existing") {
     stages.push({
       type: "calls",
@@ -179,6 +192,7 @@ const makePlan = (
       confirmation: { type: "confirmed" },
     });
   }
+
   stages.push({
     type: "calls",
     id: "set-records",
@@ -187,6 +201,7 @@ const makePlan = (
     atomicity: "preferred",
     confirmation: parameters.confirmation ?? { type: "confirmed" },
   });
+
   return { id: makePlanId(name, selection, parameters), stages };
 };
 
@@ -195,6 +210,7 @@ const implementation = Effect.fn("ensforge.setResolverAndRecords")(function* (
   parameters: SetResolverAndRecordsParameters,
 ): Effect.fn.Return<SetResolverAndRecordsResult, SetResolverAndRecordsError> {
   const name = yield* normalizeName.effect(parameters.name);
+
   if (parameters.records.length === 0) {
     return yield* new WritePlanError({
       code: "INVALID_CALL_PLAN",
@@ -202,7 +218,9 @@ const implementation = Effect.fn("ensforge.setResolverAndRecords")(function* (
       cause: parameters.records,
     });
   }
+
   const selection = yield* selectResolver(config, parameters, name);
+
   if (parameters.resume === undefined && selection.resolverSource !== "existing") {
     yield* simulateCalls.effect(config, {
       calls: [setResolver.call({ name, resolver: selection.resolver })],
@@ -210,12 +228,14 @@ const implementation = Effect.fn("ensforge.setResolverAndRecords")(function* (
       ...(parameters.account === undefined ? {} : { account: parameters.account }),
     });
   }
+
   const write = yield* executeWritePlan.effect(config, {
     plan: makePlan(name, selection, parameters),
     ...(parameters.resume === undefined ? {} : { resume: parameters.resume.write }),
     ...(parameters.walletClient === undefined ? {} : { walletClient: parameters.walletClient }),
     ...(parameters.account === undefined ? {} : { account: parameters.account }),
   });
+
   return { ...selection, write } satisfies SetResolverAndRecordsProgress;
 });
 
@@ -223,7 +243,7 @@ export const setResolverAndRecords = defineAction<
   SetResolverAndRecordsParameters,
   SetResolverAndRecordsResult,
   SetResolverAndRecordsError
->(implementation);
+>(withWorkflow("setResolverAndRecords", implementation));
 
 export type {
   ResolverSource,

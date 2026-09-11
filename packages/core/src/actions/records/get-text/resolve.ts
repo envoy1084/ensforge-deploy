@@ -13,8 +13,10 @@ export const resolveTexts = Effect.fn("resolveTexts")(function* (
   keys: ReadonlyArray<string>,
 ) {
   if (keys.length === 0) return [];
+
   const uniqueKeys = Array.from(new Set(keys));
   const node = namehash(name);
+
   const calls = yield* Effect.try({
     try: () =>
       uniqueKeys.map((key) =>
@@ -31,6 +33,7 @@ export const resolveTexts = Effect.fn("resolveTexts")(function* (
         cause,
       }),
   });
+
   const results = yield* resolveRecords(name, calls);
 
   if (results === null) {
@@ -39,6 +42,7 @@ export const resolveTexts = Effect.fn("resolveTexts")(function* (
 
   const uniqueResults = yield* Effect.forEach(uniqueKeys, (key, index) => {
     const result = results[index];
+
     if (result === undefined) {
       return new ContractError({
         code: "DECODE_FAILED",
@@ -54,6 +58,7 @@ export const resolveTexts = Effect.fn("resolveTexts")(function* (
           functionName: "text",
           data: result,
         });
+
         return { key, value: value.length === 0 ? null : value };
       },
       catch: (cause) =>
@@ -64,10 +69,12 @@ export const resolveTexts = Effect.fn("resolveTexts")(function* (
         }),
     });
   });
+
   const resultsByKey = new Map(uniqueResults.map((result) => [result.key, result]));
 
   return yield* Effect.forEach(keys, (key) => {
     const result = resultsByKey.get(key);
+
     return result === undefined
       ? new ContractError({
           code: "DECODE_FAILED",

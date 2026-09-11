@@ -21,6 +21,7 @@ export const setTexts = makeResolverWriteAction<SetTextsParameters>({
             args: [context.node, text.key, text.value],
           }),
         );
+
         return encodeFunctionData({
           abi: publicResolverV1MulticallAbi,
           functionName: "multicall",

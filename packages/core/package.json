@@ -49,6 +49,14 @@
       "workspace-source": "./src/actions/events/index.ts",
       "default": "./dist/events.js"
     },
+    "./hca": {
+      "workspace-source": "./src/actions/hca/index.ts",
+      "default": "./dist/hca.js"
+    },
+    "./hca/admin": {
+      "workspace-source": "./src/actions/hca/admin/index.ts",
+      "default": "./dist/hca/admin.js"
+    },
     "./indexer": {
       "workspace-source": "./src/actions/indexer/index.ts",
       "default": "./dist/indexer.js"
@@ -109,6 +117,14 @@
       "workspace-source": "./src/actions/reverse/index.ts",
       "default": "./dist/reverse.js"
     },
+    "./storage": {
+      "workspace-source": "./src/storage/index.ts",
+      "default": "./dist/storage.js"
+    },
+    "./storage/browser": {
+      "workspace-source": "./src/storage/browser.ts",
+      "default": "./dist/storage/browser.js"
+    },
     "./subnames": {
       "workspace-source": "./src/actions/subnames/index.ts",
       "default": "./dist/subnames.js"
@@ -137,6 +153,8 @@
       "./capabilities": "./dist/capabilities.js",
       "./dns": "./dist/dns.js",
       "./events": "./dist/events.js",
+      "./hca": "./dist/hca.js",
+      "./hca/admin": "./dist/hca/admin.js",
       "./indexer": "./dist/indexer.js",
       "./indexer/history": "./dist/indexer/history.js",
       "./indexer/names": "./dist/indexer/names.js",
@@ -152,6 +170,8 @@
       "./registration": "./dist/registration.js",
       "./resolution": "./dist/resolution.js",
       "./reverse": "./dist/reverse.js",
+      "./storage": "./dist/storage.js",
+      "./storage/browser": "./dist/storage/browser.js",
       "./subnames": "./dist/subnames.js",
       "./wagmi": "./dist/wagmi.js",
       "./wrapping": "./dist/wrapping.js",

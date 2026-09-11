@@ -12,6 +12,7 @@ describe("Mainnet indexed registration history", () => {
         filter: { protocols: ["v1"] },
         pageSize: 3,
       });
+
       assert.lengthOf(page.items, 3);
       assert.isTrue(page.items.every(({ protocol }) => protocol === "v1"));
     }),
@@ -23,6 +24,7 @@ describe("Mainnet indexed registration history", () => {
         name: "vitalik.eth",
         pageSize: 5,
       });
+
       assert.isAbove(page.items.length, 0);
       assert.isTrue(page.items.every(({ protocol }) => protocol === "v1"));
       assert.isTrue(

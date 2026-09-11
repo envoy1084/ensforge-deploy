@@ -101,10 +101,12 @@ export const RelatedIndexedNameV1 = Schema.Struct({
   ...IndexedNameV1.fields,
   ...relatedFields,
 });
+
 export const RelatedIndexedNameV2 = Schema.Struct({
   ...IndexedNameV2.fields,
   ...relatedFields,
 });
+
 export const RelatedIndexedName = Schema.Union([RelatedIndexedNameV1, RelatedIndexedNameV2]);
 export type RelatedIndexedName = typeof RelatedIndexedName.Type;
 

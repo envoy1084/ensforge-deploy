@@ -31,14 +31,17 @@ export const makeReactivityKeys = (
   if (typeof parameters !== "object" || parameters === null) return keys;
 
   const identity = parameters as ParametersWithIdentity;
+
   if (typeof identity.name === "string") {
     keys[queryKeys.name] = [`${sdk.config.network}:${identity.name}`];
   }
+
   if (typeof identity.address === "string") {
     keys[queryKeys.address] = [`${sdk.config.network}:${identity.address.toLowerCase()}`];
   }
 
   const names = stringValues(identity.names);
+
   if (names.length > 0) {
     keys[queryKeys.name] = names.map((name) => `${sdk.config.network}:${name}`);
   }

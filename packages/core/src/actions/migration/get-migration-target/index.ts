@@ -15,11 +15,13 @@ const getMigrationTargetEffect = Effect.fn("ensforge.getMigrationTarget")(functi
   parameters: MigrationNameParameters,
 ) {
   const name = yield* normalizeName.effect(parameters.name);
+
   return yield* executeRead(
     config,
     parameters,
     Effect.gen(function* () {
       const status = yield* getMigrationStatus.effect(config, parameters);
+
       if (
         status.status === "unsupported" ||
         status.status === "not-required" ||
@@ -40,9 +42,11 @@ const getMigrationTargetEffect = Effect.fn("ensforge.getMigrationTarget")(functi
       }
 
       const { profile } = yield* DeploymentService;
+
       if (profile.protocol !== "v2" || profile.v1 === undefined) {
         return { supported: false, name, reason: "MIGRATION_UNSUPPORTED" } as const;
       }
+
       if (status.status === "mirrored-child") {
         return {
           supported: true,
@@ -57,9 +61,11 @@ const getMigrationTargetEffect = Effect.fn("ensforge.getMigrationTarget")(functi
 
       const analysis = analyzeName(name);
       const label = analysis.ethSecondLevelLabel;
+
       if (label === undefined) {
         return { supported: false, name, reason: "MIGRATION_UNSUPPORTED" } as const;
       }
+
       if (status.status === "reserved-unwrapped") {
         return {
           supported: true,
@@ -71,6 +77,7 @@ const getMigrationTargetEffect = Effect.fn("ensforge.getMigrationTarget")(functi
           receiver: profile.v2.migration.unlockedMigrationController,
         } as const;
       }
+
       return {
         supported: true,
         name,

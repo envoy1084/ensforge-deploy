@@ -25,6 +25,7 @@ const getExpiryWithServices = Effect.fn("getExpiryWithServices")(function* (
       return yield* getExpiryV1(name, deployment.profile.v1);
     case "v2": {
       const v1 = deployment.profile.v1;
+
       return v1 === undefined
         ? yield* getExpiryV2(name, deployment.profile.v2)
         : yield* routeExpiry(name, v1, deployment.profile.v2);
@@ -37,6 +38,7 @@ const getExpiryEffect = Effect.fn("ensforge.getExpiry")(function* (
   parameters: GetExpiryParameters,
 ) {
   const name = yield* normalizeName.effect(parameters.name);
+
   return yield* executeRead(config, parameters, getExpiryWithServices(name));
 });
 

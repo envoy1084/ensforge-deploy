@@ -14,11 +14,13 @@ const getManagerEffect = Effect.fn("ensforge.getManager")(function* (
   parameters: GetNameStateParameters,
 ) {
   const name = yield* normalizeName.effect(parameters.name);
+
   return yield* executeRead(
     config,
     parameters,
     Effect.gen(function* () {
       const route = yield* readNameRoute(name);
+
       if (route.kind === "v2" || route.kind === "available") {
         return route.kind === "v2" && route.state.status === 2 ? route.state.latestOwner : null;
       }
@@ -27,6 +29,7 @@ const getManagerEffect = Effect.fn("ensforge.getManager")(function* (
         name,
         route.kind === "reserved" ? route.v1 : route.deployment,
       );
+
       return owner?.owner ?? null;
     }),
   );
@@ -42,4 +45,5 @@ export type {
   GetNameStateError as GetManagerError,
   GetNameStateParameters as GetManagerParameters,
 } from "../get-name-state/types.js";
+
 export type GetManagerResult = EthereumAddress | null;

@@ -14,6 +14,7 @@ import {
 import { sepoliaConfig, sepoliaNames } from "../setup/sepolia.js";
 
 const duration = 365n * 86_400n;
+
 const smokeSecret = `0x${"42".repeat(32)}` as const;
 
 describe("Sepolia V2 registration and transition renewal reads", () => {
@@ -38,10 +39,12 @@ describe("Sepolia V2 registration and transition renewal reads", () => {
       assert.isTrue(parameters.minimumRenewalDuration > 0n);
       assert.isTrue(parameters.maximumCommitmentAge > parameters.minimumCommitmentAge);
       assert.isTrue(supported.supported);
+
       if (supported.supported) {
         assert.strictEqual(supported.token, sepoliaV2Deployment.testTokens.usdc);
         assert.strictEqual(supported.decimals, 6);
       }
+
       assert.isFalse(unsupported.supported);
     }),
   );
@@ -49,6 +52,7 @@ describe("Sepolia V2 registration and transition renewal reads", () => {
   it.effect("quotes an available V2 name and prepares its commitment state", () =>
     Effect.gen(function* () {
       const owner = yield* getOwner.effect(sepoliaConfig, { name: sepoliaNames.v2.profile });
+
       if (owner?.owner === null || owner === null) {
         return yield* Effect.die(new Error("Sepolia profile has no owner"));
       }
@@ -72,6 +76,7 @@ describe("Sepolia V2 registration and transition renewal reads", () => {
       );
 
       assert.strictEqual(price.status, "available");
+
       if (price.status === "available") {
         assert.strictEqual(price.protocol, "v2");
         assert.strictEqual(price.registrar, sepoliaV2Deployment.contracts.ethRegistrar);
@@ -79,7 +84,9 @@ describe("Sepolia V2 registration and transition renewal reads", () => {
         assert.strictEqual(price.total, price.base + price.premium);
         assert.isTrue(price.total > 0n);
       }
+
       assert.strictEqual(plan.status, "commitment-required");
+
       if (plan.status === "commitment-required") {
         assert.strictEqual(plan.parameters.protocol, "v2");
         assert.strictEqual(plan.commitmentStatus.status, "not-found");
@@ -106,12 +113,15 @@ describe("Sepolia V2 registration and transition renewal reads", () => {
       );
 
       assert.strictEqual(native.status, "renewable");
+
       if (native.status === "renewable") {
         assert.strictEqual(native.protocol, "v2");
         assert.strictEqual(native.route, "v2-registrar");
         assert.strictEqual(native.renewer, sepoliaV2Deployment.contracts.ethRegistrar);
       }
+
       assert.strictEqual(reserved.status, "renewable");
+
       if (reserved.status === "renewable") {
         assert.strictEqual(reserved.protocol, "v1");
         assert.strictEqual(reserved.route, "v1-renewer");

@@ -23,6 +23,7 @@ export interface DecodeAddressRecordParameters {
 
 const getAddressCoder = (coinType: bigint | CoinTypeValue) => {
   const decodedCoinType = fromCoinType(coinType);
+
   const numericCoinType =
     decodedCoinType.namespace === "slip44"
       ? Number(decodedCoinType.coinType)
@@ -72,12 +73,14 @@ export const decodeAddressRecord = ({
   }
 
   fromCoinType(coinType);
+
   if (encodedAddress.length === 2) return null;
 
   try {
     return getAddressCoder(coinType).encode(hexToBytes(encodedAddress));
   } catch (error) {
     if (error instanceof CodecError) throw error;
+
     throw new CodecError({
       code: "INVALID_ADDRESS_RECORD",
       message: `Invalid encoded address for coin type ${coinType}`,

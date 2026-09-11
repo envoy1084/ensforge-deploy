@@ -20,6 +20,7 @@ describe("public key resolution integration", () => {
   it.effect("resolves migrated v2 and RESERVED v1 public keys through the v2 resolver", () =>
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
+
       const [migrated, reserved] = yield* Effect.all([
         getPubkey.effect(devnet.configs.v2, { name: devnet.fixtures.records.v2.name }),
         getPubkey.effect(devnet.configs.v2, { name: devnet.fixtures.records.reserved.name }),
@@ -33,6 +34,7 @@ describe("public key resolution integration", () => {
   it.effect("returns null when the public key is unset", () =>
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
+
       const result = yield* getPubkey.effect(devnet.configs.v2, {
         name: devnet.fixtures.v2.active.name,
       });
@@ -44,6 +46,7 @@ describe("public key resolution integration", () => {
   it.effect("returns null when the name has no resolver", () =>
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
+
       const result = yield* getPubkey.effect(devnet.configs.v2, {
         name: devnet.fixtures.v2.noResolver.name,
       });

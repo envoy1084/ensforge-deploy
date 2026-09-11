@@ -25,6 +25,7 @@ describe("capability integration", () => {
   it.effect("discovers V1 and V2 registry capabilities", () =>
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
+
       const [v1, wrapped, v2] = yield* Effect.all(
         [
           getRegistryCapabilities.effect(devnet.configs.v1, {
@@ -55,6 +56,7 @@ describe("capability integration", () => {
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
       const permissionedFixture = devnet.fixtures.permissions.v2.permissionedResolver;
+
       const [publicResolver, inherited, missing, permissioned] = yield* Effect.all(
         [
           getResolverCapabilities.effect(devnet.configs.v1, {
@@ -86,6 +88,7 @@ describe("capability integration", () => {
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
       const fixture = devnet.fixtures.permissions.v2.scopedRole;
+
       const [v1, roles, allowed, denied] = yield* Effect.all(
         [
           getRegistryRoles.effect(devnet.configs.v1, {
@@ -113,7 +116,9 @@ describe("capability integration", () => {
       assert.isFalse(v1.supported);
       assert.strictEqual(v1.reason, "ROLE_BASED_PERMISSIONS_UNSUPPORTED");
       assert.isTrue(roles.supported);
+
       if (roles.supported) assert.strictEqual(roles.roles & fixture.role, fixture.role);
+
       assert.isTrue(allowed.supported && allowed.authorized);
       assert.isTrue(denied.supported && !denied.authorized);
     }),
@@ -124,6 +129,7 @@ describe("capability integration", () => {
       const devnet = getIntegrationDevnet();
       const fixture = devnet.fixtures.permissions.v2.permissionedResolver;
       const record = { type: "text", key: fixture.textKey } as const;
+
       const [roles, allowed, denied, unsupported] = yield* Effect.all(
         [
           getResolverRoles.effect(devnet.configs.v2, {
@@ -153,10 +159,12 @@ describe("capability integration", () => {
       );
 
       assert.isTrue(roles.supported);
+
       if (roles.supported) {
         assert.strictEqual(roles.resource, fixture.resource);
         assert.strictEqual(roles.roles & fixture.role, fixture.role);
       }
+
       assert.isTrue(allowed.supported && allowed.authorized);
       assert.isTrue(denied.supported && !denied.authorized);
       assert.isFalse(unsupported.supported);
@@ -168,6 +176,7 @@ describe("capability integration", () => {
       const devnet = getIntegrationDevnet();
       const operator = devnet.fixtures.permissions.operator;
       const owner = devnet.fixtures.v1.activeUnwrapped.owner;
+
       const [v1Token, v2Token, v1Operator, v2Operator] = yield* Effect.all(
         [
           getTokenApproval.effect(devnet.configs.v1, {
@@ -189,7 +198,9 @@ describe("capability integration", () => {
       );
 
       assert.isTrue(v1Token.supported);
+
       if (v1Token.supported) assert.strictEqual(v1Token.approved, operator);
+
       assert.isFalse(v2Token.supported);
       assert.isTrue(
         v1Operator.targets.some((target) => target.kind === "wrapper" && target.approved),
@@ -204,6 +215,7 @@ describe("capability integration", () => {
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
       const operator = devnet.fixtures.permissions.operator;
+
       const [delegate, wrapper, locked] = yield* Effect.all(
         [
           getResolverDelegateApproval.effect(devnet.configs.v1, {
@@ -225,11 +237,14 @@ describe("capability integration", () => {
 
       assert.isTrue(delegate.supported && delegate.approved);
       assert.isTrue(wrapper.supported);
+
       if (wrapper.supported && wrapper.protocol === "v1") {
         assert.isTrue(wrapper.operatorApproved);
         assert.isTrue(wrapper.canModify);
       }
+
       assert.isTrue(locked.supported);
+
       if (locked.supported) assert.strictEqual(locked.protocol, "v2");
     }),
   );
@@ -239,6 +254,7 @@ describe("capability integration", () => {
       const devnet = getIntegrationDevnet();
       const permissioned = devnet.fixtures.permissions.v2.permissionedResolver;
       const record = { type: "text", key: "avatar" } as const;
+
       const [v1, v2, denied] = yield* Effect.all(
         [
           getRecordPermissions.effect(devnet.configs.v1, {
@@ -276,6 +292,7 @@ describe("capability integration", () => {
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
       const operator = devnet.fixtures.permissions.operator;
+
       const [recordTarget, transferTarget, recordAuthorization, registryAuthorization] =
         yield* Effect.all(
           [
@@ -302,9 +319,13 @@ describe("capability integration", () => {
         );
 
       assert.isTrue(recordTarget.available);
+
       if (recordTarget.available) assert.strictEqual(recordTarget.kind, "resolver");
+
       assert.isTrue(transferTarget.available);
+
       if (transferTarget.available) assert.strictEqual(transferTarget.kind, "registrar");
+
       assert.strictEqual(recordAuthorization.authorization.status, "authorized");
       assert.strictEqual(registryAuthorization.authorization.status, "authorized");
     }),
@@ -313,6 +334,7 @@ describe("capability integration", () => {
   it.effect("composes application-oriented name capabilities", () =>
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
+
       const result = yield* getNameCapabilities.effect(devnet.configs.v2, {
         name: devnet.fixtures.permissions.v2.permissionedResolver.name,
         account: devnet.fixtures.permissions.operator,

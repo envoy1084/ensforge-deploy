@@ -12,6 +12,7 @@ import type { EnsforgeConfig } from "../../../config/config.js";
 import { ContractError } from "../../../errors/contract-error.js";
 import { provideConfig } from "../../../internal/config/context.js";
 import { resolveWalletContext } from "../../../internal/services/wallet-client.js";
+import { withWorkflow } from "../../../internal/workflows/run.js";
 import { namehash } from "../../../names/hashes.js";
 import { EthereumAddress } from "../../../schemas/identity.js";
 import type { WritePlan } from "../../../write/types.js";
@@ -46,10 +47,12 @@ const createSubnameEffect = Effect.fn("ensforge.createSubname")(function* (
 ): Effect.fn.Return<CreateSubnameResult, SubnameError> {
   const route = yield* resolveSubnameRoute(config, parameters.name);
   const owner = yield* decodeOwnershipAddress(parameters.owner, "subname owner");
+
   const resolver =
     parameters.resolver === undefined
       ? zeroAddress
       : yield* decodeOwnershipAddress(parameters.resolver, "subname resolver");
+
   const expiry = parameters.expiry ?? route.parentExpiry;
   const stages: WritePlan["stages"] extends ReadonlyArray<infer Stage> ? Array<Stage> : never = [];
   let registry: typeof EthereumAddress.Type;
@@ -59,6 +62,7 @@ const createSubnameEffect = Effect.fn("ensforge.createSubname")(function* (
     registry = route.parentWrapped
       ? route.deployment.contracts.nameWrapper
       : route.deployment.contracts.registry;
+
     stages.push({
       type: "calls",
       id: "create-subname",
@@ -89,8 +93,10 @@ const createSubnameEffect = Effect.fn("ensforge.createSubname")(function* (
         ...(parameters.account === undefined ? {} : { account: parameters.account }),
       }),
     );
+
     const account = typeof wallet.account === "string" ? wallet.account : wallet.account.address;
     const roles = parameters.roles ?? ownerRoles;
+
     if (
       parameters.resume?.createdRegistry !== undefined &&
       parameters.resume.createdRegistry !== null
@@ -104,12 +110,15 @@ const createSubnameEffect = Effect.fn("ensforge.createSubname")(function* (
         roles: enhancedAccessControlRoles.allRoles,
         salt: parameters.salt ?? BigInt(namehash(route.parent)),
       });
+
       const simulation = yield* simulateCalls.effect(config, {
         calls: [deploymentIntent],
         ...(parameters.walletClient === undefined ? {} : { walletClient: parameters.walletClient }),
         ...(parameters.account === undefined ? {} : { account: parameters.account }),
       });
+
       const raw = simulation[0]?.result;
+
       if (raw === undefined) {
         return yield* new ContractError({
           code: "DECODE_FAILED",
@@ -117,6 +126,7 @@ const createSubnameEffect = Effect.fn("ensforge.createSubname")(function* (
           cause: simulation,
         });
       }
+
       createdRegistry = yield* Effect.try({
         try: () =>
           Schema.decodeUnknownSync(EthereumAddress)(
@@ -134,7 +144,9 @@ const createSubnameEffect = Effect.fn("ensforge.createSubname")(function* (
           }),
       });
     }
+
     registry = createdRegistry ?? route.subregistry ?? zeroAddress;
+
     if (createdRegistry !== null) {
       stages.push(
         {
@@ -174,6 +186,7 @@ const createSubnameEffect = Effect.fn("ensforge.createSubname")(function* (
         },
       );
     }
+
     stages.push({
       type: "calls",
       id: "create-subname",
@@ -199,6 +212,7 @@ const createSubnameEffect = Effect.fn("ensforge.createSubname")(function* (
     ...(parameters.walletClient === undefined ? {} : { walletClient: parameters.walletClient }),
     ...(parameters.account === undefined ? {} : { account: parameters.account }),
   });
+
   const result = {
     name: route.name,
     parent: route.parent,
@@ -208,6 +222,7 @@ const createSubnameEffect = Effect.fn("ensforge.createSubname")(function* (
     write,
     finalState: null,
   } satisfies CreateSubnameResult;
+
   return {
     ...result,
     finalState: confirmed(write) ? yield* getNameState.effect(config, { name: route.name }) : null,
@@ -218,7 +233,7 @@ export const createSubname = defineAction<
   CreateSubnameParameters,
   CreateSubnameResult,
   SubnameError
->(createSubnameEffect);
+>(withWorkflow("createSubname", createSubnameEffect));
 
 export type {
   CreateSubnameParameters,

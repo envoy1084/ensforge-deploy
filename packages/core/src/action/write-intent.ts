@@ -7,13 +7,17 @@ import type { PreparedWriteCall } from "../write/types.js";
 import { defineExtendedAction, type EnsAction, type EnsActionEffect } from "./action.js";
 
 const EnsWriteIntentTypeId: unique symbol = Symbol.for("@ensforge/core/EnsWriteIntent");
+
 const EnsWriteIntentPreparerTypeId: unique symbol = Symbol.for(
   "@ensforge/core/EnsWriteIntent/preparer",
 );
+
 const EnsWriteIntentSensitiveTypeId: unique symbol = Symbol.for(
   "@ensforge/core/EnsWriteIntent/sensitive",
 );
+
 declare const EnsWriteIntentSuccessTypeId: unique symbol;
+
 declare const EnsWriteIntentFailureTypeId: unique symbol;
 
 export interface EnsWriteIntent<Success, Failure> {
@@ -62,6 +66,7 @@ export const makeWriteIntent = <Parameters, Success, Failure>(
     operation,
     parameters,
   } as EnsWriteIntent<Success, Failure>;
+
   if (preparer !== undefined) {
     Object.defineProperty(intent, EnsWriteIntentPreparerTypeId, {
       value: preparer,
@@ -70,6 +75,7 @@ export const makeWriteIntent = <Parameters, Success, Failure>(
       writable: false,
     });
   }
+
   if (sensitive) {
     Object.defineProperty(intent, EnsWriteIntentSensitiveTypeId, {
       value: true,
@@ -78,6 +84,7 @@ export const makeWriteIntent = <Parameters, Success, Failure>(
       writable: false,
     });
   }
+
   return Object.freeze(intent);
 };
 

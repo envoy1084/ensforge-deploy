@@ -74,6 +74,7 @@ describe("Mainnet resolution", () => {
   it.effect("resolves chain-specific multichain address records", () =>
     Effect.gen(function* () {
       const baseCoinType = toCoinType(8453);
+
       const addresses = yield* getAddresses.effect(mainnetConfig, {
         name: mainnetNames.multichain,
         coinTypes: [60n, baseCoinType],
@@ -105,16 +106,19 @@ describe("Mainnet resolution", () => {
   it.effect("round-trips a forward-verified primary name", () =>
     Effect.gen(function* () {
       const forward = yield* getAddress.effect(mainnetConfig, { name: mainnetNames.reverse });
+
       if (forward.address === null) {
         return yield* Effect.die(new Error(`${mainnetNames.reverse} has no Ethereum address`));
       }
 
       const primary = yield* getPrimaryName.effect(mainnetConfig, { address: forward.address });
+
       if (primary === null) {
         return yield* Effect.die(new Error(`${forward.address} has no verified primary name`));
       }
 
       const roundTrip = yield* getAddress.effect(mainnetConfig, { name: primary.name });
+
       assert.isTrue(primary.match);
       assert.strictEqual(roundTrip.address?.toLowerCase(), forward.address.toLowerCase());
     }),

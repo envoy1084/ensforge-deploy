@@ -10,6 +10,9 @@ export interface ClearAvatarParameters {
 }
 
 export type SetAvatarResult = CallExecutionResult;
+
 export type SetAvatarError = WriteError;
+
 export type ClearAvatarResult = CallExecutionResult;
+
 export type ClearAvatarError = WriteError;

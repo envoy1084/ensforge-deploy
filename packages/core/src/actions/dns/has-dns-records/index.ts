@@ -28,6 +28,7 @@ const hasDnsRecordsEffect = Effect.fn("ensforge.hasDnsRecords")(function* (
     [normalizeName.effect(parameters.name), normalizeName.effect(parameters.recordName)] as const,
     { concurrency: "unbounded" },
   );
+
   const call = yield* Effect.try({
     try: () =>
       encodeFunctionData({
@@ -42,6 +43,7 @@ const hasDnsRecordsEffect = Effect.fn("ensforge.hasDnsRecords")(function* (
         cause,
       }),
   });
+
   return yield* executeRead(
     config,
     parameters,
@@ -50,10 +52,13 @@ const hasDnsRecordsEffect = Effect.fn("ensforge.hasDnsRecords")(function* (
         [getResolver.effect(config, parameters), resolveRecords(name, [call])] as const,
         { concurrency: "unbounded" },
       );
+
       if (result === null || result[0] === undefined) {
         return { name, recordName, resolver, exists: false } satisfies DnsRecordsExistence;
       }
+
       const encoded = result[0];
+
       const exists = yield* Effect.try({
         try: () =>
           decodeFunctionResult({
@@ -68,6 +73,7 @@ const hasDnsRecordsEffect = Effect.fn("ensforge.hasDnsRecords")(function* (
             cause,
           }),
       });
+
       return { name, recordName, resolver, exists } satisfies DnsRecordsExistence;
     }),
   );

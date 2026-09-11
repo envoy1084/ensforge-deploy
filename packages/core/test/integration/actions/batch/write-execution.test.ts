@@ -30,11 +30,13 @@ describe("write execution integration", () => {
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
       const intent = transfer.call({ to: devnet.accounts.owner2 });
+
       const [prepared, simulated, estimated] = yield* Effect.all([
         prepareCalls.effect(devnet.configs.v2, { calls: [intent] }),
         simulateCalls.effect(devnet.configs.v2, { calls: [intent] }),
         estimateCalls.effect(devnet.configs.v2, { calls: [intent] }),
       ] as const);
+
       const result = yield* sendCalls.effect(devnet.configs.v2, {
         calls: [intent],
         mode: "sequential",
@@ -55,6 +57,7 @@ describe("write execution integration", () => {
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
       const capabilities = yield* getWalletCapabilities.effect(devnet.configs.v2, {});
+
       const result = yield* sendCalls.effect(devnet.configs.v2, {
         calls: [transfer.call({ to: devnet.accounts.owner2 })],
         mode: "auto",
@@ -69,6 +72,7 @@ describe("write execution integration", () => {
   it.effect("rejects required native batching when the wallet does not support it", () =>
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
+
       const error = yield* sendCalls
         .effect(devnet.configs.v2, {
           calls: [transfer.call({ to: devnet.accounts.owner2 })],
@@ -86,6 +90,7 @@ describe("write execution integration", () => {
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
       const block = yield* Effect.promise(() => devnet.configs.v2.publicClient.getBlock());
+
       const plan = {
         id: "integration-write-plan",
         stages: [
@@ -102,6 +107,7 @@ describe("write execution integration", () => {
           },
         ],
       } as const;
+
       const progress = yield* executeWritePlan.effect(devnet.configs.v2, { plan });
 
       assert.strictEqual(progress.status, "waiting");

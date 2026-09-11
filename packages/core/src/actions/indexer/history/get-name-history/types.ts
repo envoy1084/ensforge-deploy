@@ -17,4 +17,5 @@ export const GetNameHistoryParameters = Schema.Struct({
 export type GetNameHistoryParameters = typeof GetNameHistoryParameters.Type;
 
 export type GetNameHistoryResult = GetEventsResult;
+
 export type GetNameHistoryError = GetEventsError;

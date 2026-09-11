@@ -38,6 +38,7 @@ const routeEthOwner = Effect.fn("routeEthOwner")(function* (
   const ethereum = yield* EthereumClient;
   const dnsName = yield* dnsEncodeName.effect(name);
   const ownerId = BigInt(labelhash(label));
+
   const [ownerResult, stateResult, renewableResult, v1Results] = yield* Effect.all(
     [
       Effect.result(
@@ -70,6 +71,7 @@ const routeEthOwner = Effect.fn("routeEthOwner")(function* (
   );
 
   if (Result.isFailure(ownerResult)) return yield* ownerResult.failure;
+
   if (!isAddressEqual(ownerResult.success, zeroAddress)) {
     return {
       name,
@@ -81,6 +83,7 @@ const routeEthOwner = Effect.fn("routeEthOwner")(function* (
   }
 
   if (Result.isFailure(stateResult)) return yield* stateResult.failure;
+
   if (Result.isFailure(renewableResult)) return yield* renewableResult.failure;
 
   const state = stateResult.success;
@@ -112,6 +115,7 @@ const routeOtherOwner = Effect.fn("routeOtherOwner")(function* (
 > {
   const ethereum = yield* EthereumClient;
   const dnsName = yield* dnsEncodeName.effect(name);
+
   const [ownerResult, parentResult, resolverResult, v1Results] = yield* Effect.all(
     [
       Effect.result(
@@ -144,6 +148,7 @@ const routeOtherOwner = Effect.fn("routeOtherOwner")(function* (
   );
 
   if (Result.isFailure(ownerResult)) return yield* ownerResult.failure;
+
   if (!isAddressEqual(ownerResult.success, zeroAddress)) {
     return {
       name,
@@ -155,6 +160,7 @@ const routeOtherOwner = Effect.fn("routeOtherOwner")(function* (
   }
 
   if (Result.isFailure(parentResult)) return yield* parentResult.failure;
+
   if (Result.isFailure(resolverResult)) return yield* resolverResult.failure;
 
   const [resolver] = resolverResult.success;

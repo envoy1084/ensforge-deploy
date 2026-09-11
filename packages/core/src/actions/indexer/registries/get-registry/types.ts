@@ -16,4 +16,5 @@ export type GetRegistryParameters = typeof GetRegistryParameters.Type;
 
 export const GetRegistryResult = V2IndexerResult(Schema.NullOr(IndexedRegistry));
 export type GetRegistryResult = V2IndexerResultType<IndexedRegistry | null>;
+
 export type GetRegistryError = RegistryIndexerError;

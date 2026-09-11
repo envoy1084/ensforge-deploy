@@ -24,12 +24,14 @@ const getDnsClaimStatusEffect = Effect.fn("ensforge.getDnsClaimStatus")(function
   parameters: GetDnsClaimStatusParameters,
 ) {
   const name = yield* normalizeName.effect(parameters.name);
+
   return yield* executeRead(
     config,
     parameters,
     Effect.gen(function* () {
       const { profile } = yield* DeploymentService;
       const v1 = profile.v1;
+
       if (v1 === undefined) {
         return {
           status: "unsupported",
@@ -37,8 +39,10 @@ const getDnsClaimStatusEffect = Effect.fn("ensforge.getDnsClaimStatus")(function
           reason: "DNS_REGISTRAR_UNAVAILABLE",
         } as const;
       }
+
       const ethereum = yield* EthereumClient;
       const node = namehash(name);
+
       const [owner, resolver, inception] = yield* Effect.all(
         [
           ethereum.readContract({
@@ -62,7 +66,9 @@ const getDnsClaimStatusEffect = Effect.fn("ensforge.getDnsClaimStatus")(function
         ] as const,
         { concurrency: "unbounded" },
       );
+
       const previousInception = BigInt(inception);
+
       return isAddressEqual(owner, zeroAddress)
         ? ({ status: "proof-required", name, previousInception } as const)
         : ({

@@ -32,6 +32,7 @@ export const readV1Owner = Effect.fn("readV1Owner")(function* (
   const ethereum = yield* EthereumClient;
   const analysis = analyzeName(name);
   const node = namehash(name);
+
   const reads: Array<Effect.Effect<OwnerCallResult, never, ReadContext>> = [
     Effect.result(
       ethereum.readContract({
@@ -73,6 +74,7 @@ export const interpretV1Owner = Effect.fn("interpretV1Owner")(function* (
   results: readonly OwnerCallResult[],
 ): Effect.fn.Return<OwnerResult | null, ContractError | ViemError> {
   const registryResult = results[0];
+
   if (registryResult === undefined) {
     return yield* new ContractError({
       code: "DECODE_FAILED",
@@ -80,12 +82,15 @@ export const interpretV1Owner = Effect.fn("interpretV1Owner")(function* (
       cause: registryResult,
     });
   }
+
   if (Result.isFailure(registryResult)) return yield* registryResult.failure;
+
   const registryOwner: Address | null = isAddressEqual(registryResult.success, zeroAddress)
     ? null
     : registryResult.success;
 
   const wrapperResult = results[1];
+
   if (wrapperResult === undefined) {
     return yield* new ContractError({
       code: "DECODE_FAILED",
@@ -93,7 +98,9 @@ export const interpretV1Owner = Effect.fn("interpretV1Owner")(function* (
       cause: wrapperResult,
     });
   }
+
   if (Result.isFailure(wrapperResult)) return yield* wrapperResult.failure;
+
   const nameWrapperOwner: Address | null = isAddressEqual(wrapperResult.success, zeroAddress)
     ? null
     : wrapperResult.success;
@@ -103,6 +110,7 @@ export const interpretV1Owner = Effect.fn("interpretV1Owner")(function* (
 
   if (analysis.isSecondLevelEth) {
     const registrarResult = results[2];
+
     if (registrarResult === undefined) {
       return yield* new ContractError({
         code: "DECODE_FAILED",
@@ -113,6 +121,7 @@ export const interpretV1Owner = Effect.fn("interpretV1Owner")(function* (
 
     if (Result.isFailure(registrarResult)) {
       const cause = registrarResult.failure.cause;
+
       const missingToken =
         cause instanceof BaseError &&
         cause.walk((error) => error instanceof ContractFunctionRevertedError) !== null;
@@ -215,5 +224,6 @@ export const getOwnerV1 = Effect.fn("getOwnerV1")(function* (
   deployment: EnsV1ConfigDeployment,
 ): Effect.fn.Return<OwnerResult | null, ContractError | ViemError, EthereumClient | ReadContext> {
   const results = yield* readV1Owner(name, deployment);
+
   return yield* interpretV1Owner(name, deployment, results);
 });

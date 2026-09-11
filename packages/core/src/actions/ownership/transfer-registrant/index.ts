@@ -19,7 +19,9 @@ const prepare: EnsWriteIntentPreparer<TransferRegistrantParameters, WriteError> 
   const name = yield* normalizeName.effect(parameters.name);
   const to = yield* decodeTransferRecipient(parameters.to);
   const target = yield* getRegistrarTarget(config, name);
+
   yield* requireOwnershipAuthorization(config, name, context.account, { type: "transfer" });
+
   const data = yield* Effect.try({
     try: () =>
       encodeFunctionData({
@@ -34,6 +36,7 @@ const prepare: EnsWriteIntentPreparer<TransferRegistrantParameters, WriteError> 
         cause,
       }),
   });
+
   return { to: target.address, data, value: 0n, protocol: "v1" as const };
 });
 

@@ -13,13 +13,16 @@ const getRegistryEffect = Effect.fn("ensforge.getRegistry")(function* (
   parameters: GetNameStateParameters,
 ) {
   const name = yield* normalizeName.effect(parameters.name);
+
   return yield* executeRead(
     config,
     parameters,
     readNameRoute(name).pipe(
       Effect.map((route) => {
         if (route.kind === "v1") return route.deployment.contracts.registry;
+
         if (route.kind === "reserved") return route.v1.contracts.registry;
+
         return route.parentRegistry;
       }),
     ),
@@ -36,4 +39,5 @@ export type {
   GetNameStateError as GetRegistryError,
   GetNameStateParameters as GetRegistryParameters,
 } from "../get-name-state/types.js";
+
 export type GetRegistryResult = EthereumAddress;

@@ -18,20 +18,24 @@ const getRegistryCapabilitiesEffect = Effect.fn("ensforge.getRegistryCapabilitie
   parameters: NameCapabilityParameters,
 ) {
   const name = yield* normalizeName.effect(parameters.name);
+
   return yield* executeRead(
     config,
     parameters,
     Effect.gen(function* () {
       const route = yield* readNameRoute(name);
       const ethereum = yield* EthereumClient;
+
       if (route.kind === "v1" || route.kind === "reserved") {
         const deployment = route.kind === "reserved" ? route.v1 : route.deployment;
+
         const wrapped = yield* ethereum.readContract({
           address: deployment.contracts.nameWrapper,
           abi: nameWrapperV1IsWrappedAbi,
           functionName: "isWrapped",
           args: [namehash(name)],
         });
+
         return {
           address: wrapped ? deployment.contracts.nameWrapper : deployment.contracts.registry,
           protocol: "v1",
@@ -50,6 +54,7 @@ const getRegistryCapabilitiesEffect = Effect.fn("ensforge.getRegistryCapabilitie
       }
 
       const support = yield* supportsInterfaces(route.parentRegistry, registryInterfaceIds);
+
       return {
         address: route.parentRegistry,
         protocol: "v2",

@@ -21,7 +21,9 @@ export const getRegistrarTarget = Effect.fn("ensforge.getRegistrarTarget")(funct
     name,
     operation: { type: "transfer" },
   });
+
   const registrant = yield* getRegistrant.effect(config, { name });
+
   if (
     !target.available ||
     target.protocol !== "v1" ||
@@ -34,5 +36,6 @@ export const getRegistrarTarget = Effect.fn("ensforge.getRegistrarTarget")(funct
       message: `An unwrapped V1 .eth registrar token is unavailable for ${name}`,
     });
   }
+
   return { address: target.address, tokenId: target.tokenId, registrant };
 });

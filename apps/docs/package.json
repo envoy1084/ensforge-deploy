@@ -6,9 +6,12 @@
   "scripts": {
     "build": "NODE_OPTIONS='--max-old-space-size=6144' vocs build",
     "dev": "vocs dev --port 3000",
-    "lint": "oxlint --deny-warnings components pages server sidebar.ts vite.config.ts vocs.config.ts",
+    "lint": "oxlint --deny-warnings components pages examples server sidebar.ts vite.config.ts vocs.config.ts",
     "preview": "vocs preview --port 3000",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "example:hca:local": "tsx examples/hca/local.ts",
+    "example:hca:pimlico": "tsx --env-file=.env.hca examples/hca/pimlico.ts",
+    "example:hca:rhinestone": "tsx --env-file=.env.hca examples/hca/rhinestone.ts"
   },
   "dependencies": {
     "@ensforge/core": "workspace:*",
@@ -29,10 +32,16 @@
     "wagmi": "2.19.5"
   },
   "devDependencies": {
+    "@ensforge/contracts": "workspace:*",
+    "@ensforge/hca": "workspace:*",
+    "@ensforge/react": "workspace:*",
+    "@ensforge/test-env": "workspace:*",
+    "@rhinestone/sdk": "1.8.0",
     "@tailwindcss/vite": "4.3.3",
     "@types/node": "24.13.3",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
+    "permissionless": "0.4.0",
     "react-server-dom-webpack": "~19.2.8",
     "tailwindcss": "4.3.3",
     "tsx": "4.22.4",

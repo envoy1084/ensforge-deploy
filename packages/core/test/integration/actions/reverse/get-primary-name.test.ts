@@ -17,6 +17,7 @@ describe("primary name resolution integration", () => {
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
       const fixture = devnet.fixtures.reverse.verifiedV1;
+
       const result = yield* getPrimaryName.effect(devnet.configs.v1, {
         address: fixture.address,
       });
@@ -29,6 +30,7 @@ describe("primary name resolution integration", () => {
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
       const fixture = devnet.fixtures.reverse.verifiedV2;
+
       const result = yield* getPrimaryName.effect(devnet.configs.v2, {
         address: fixture.address,
       });
@@ -42,6 +44,7 @@ describe("primary name resolution integration", () => {
       const devnet = getIntegrationDevnet();
       const v1Fixture = devnet.fixtures.reverse.verifiedDefaultV1;
       const v2Fixture = devnet.fixtures.reverse.verifiedDefaultV2;
+
       const [v1, v2] = yield* Effect.all(
         [
           getPrimaryName.effect(devnet.configs.v1, {
@@ -65,6 +68,7 @@ describe("primary name resolution integration", () => {
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
       const fixture = devnet.fixtures.reverse.verifiedDefaultV2;
+
       const result = yield* getPrimaryName.effect(devnet.configs.v2, {
         address: fixture.address,
         coinType: toCoinType(8453),
@@ -79,6 +83,7 @@ describe("primary name resolution integration", () => {
       const devnet = getIntegrationDevnet();
       const bitcoin = devnet.fixtures.records.v1.addresses.bitcoin;
       const address = decodeAddressRecord({ coinType: bitcoin.coinType, data: bitcoin.value });
+
       if (address === null) return yield* Effect.die(new Error("The Bitcoin fixture is empty"));
 
       const result = yield* getPrimaryName.effect(devnet.configs.v1, {
@@ -94,6 +99,7 @@ describe("primary name resolution integration", () => {
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
       const fixture = devnet.fixtures.reverse.verifiedContract;
+
       const result = yield* getPrimaryName.effect(devnet.configs.v2, {
         address: fixture.address,
       });
@@ -106,6 +112,7 @@ describe("primary name resolution integration", () => {
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
       const fixtures = [devnet.fixtures.reverse.unverified, devnet.fixtures.reverse.missing];
+
       const results = yield* Effect.all(
         fixtures.map((fixture) =>
           getPrimaryName.effect(devnet.configs.v2, { address: fixture.address }),
@@ -120,6 +127,7 @@ describe("primary name resolution integration", () => {
   it.effect("rejects malformed Ethereum addresses", () =>
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
+
       const error = yield* Effect.flip(
         getPrimaryName.effect(devnet.configs.v2, { address: "0x1234" }),
       );
@@ -131,6 +139,7 @@ describe("primary name resolution integration", () => {
   it.effect("rejects malformed coin types and multicoin addresses", () =>
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
+
       const [coinTypeError, addressError] = yield* Effect.all(
         [
           Effect.flip(
@@ -161,10 +170,13 @@ describe("primary name resolution integration", () => {
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
       const fixture = devnet.fixtures.reverse.verifiedDefaultV2;
+
       if (fixture.name === undefined) {
         return yield* Effect.die(new Error("The verified reverse fixture has no name"));
       }
+
       const name = fixture.name;
+
       const result = yield* readBatch.effect(devnet.configs.v2, {
         owner: getOwner.request({ name }),
         primaryName: getPrimaryName.request({

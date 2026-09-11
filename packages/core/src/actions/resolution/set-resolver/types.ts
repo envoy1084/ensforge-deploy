@@ -6,4 +6,5 @@ export interface SetResolverParameters {
 }
 
 export type SetResolverResult = CallExecutionResult;
+
 export type SetResolverError = WriteError;

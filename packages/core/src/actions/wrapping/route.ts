@@ -42,23 +42,28 @@ export const resolveWrapperRoute = Effect.fn("ensforge.resolveWrapperRoute")(fun
   block: BlockParameters = {},
 ) {
   const name = yield* normalizeName.effect(inputName);
+
   return yield* executeRead(
     config,
     block,
     Effect.gen(function* () {
       const route = yield* readNameRoute(name);
+
       if (route.kind !== "v1" && route.kind !== "reserved") {
         return { supported: false, protocol: "v2", name } as const;
       }
+
       const deployment = route.kind === "reserved" ? route.v1 : route.deployment;
       const node = namehash(name);
       const ethereum = yield* EthereumClient;
+
       const [owner, fuses, expiry] = yield* ethereum.readContract({
         address: deployment.contracts.nameWrapper,
         abi: nameWrapperV1GetDataAbi,
         functionName: "getData",
         args: [BigInt(node)],
       });
+
       return {
         supported: true,
         protocol: "v1",
@@ -80,12 +85,14 @@ export const requireV1WrapperRoute = Effect.fn("ensforge.requireV1WrapperRoute")
   name: string,
 ) {
   const route = yield* resolveWrapperRoute(config, name);
+
   if (!route.supported) {
     return yield* new AuthorizationError({
       code: "WRITE_TARGET_UNAVAILABLE",
       message: `ENSv1 Name Wrapper operations are unavailable for ${route.name}`,
     });
   }
+
   return route;
 });
 
@@ -94,11 +101,13 @@ export const requireWrappedRoute = Effect.fn("ensforge.requireWrappedRoute")(fun
   name: string,
 ) {
   const route = yield* requireV1WrapperRoute(config, name);
+
   if (!route.wrapped) {
     return yield* new AuthorizationError({
       code: "WRITE_TARGET_UNAVAILABLE",
       message: `${route.name} is not wrapped`,
     });
   }
+
   return route;
 });

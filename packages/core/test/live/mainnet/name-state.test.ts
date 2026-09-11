@@ -21,6 +21,7 @@ describe("Mainnet name state", () => {
   it.effect("keeps composed and focused ENSv1 state reads consistent", () =>
     Effect.gen(function* () {
       const state = yield* getNameState.effect(mainnetConfig, { name: mainnetNames.standard });
+
       const focused = yield* readBatch.effect(mainnetConfig, {
         owner: getOwner.request({ name: mainnetNames.standard }),
         manager: getManager.request({ name: mainnetNames.standard }),
@@ -40,9 +41,11 @@ describe("Mainnet name state", () => {
       assert.strictEqual(focused.manager, state.manager);
       assert.strictEqual(focused.registrant, state.registrant);
       assert.strictEqual(focused.resolver, state.resolver);
+
       if (focused.expiry === null) {
         return yield* Effect.die(new Error(`${mainnetNames.standard} has no registration expiry`));
       }
+
       assert.strictEqual(focused.expiry.expiry, state.expiry);
       assert.isTrue(focused.expiry.expiry > BigInt(Math.floor(Date.now() / 1_000)));
       assert.strictEqual(focused.available, state.available);

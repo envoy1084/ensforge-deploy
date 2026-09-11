@@ -14,9 +14,11 @@ describe("bindAction", () => {
         network: "mainnet",
         publicClient: makeMainnetPublicClient(),
       });
+
       const implementation = vi.fn((currentConfig: typeof config, value: number) =>
         Effect.succeed({ currentConfig, value: value * 2 }),
       );
+
       const bound = bindAction(config, defineReadAction(implementation));
 
       const effectResult = yield* bound.effect(21);
@@ -33,8 +35,10 @@ describe("bindAction", () => {
       network: "mainnet",
       publicClient: makeMainnetPublicClient(),
     });
+
     const readImplementation = vi.fn((_: typeof config, value: number) => Effect.succeed(value));
     const read = bindAction(config, defineReadAction(readImplementation));
+
     const write = bindAction(
       config,
       defineWriteAction("setValue", (_: typeof config, value: number) => Effect.succeed(value)),

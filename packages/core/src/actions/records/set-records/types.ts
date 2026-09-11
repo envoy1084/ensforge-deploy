@@ -55,10 +55,12 @@ export interface ResolverMulticallResult {
 }
 
 export type SetRecordsResult = ResolverMulticallResult | SendCallsResult;
+
 export type SetRecordsError = WriteError;
 
 export interface SetRecordsAction {
   (config: EnsforgeConfig, parameters: SetRecordsParameters): Promise<SetRecordsResult>;
+
   readonly effect: (
     config: EnsforgeConfig,
     parameters: SetRecordsParameters,

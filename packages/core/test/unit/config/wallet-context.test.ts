@@ -31,6 +31,7 @@ const provideSepoliaWallet = <Success, Failure>(
 
 const getFailure = <Success, Failure>(exit: Exit.Exit<Success, Failure>): Failure => {
   if (!Exit.isFailure(exit)) throw new Error("Expected wallet resolution to fail");
+
   return Option.getOrThrow(Cause.findErrorOption(exit.cause));
 };
 
@@ -68,6 +69,7 @@ describe("resolveWalletContext", () => {
 
   it("fails when no account is available", async () => {
     const walletClient = makeSepoliaWalletClientWithoutAccount();
+
     const exit = await Effect.runPromiseExit(
       provideSepoliaWallet(resolveWalletContext({ walletClient })),
     );

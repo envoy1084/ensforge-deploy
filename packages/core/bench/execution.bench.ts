@@ -9,14 +9,19 @@ import { defineReadAction, defineWriteAction, prepareCalls, readBatch } from "..
 import { createTestConfig, ensTestChainId } from "../src/testing/index.js";
 
 const account = "0x0000000000000000000000000000000000000001" as const;
+
 const target = "0x0000000000000000000000000000000000000002" as const;
+
 const chain = { ...mainnet, id: ensTestChainId };
+
 const publicClient = {
   chain,
   getBlock: async () => ({ number: 1n, timestamp: 1n }),
   multicall: async () => [],
 } as unknown as PublicClient;
+
 const walletClient = { chain, account: { address: account } } as unknown as WalletClient;
+
 const config = createTestConfig({
   deployments: {
     protocol: "v1",
@@ -25,7 +30,9 @@ const config = createTestConfig({
   publicClient,
   walletClient,
 });
+
 const read = defineReadAction((_config, value: number) => Effect.succeed(value));
+
 const write = defineWriteAction(
   "benchWrite",
   (_config, parameters: { readonly to: Address }) => Effect.succeed(parameters.to),
@@ -39,6 +46,7 @@ for (const size of [10, 100, 1_000]) {
       const requests = Object.fromEntries(
         Array.from({ length: size }, (_, index) => [`call-${index}`, read.request(index)]),
       );
+
       await readBatch(config, requests, { blockNumber: 1n });
     });
 

@@ -16,6 +16,7 @@ const getAvatarEffect = Effect.fn("ensforge.getAvatar")(function* (
   });
 
   if (avatar.value === null) return null;
+
   return yield* resolveAvatarRecord(
     config.publicClient,
     parameters.name,

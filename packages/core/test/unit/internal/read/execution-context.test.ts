@@ -31,6 +31,7 @@ describe("ReadExecution", () => {
           const execution = yield* ReadExecution;
           const first = yield* execution.makeContext({ consistency: "best-effort" });
           const second = yield* execution.makeContext({ consistency: "best-effort" });
+
           return { execution, first, second };
         }),
         getConfigLayer(config),
@@ -117,6 +118,7 @@ describe("ReadExecution", () => {
 
   it("translates snapshot block lookup failures", async () => {
     const cause = new Error("RPC unavailable");
+
     const execution = makeReadExecution({
       publicClient: makePublicClient(vi.fn().mockRejectedValue(cause)),
     });

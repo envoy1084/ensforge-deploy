@@ -26,6 +26,7 @@ const getNameStateEffect = Effect.fn("ensforge.getNameState")(function* (
   parameters: GetNameStateParameters,
 ) {
   const name = yield* normalizeName.effect(parameters.name);
+
   return yield* executeRead(
     config,
     parameters,
@@ -66,6 +67,7 @@ const getNameStateEffect = Effect.fn("ensforge.getNameState")(function* (
         ] as const,
         { concurrency: "unbounded" },
       );
+
       const fields = {
         name,
         status,
@@ -91,6 +93,7 @@ const getNameStateEffect = Effect.fn("ensforge.getNameState")(function* (
           migrated: false,
         } as const;
       }
+
       if (reserved) {
         return {
           ...fields,
@@ -100,6 +103,7 @@ const getNameStateEffect = Effect.fn("ensforge.getNameState")(function* (
           migrated: false,
         } as const;
       }
+
       if (protocol === "v1") {
         return wrapped
           ? ({
@@ -117,6 +121,7 @@ const getNameStateEffect = Effect.fn("ensforge.getNameState")(function* (
               migrated: false,
             } as const);
       }
+
       return migrated
         ? ({ ...fields, kind: "v2-migrated", protocol: "v2", wrapped, migrated: true } as const)
         : ({ ...fields, kind: "v2-native", protocol: "v2", wrapped, migrated: false } as const);

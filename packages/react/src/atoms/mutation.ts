@@ -3,7 +3,12 @@ import { Reactivity, type Atom } from "effect/unstable/reactivity";
 
 import type { Ensforge } from "@ensforge/sdk";
 
-import type { BoundEffectAction } from "../internal/action-types.js";
+import type {
+  ActionParameters,
+  ActionSuccess,
+  ActionFailure,
+  BoundEffectAction,
+} from "../internal/action-types.js";
 import { atomRuntime } from "../internal/runtime.js";
 import { makeReactivityKeys } from "../query/keys.js";
 
@@ -17,12 +22,19 @@ export interface EnsMutationAtomFactory<Parameters, Success, Failure> {
   (sdk: Ensforge): EnsMutationAtom<Parameters, Success, Failure>;
 }
 
-export const makeMutationAtom =
-  <Parameters, Success, Failure>(
-    group: string,
-    getAction: (sdk: Ensforge) => BoundEffectAction<Parameters, Success, Failure>,
-  ): EnsMutationAtomFactory<Parameters, Success, Failure> =>
-  (sdk) =>
+export function makeMutationAtom<Action extends BoundEffectAction<never, unknown, unknown>>(
+  group: string,
+  getAction: (sdk: Ensforge) => Action,
+): EnsMutationAtomFactory<ActionParameters<Action>, ActionSuccess<Action>, ActionFailure<Action>>;
+export function makeMutationAtom<Parameters, Success, Failure>(
+  group: string,
+  getAction: (sdk: Ensforge) => BoundEffectAction<Parameters, Success, Failure>,
+): EnsMutationAtomFactory<Parameters, Success, Failure>;
+export function makeMutationAtom<Parameters, Success, Failure>(
+  group: string,
+  getAction: (sdk: Ensforge) => BoundEffectAction<Parameters, Success, Failure>,
+): EnsMutationAtomFactory<Parameters, Success, Failure> {
+  return (sdk) =>
     atomRuntime.fn(
       (parameters: Parameters) =>
         Effect.suspend(() => getAction(sdk).effect(parameters)).pipe(
@@ -30,3 +42,4 @@ export const makeMutationAtom =
         ),
       { concurrent: false },
     );
+}

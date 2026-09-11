@@ -9,7 +9,9 @@ export const decodeLocalOffset = Effect.fn("decodeLocalOffset")(function* (
   return yield* Effect.try({
     try: () => {
       const offset = position === null ? 0 : Number(position);
+
       if (!Number.isSafeInteger(offset) || offset < 0) throw new Error("Invalid offset");
+
       return offset;
     },
     catch: (cause) =>

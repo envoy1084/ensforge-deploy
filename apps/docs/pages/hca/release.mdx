@@ -1,0 +1,89 @@
+---
+title: Release Checklist
+description: Package validation and the manual deployment/provider verification gates.
+---
+
+# Release Checklist
+
+Local checks establish that packages build, consumer imports work and examples compile. Real provider
+verification is intentionally left to the integrator. Publishing packages or enabling Mainnet is a
+separate release decision.
+
+## Local checks
+
+Run from the repository root:
+
+```sh
+pnpm install --frozen-lockfile
+pnpm check
+pnpm pack:check
+pnpm test:packages
+pnpm --filter @ensforge/docs example:hca:local
+pnpm exec changeset status
+```
+
+`pnpm check` includes format, lint, types, tests, builds and the SDK type-performance budget.
+`test:packages` installs packed packages in isolated consumer projects and checks Node/browser imports.
+The docs build validates the site; its TypeScript check includes runnable examples.
+
+HCA changesets record the implemented package changes. `version-packages` applies versions and
+changelogs; `release` publishes them. Run those only as part of the approved release process, after
+reviewing the accumulated changesets and the manual checks below. The library remains usable without
+installing both optional provider peers.
+
+## Recorded verification and remaining limits
+
+Manual runs on the pinned Sepolia generation passed Pimlico sponsored/self-funded execution,
+Rhinestone sponsored sessions, registration and recovery. An explicitly configured Base Sepolia →
+Sepolia USDC route completed with confirmed source and destination receipts. Local fork checks
+covered governance, upgrades and refund-policy rejection.
+
+Token-paid Rhinestone execution is excluded from this release's supported boundary. Keep incompatible
+quotes rejected before signing. The checklist below remains a repeatable release procedure; recorded
+success does not establish every provider failure case, route, browser integration or Mainnet deployment.
+
+## Manual Sepolia deployment verification
+
+- [ ] Run `SEPOLIA_RPC_URL=... pnpm verify:hca:sepolia` and retain the block number and result.
+- [ ] Compare the artifact addresses/ABIs with the intended deployed snapshot.
+- [ ] Record the contracts commit, deployment profile and resolved provider package versions.
+- [ ] Verify owner derivation, factory, implementation, validator, EntryPoint and upgrade gates.
+
+The verifier is read-only, but it is not run automatically by these documentation examples.
+Authoritative snapshot references:
+[Sepolia address list](https://github.com/ensdomains/contracts-v2/blob/d0c902eeb388c7fbde3f95d9eaf6076eeedff1d7/contracts/docs/addresses/sepolia.md)
+and [deployment artifacts](https://github.com/ensdomains/contracts-v2/tree/d0c902eeb388c7fbde3f95d9eaf6076eeedff1d7/contracts/deployments/sepolia).
+Use the JSON address and ABI, not a later branch source interface.
+
+## Manual Pimlico verification
+
+- [ ] Run the [Pimlico example](/hca/examples) with a funded deployed HCA and without sponsorship.
+- [ ] Exercise counterfactual execution separately; verify factory acceptance by the hosted bundler.
+- [ ] Enable sponsorship and inspect actual paymaster and UserOperation receipts.
+- [ ] Verify rejected/expired sponsorship does not spend HCA funds through fallback.
+- [ ] Check fee review changes, insufficient registration tokens and reverted UserOperations.
+- [ ] Reconcile a timeout through saved tracking without submitting a duplicate.
+
+Retain chain, HCA, provider version, operation ID, UserOperation hash, transaction hash, result and
+redacted failure details. Do not retain keys, API URLs with credentials, or registration secrets in evidence.
+
+## Manual Rhinestone verification
+
+- [ ] Run the [Rhinestone example](/hca/examples), verify session permissions and register a name.
+- [ ] Verify primary-name behavior, session reuse, expiry and revocation.
+- [ ] Verify actual destination sponsorship. Token-paid refunds remain unsupported.
+- [ ] For each intended funding route, verify source/destination contracts and token identities.
+- [ ] Exercise ordered approvals, quote expiry, funding settlement, partial/unknown outcomes and cleanup.
+- [ ] Fund first, then run ordinary registration; verify source debit and destination credit separately.
+
+A mock orchestrator or local balance observation is not proof of hosted settlement. Keep unsupported
+routes disabled until the relevant evidence exists.
+
+## Mainnet gate
+
+- [ ] Obtain authoritative Mainnet artifacts and verify wiring and bytecode.
+- [ ] Confirm supported account generation, provider acceptance, fees and intended funding routes.
+- [ ] Review upgrade/module assumptions and recovery behavior against that deployment.
+- [ ] Enable only proven capabilities and publish the corresponding compatibility documentation.
+
+This work does not enable a Mainnet HCA profile or claim these manual checks passed.

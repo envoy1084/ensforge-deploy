@@ -16,6 +16,7 @@ describe("registration commitments integration", () => {
   it.effect("reproduces exact V1 and V2 commitment hashes", () =>
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
+
       const result = yield* Effect.all(
         {
           v1: makeRegistrationCommitment.effect(devnet.configs.v1, {
@@ -42,6 +43,7 @@ describe("registration commitments integration", () => {
   it.effect("reads submitted and missing commitment states through batch requests", () =>
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
+
       const result = yield* readBatch.effect(devnet.configs.v2, {
         submitted: getCommitmentStatus.request({
           commitment: devnet.fixtures.registration.v2.commitment,

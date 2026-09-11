@@ -22,6 +22,7 @@ export const createDevnetConfigs = Effect.fn("createDevnetConfigs")(
           walletClient: clients.walletClient,
         }),
         v2: createTestConfig({
+          hca: deployments.hca,
           deployments: Object.freeze({
             protocol: "v2",
             v1: deployments.v1,

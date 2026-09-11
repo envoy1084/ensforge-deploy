@@ -18,6 +18,7 @@ const isRenewableEffect = Effect.fn("ensforge.isRenewable")(function* (
   parameters: GetNameStateParameters,
 ) {
   const name = yield* normalizeName.effect(parameters.name);
+
   return yield* executeRead(
     config,
     parameters,
@@ -25,9 +26,11 @@ const isRenewableEffect = Effect.fn("ensforge.isRenewable")(function* (
       const route = yield* readNameRoute(name);
       const analysis = analyzeName(name);
       const label = analysis.ethSecondLevelLabel;
+
       if (label === undefined) return false;
 
       const ethereum = yield* EthereumClient;
+
       if (route.kind === "reserved") {
         return yield* ethereum.readContract({
           address: route.deployment.migration.ethRenewerV1,
@@ -36,6 +39,7 @@ const isRenewableEffect = Effect.fn("ensforge.isRenewable")(function* (
           args: [label],
         });
       }
+
       if (route.kind === "v2" || route.kind === "available") {
         return yield* ethereum.readContract({
           address: route.deployment.contracts.ethRegistrar,
@@ -51,6 +55,7 @@ const isRenewableEffect = Effect.fn("ensforge.isRenewable")(function* (
         functionName: "available",
         args: [BigInt(labelhash(label))],
       });
+
       return !available;
     }),
   );

@@ -8,6 +8,7 @@ import type { V2GetRecordHistoryQuery } from "../generated/v2/get-record-history
 import { decodeAddress, decodeBigInt, decodeHex } from "./scalars.js";
 
 type V1RecordEvent = V1GetRecordHistoryQuery["resolverEvents"][number];
+
 type V2RecordEvent = V2GetRecordHistoryQuery["eventConnection"]["edges"][number]["node"];
 
 const JsonObject = Schema.Record(Schema.String, Schema.Unknown);
@@ -23,6 +24,7 @@ const booleanField = (record: Readonly<Record<string, unknown>>, field: string) 
 
 const bigintField = (record: Readonly<Record<string, unknown>>, field: string) => {
   const value = record[field];
+
   return Predicate.isNumber(value) ? BigInt(value) : decodeBigInt(value);
 };
 
@@ -69,6 +71,7 @@ export const normalizeV1RecordEvent = (
     type: event["__typename"],
     data: null,
   });
+
   switch (event["__typename"]) {
     case "AddrChanged":
       return { ...common, kind: "address", coinType: 60n, value: decodeHex(event.addr.id) };
@@ -120,6 +123,7 @@ export const normalizeV2RecordEvent = (
   const protocol = event.protocol === "v1" ? "v1" : "v2";
   const payload = parseData(event.data);
   const resolver = Predicate.isString(payload.resolver) ? payload.resolver : event.contractAddress;
+
   const common = eventBase(context.network, protocol, context.indexedBlock, context.namehash, {
     id: event.id,
     blockNumber: event.blockNumber,
