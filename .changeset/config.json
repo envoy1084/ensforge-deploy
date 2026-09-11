@@ -3,7 +3,9 @@
   "access": "public",
   "baseBranch": "main",
   "commit": false,
-  "fixed": [["@ensforge/contracts", "@ensforge/core", "@ensforge/sdk", "@ensforge/react"]],
+  "fixed": [
+    ["@ensforge/contracts", "@ensforge/core", "@ensforge/sdk", "@ensforge/react", "@ensforge/hca"]
+  ],
   "ignore": [],
   "linked": [],
   "privatePackages": {
