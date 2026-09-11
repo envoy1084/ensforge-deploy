@@ -4,7 +4,7 @@ import {
   type PreparedTransactionData,
   type RhinestoneAccount,
 } from "@rhinestone/sdk";
-import { hashTypedData, maxUint256 } from "viem";
+import { hashTypedData, maxUint256, zeroHash } from "viem";
 
 import type { QuoteRhinestoneFundingParameters, RhinestoneFundingRoute } from "./types.js";
 
@@ -34,6 +34,8 @@ export const reviewFunding = (
   const expiresAt = BigInt(op.expires);
   const fillDeadline = BigInt(mandate.fillDeadline);
   const nonce = BigInt(op.nonce);
+  // Permit2 uses the low 160 bits; the provider retains the Compact resource prefix.
+  const tokenMask = (1n << 160n) - 1n;
 
   if (
     Number(element.chainId) !== route.sourceChainId ||
@@ -46,6 +48,8 @@ export const reviewFunding = (
     context.using7579 ||
     mandate.qualifier.encodedVal.toLowerCase() !== route.qualifier.toLowerCase() ||
     context.gasRefund ||
+    mandate.destinationOps.vt !== zeroHash ||
+    mandate.preClaimOps.vt !== zeroHash ||
     mandate.destinationOps.ops.length ||
     mandate.preClaimOps.ops.length ||
     Object.keys(element.swapOrigins ?? {}).length ||
@@ -59,16 +63,22 @@ export const reviewFunding = (
   if (
     element.idsAndAmounts.length !== 1 ||
     !permission ||
-    BigInt(permission[0]) !== BigInt(route.sourceToken) ||
+    BigInt(permission[0]) < 0n ||
+    BigInt(permission[0]) > maxUint256 ||
+    (BigInt(permission[0]) & tokenMask) !== BigInt(route.sourceToken) ||
     sourceSpend <= 0n ||
     sourceSpend > input.maximumSourceSpend ||
     mandate.tokenOut.length !== 1 ||
     !output ||
-    BigInt(output[0]) !== BigInt(route.destinationToken) ||
+    BigInt(output[0]) < 0n ||
+    BigInt(output[0]) > maxUint256 ||
+    (BigInt(output[0]) & tokenMask) !== BigInt(route.destinationToken) ||
     BigInt(output[1]) !== input.amount ||
     element.spendTokens.some(
       ([token, value]) =>
-        BigInt(token) !== BigInt(route.sourceToken) ||
+        BigInt(token) < 0n ||
+        BigInt(token) > maxUint256 ||
+        (BigInt(token) & tokenMask) !== BigInt(route.sourceToken) ||
         BigInt(value) < 0n ||
         BigInt(value) > sourceSpend,
     ) ||

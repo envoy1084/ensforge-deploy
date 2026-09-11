@@ -282,6 +282,23 @@ ENS's matched source guide uses `@rhinestone/sdk` 1.8.0 with a substantial patch
 HCA. P3 ships that reproducible patch plus a verified-profile executor-address extension. Stock
 1.8.0 is insufficient; do not substitute a generic `owners.type="ens"` example.
 
+The published SDK 2.16.0 was also inspected on September 11, 2026. Its HCA adapter still uses
+`createAccount(bytes)` and CREATE3 address prediction, declares `supportsSmartSessions: false`, and
+rejects sessions. Its account configuration has no standalone implementation, validator, or
+VerifiableFactory fields. Upgrading does not replace the standalone patch.
+
+Hosted same-chain routes identify an IntentExecutorAdapter in their `arbiter` field. Validate this
+against the deployment profile's `intentExecutorAdapter` when configured; the signature domain still
+uses `intentExecutor`. The Sepolia adapter's verified constructor points to the profile's executor.
+
+Hosted quotes bind `targetExecutionNonce`; rewriting it causes a quote-mismatch rejection. For the
+restricted no-funding route, the adapter signs a private copy with every envelope bound to the
+same-chain origin nonce (`intentOp.nonce`), then submits the untouched quote. Every envelope is checked through the HCA's ERC-1271 path
+against that one reviewed hash. Offline SDK signing verifies quote preservation and identical
+envelopes; hosted acceptance of this signing path remains a manual verification item. Signing every
+envelope with the target nonce passed ERC-1271 checks for that hash but failed hosted simulation;
+those checks alone do not prove which nonce the provider submits to the executor.
+
 Use SDK account version/configuration, fixed destination/source validators, source sessions, permit
 handling, quotes, claims/fills and signature formats. Do not recreate the SDK's Permit2, executor or
 paymaster protocol encoding in core. The HCA account version, on-chain account ID, initial factory
@@ -290,6 +307,25 @@ configuration, resolver and profile must all agree.
 P3 offers confirmed destination-session execution and bounded refund configuration. Owner intent
 execution and cross-chain routes are not implemented. Those are separate capabilities from owner ERC-4337 execution. Keep first-route enablement,
 source-account setup, full destination account configuration and fresh reveal quotes in the integration.
+
+Manual verification of unsponsored refunds remains blocked. The hosted Sepolia quote includes
+Permit2 token requirements, a pre-claim approval and source token spending even with
+`INTENT_EXECUTOR / NO_FUNDING`. It also prepends a paymaster approval and quotes a refund cap above
+the manual script's one-USDC limit. Do not treat these fields as inert or remove them from the signed
+quote. The current adapter rejects this route before signing; supporting it requires a verified
+funding authorization flow or a compatible refund-only provider quote. Script 06 performs an unsigned
+compatibility check before allowance/session transactions. Passing sponsored sessions does not
+verify unsponsored refunds.
+
+Local-fork verification on September 12 against the deployed validator
+`0x5f249FCa8bB4949105651146858c347E8BFb0F7E` confirms mode 02 accepts an exact
+paymaster approval and rejects Permit2 approval, over-approval, and a refund above the session cap.
+The temporary `06-refund-policy-fork.mjs` proof uses a disposable session key and reverts all state.
+Verified source `_checkPaymentTokenApproval` only permits the registrar or an exact signed refund
+approval to the configured paymaster. `_validatePermit2Destination` requires a supported, positive
+output amount delivered to the HCA; it is not a fee-only approval escape hatch. Ask the provider for
+a refund-only SingleChainOps quote without source requirements before enabling hosted paid execution.
+Do not infer that pre-claim/Permit2 fields are harmless just from the NO_FUNDING label.
 
 Sources: [ENS integration guide](https://github.com/ensdomains/contracts-v2/blob/09bf3ac64a6fb1b215573c019b17e8c501bb3ca0/docs/HCA.md),
 [exact SDK patch](https://github.com/ensdomains/contracts-v2/blob/09bf3ac64a6fb1b215573c019b17e8c501bb3ca0/patches/%40rhinestone%252Fsdk%401.8.0.patch),

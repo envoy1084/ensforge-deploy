@@ -30,6 +30,9 @@ A funding quote's identifier is not the registration workflow ID. Config storage
 The [funding example](/hca/examples) implements ordered approvals and status waiting. Route manifests
 include source/destination chain and token identities, settlement layer, arbiter, settlement address,
 qualifier bytes and expected contract code hashes. Never construct trusted routes from quote output.
+For upgradeable contracts, also pin `storageSlots` (implementation slot and expected value) and
+include the implementation address and code hash in the same contract list. Proxy bytecode alone
+does not detect an implementation upgrade.
 
 ## Recovery and cancellation
 

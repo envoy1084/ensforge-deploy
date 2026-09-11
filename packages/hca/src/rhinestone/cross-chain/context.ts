@@ -131,6 +131,18 @@ export const verifyFundingContracts = async (
               code: "DEPLOYMENT_MISMATCH",
               message: `Funding contract differs from manifest: ${pin.address}`,
             });
+
+          await Promise.all(
+            (pin.storageSlots ?? []).map(async ({ slot, value }) => {
+              const stored = await client.getStorageAt({ address: pin.address, slot });
+
+              if (stored?.toLowerCase() !== value.toLowerCase())
+                throw new HcaError({
+                  code: "DEPLOYMENT_MISMATCH",
+                  message: `Funding contract storage differs from manifest: ${pin.address}`,
+                });
+            }),
+          );
         }),
       );
     }),

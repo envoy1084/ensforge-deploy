@@ -9,6 +9,13 @@ const address = EthereumAddress;
 const amount = HcaSalt;
 const positive = Schema.Int.check(Schema.isGreaterThan(0));
 
+export interface RhinestoneFundingContract {
+  readonly address: Address;
+  readonly codeHash: Hex;
+  /** Pin proxy implementation slots as well as the implementation's bytecode. */
+  readonly storageSlots?: readonly { readonly slot: Hex; readonly value: Hex }[];
+}
+
 /** An independently reviewed route, never populated from an untrusted quote. */
 export interface RhinestoneFundingRoute {
   readonly id: string;
@@ -22,8 +29,8 @@ export interface RhinestoneFundingRoute {
   readonly destinationSettlement: Address;
   /** Exact qualifier bytes for this deployment/route. Dynamic qualifiers need a separate review. */
   readonly qualifier: Hex;
-  readonly sourceContracts: readonly { readonly address: Address; readonly codeHash: Hex }[];
-  readonly destinationContracts: readonly { readonly address: Address; readonly codeHash: Hex }[];
+  readonly sourceContracts: readonly RhinestoneFundingContract[];
+  readonly destinationContracts: readonly RhinestoneFundingContract[];
 }
 
 export interface RhinestoneCrossChainOptions {

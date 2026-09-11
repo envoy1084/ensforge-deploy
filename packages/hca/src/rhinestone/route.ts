@@ -26,34 +26,56 @@ export const reviewRoute = async (
   if (op.elements.length !== 1 || !element || !plan.session)
     return reject("Expected one destination session operation");
 
-  // The SDK signs both origin and target envelopes. A no-funding route must not authorize
-  // two independent nonce values for the same destination batch (and two refund claims).
-  if (BigInt(op.nonce) !== BigInt(op.targetExecutionNonce))
-    return reject("No-funding route must use one execution nonce");
-
   const mandate = element.mandate;
   const context = mandate.qualifier.settlementContext;
   const profile = options.profile;
+
+  const expectedArbiter =
+    profile.infrastructure.intentExecutorAdapter ?? profile.infrastructure.intentExecutor;
+
+  if (!same(element.arbiter, expectedArbiter))
+    throw new HcaError({
+      code: "DEPLOYMENT_MISMATCH",
+      message: "Rhinestone returned a route for a different intent executor adapter",
+      cause: {
+        expectedIntentExecutor: profile.infrastructure.intentExecutor,
+        expectedArbiter,
+        returnedArbiter: element.arbiter,
+        chainId: config.chainId,
+      },
+    });
 
   if (
     Number(element.chainId) !== config.chainId ||
     Number(mandate.destinationChainId) !== config.chainId ||
     !same(mandate.recipient, plan.account.address) ||
-    !same(element.arbiter, profile.infrastructure.intentExecutor) ||
     context.settlementLayer !== "INTENT_EXECUTOR" ||
     context.fundingMethod !== "NO_FUNDING" ||
     !context.using7579 ||
-    mandate.preClaimOps.ops.length !== 0 ||
     Object.keys(element.swapOrigins ?? {}).length !== 0 ||
     (mandate.swapDestinations ?? []).some(Boolean) ||
-    Object.keys(route.tokenRequirements ?? {}).length !== 0 ||
-    [...element.idsAndAmounts, ...element.spendTokens, ...mandate.tokenOut].some(
-      ([, amount]) => BigInt(amount) !== 0n,
-    )
+    mandate.tokenOut.some(([, amount]) => BigInt(amount) !== 0n)
   )
     return reject(
       "Rhinestone only accepts prefunded same-chain operations without source calls, swaps or token movements",
     );
+
+  if (
+    mandate.preClaimOps.ops.length !== 0 ||
+    Object.keys(route.tokenRequirements ?? {}).length !== 0 ||
+    [...element.idsAndAmounts, ...element.spendTokens].some(([, amount]) => BigInt(amount) !== 0n)
+  )
+    throw new HcaError({
+      code: "INVALID_EXECUTION",
+      message:
+        "Rhinestone quote requires source funding or approvals; this adapter only authorizes destination execution. A NO_FUNDING label alone does not make this quote compatible.",
+      cause: {
+        preClaimCalls: mandate.preClaimOps.ops.length,
+        tokenRequirements: route.tokenRequirements,
+        idsAndAmounts: element.idsAndAmounts,
+        spendTokens: element.spendTokens,
+      },
+    });
 
   if (
     mandate.destinationOps.vt !== `0x0201${"00".repeat(30)}` ||
@@ -221,7 +243,7 @@ export const reviewRoute = async (
     plan.account.address,
     profile.infrastructure.intentExecutor,
     element,
-    BigInt(op.targetExecutionNonce),
+    BigInt(op.nonce),
   );
 
   message.message.gasRefund ??= { token: zeroAddress, exchangeRate: 0n, overhead: 0n };

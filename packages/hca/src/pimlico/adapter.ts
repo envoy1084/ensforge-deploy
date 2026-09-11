@@ -138,6 +138,34 @@ export const pimlico = (input: PimlicoOptions): PimlicoExecutionAdapter => {
         message: "HCA nonce or deployment state changed; prepare again",
       });
 
+    if (!options.sponsorship) {
+      const op = local.operation;
+      const requiredPrefund =
+        (op.preVerificationGas +
+          op.verificationGasLimit +
+          op.callGasLimit +
+          (op.paymasterVerificationGasLimit ?? 0n) +
+          (op.paymasterPostOpGasLimit ?? 0n)) *
+        op.maxFeePerGas;
+      const [balance, deposit] = await Promise.all([
+        config.publicClient.getBalance({ address: local.plan.account.address }),
+        config.publicClient.readContract({
+          address: options.profile.infrastructure.entryPoint,
+          abi: entryPoint07Abi,
+          functionName: "balanceOf",
+          args: [local.plan.account.address],
+        }),
+      ]);
+
+      // Call value comes from the account balance; EntryPoint deposits only pay for gas.
+      if (balance < local.plan.value || deposit + balance - local.plan.value < requiredPrefund)
+        throw new HcaError({
+          code: "INVALID_EXECUTION",
+          message: "Insufficient HCA funds for the UserOperation prefund and call value",
+          cause: { balance, deposit, requiredPrefund, callValue: local.plan.value },
+        });
+    }
+
     const estimate = await options.client.estimateUserOperationGas({
       ...local.operation,
       signature: local.signature ?? local.operation.signature,

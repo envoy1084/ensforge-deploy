@@ -53,6 +53,7 @@ const HcaProfileShape = Schema.Struct({
   infrastructure: Schema.Struct({
     entryPoint: EthereumAddress,
     intentExecutor: EthereumAddress,
+    intentExecutorAdapter: Schema.optional(EthereumAddress),
     gasRefundPaymaster: EthereumAddress,
     paymentToken: EthereumAddress,
     secondaryPaymentToken: EthereumAddress,

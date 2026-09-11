@@ -68,32 +68,36 @@ export const readHcaSession = Effect.fn("readHcaSession")(function* (
       message: "Session is missing, expired or revoked",
     });
 
-  // A permission ID may be re-enabled with different settings. Reject stale receipts.
-  const later = yield* hcaRpc(() =>
-    config.publicClient.getLogs({
-      address: validator,
-      event: getAbiItem({ abi: hcaValidatorV2SessionsAbi, name: "SessionEnabled" }),
-      args: { account: account.address, permissionId: reference.permissionId },
-      fromBlock: receipt.blockNumber,
-      toBlock: block.number,
-    }),
-  );
+  // A permission ID may be re-enabled with different settings. Scan every block,
+  // including the receipt block, in ranges accepted by restricted RPC providers.
+  for (let fromBlock = receipt.blockNumber; fromBlock <= block.number; fromBlock += 10n) {
+    const toBlock = fromBlock + 9n < block.number ? fromBlock + 9n : block.number;
+    const later = yield* hcaRpc(() =>
+      config.publicClient.getLogs({
+        address: validator,
+        event: getAbiItem({ abi: hcaValidatorV2SessionsAbi, name: "SessionEnabled" }),
+        args: { account: account.address, permissionId: reference.permissionId },
+        fromBlock,
+        toBlock,
+      }),
+    );
 
-  if (
-    later.some(
-      (log) =>
-        log.blockNumber !== null &&
-        (log.blockNumber > receipt.blockNumber ||
-          (log.blockNumber === receipt.blockNumber &&
-            log.logIndex !== null &&
-            enabled.logIndex !== null &&
-            log.logIndex > enabled.logIndex)),
+    if (
+      later.some(
+        (log) =>
+          log.blockNumber !== null &&
+          (log.blockNumber > receipt.blockNumber ||
+            (log.blockNumber === receipt.blockNumber &&
+              log.logIndex !== null &&
+              enabled.logIndex !== null &&
+              log.logIndex > enabled.logIndex)),
+      )
     )
-  )
-    return yield* new HcaError({
-      code: "INVALID_EXECUTION",
-      message: "Session was re-enabled; use its latest enablement transaction",
-    });
+      return yield* new HcaError({
+        code: "INVALID_EXECUTION",
+        message: "Session was re-enabled; use its latest enablement transaction",
+      });
+  }
 
   const usable = yield* hcaRpc(() =>
     config.publicClient.readContract({

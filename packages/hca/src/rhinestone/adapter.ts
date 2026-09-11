@@ -110,27 +110,45 @@ export const rhinestone = (input: RhinestoneOptions): RhinestoneExecutionAdapter
   };
 
   const verifySignature = async (config: EnsforgeConfig, operation: LocalOperation) => {
-    const signature = operation.signed?.targetExecutionSignature;
+    const signed = operation.signed;
+    const signature = signed?.targetExecutionSignature;
 
-    if (!signature)
+    if (!signed || !signature)
       throw new HcaError({
         code: "INVALID_EXECUTION",
         message: "SDK did not produce a destination session signature",
       });
 
-    const magic = await config.publicClient.readContract({
-      address: operation.plan.account.address,
-      account: options.profile.infrastructure.intentExecutor,
-      abi: standaloneHcaV2SignatureAbi,
-      functionName: "isValidSignature",
-      args: [operation.scopeHash, signature],
-    });
+    const signatures = [signature, ...signed.originSignatures, signed.destinationSignature];
 
-    if (magic !== "0x1626ba7e")
+    if (
+      signed.originSignatures.length !== 1 ||
+      signatures.some((entry) => typeof entry !== "string")
+    )
       throw new HcaError({
         code: "INVALID_EXECUTION",
-        message: "Deployed HCA rejected the SDK session signature",
+        message: "Expected one same-chain session signature per envelope",
       });
+
+    await Promise.all(
+      [...new Set(signatures)].map(async (envelope) => {
+        if (typeof envelope !== "string") return;
+
+        const magic = await config.publicClient.readContract({
+          address: operation.plan.account.address,
+          account: options.profile.infrastructure.intentExecutor,
+          abi: standaloneHcaV2SignatureAbi,
+          functionName: "isValidSignature",
+          args: [operation.scopeHash, envelope],
+        });
+
+        if (magic !== "0x1626ba7e")
+          throw new HcaError({
+            code: "INVALID_EXECUTION",
+            message: "Deployed HCA rejected an SDK envelope for the reviewed execution nonce",
+          });
+      }),
+    );
   };
 
   const revalidateOperation = async (
@@ -226,16 +244,9 @@ export const rhinestone = (input: RhinestoneOptions): RhinestoneExecutionAdapter
             calls: plan.calls.map((call) => ({ ...call })),
             sponsored: options.sponsored ?? true,
             ...(plan.session.refund === undefined ? {} : { feeAsset: plan.session.refund.token }),
-            settlementLayers: ["INTENT_EXECUTOR"],
+            // The API selects same-chain routes automatically; reviewRoute verifies the result.
             signers: { type: "experimental_session", session, verifyExecutions: true },
           });
-
-          // SDK 1.8 needs the explicit zero-refund EIP-712 struct for sponsored origin signatures.
-          const settlement =
-            prepared.intentRoute.intentOp.elements[0]?.mandate.qualifier.settlementContext;
-
-          if (settlement)
-            settlement.gasRefund ??= { token: zeroAddress, exchangeRate: 0n, overhead: 0n };
 
           const review = await reviewRoute(options, config, plan, prepared);
           await config.publicClient.call({
@@ -292,7 +303,21 @@ export const rhinestone = (input: RhinestoneOptions): RhinestoneExecutionAdapter
         try: async () => {
           const operation = getOperation(prepared.payload);
           await revalidateOperation(config, operation, prepared.review);
-          operation.signed = await operation.account.signTransaction(operation.prepared);
+          // No-funding routes have no independent origin execution. Sign every envelope for
+          // the same-chain origin nonce, but submit the original, unmodified provider quote.
+          const quoted = operation.prepared;
+          const signing = {
+            ...quoted,
+            intentRoute: structuredClone(quoted.intentRoute),
+          };
+          const op = signing.intentRoute.intentOp;
+          op.targetExecutionNonce = op.nonce;
+          const settlement = op.elements[0]?.mandate.qualifier.settlementContext;
+          if (settlement)
+            settlement.gasRefund ??= { token: zeroAddress, exchangeRate: 0n, overhead: 0n };
+
+          const signed = await operation.account.signTransaction(signing);
+          operation.signed = { ...signed, intentRoute: quoted.intentRoute };
           await verifySignature(config, operation);
 
           return prepared.payload;

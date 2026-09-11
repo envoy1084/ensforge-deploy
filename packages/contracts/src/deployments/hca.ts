@@ -42,6 +42,7 @@ export interface HcaDeploymentProfile {
   readonly infrastructure: {
     readonly entryPoint: Address;
     readonly intentExecutor: Address;
+    readonly intentExecutorAdapter?: Address;
     readonly gasRefundPaymaster: Address;
     readonly paymentToken: Address;
     readonly secondaryPaymentToken: Address;
@@ -49,7 +50,7 @@ export interface HcaDeploymentProfile {
   readonly sourceFunding: readonly HcaSourceFundingManifest[];
 }
 
-/** Infrastructure values decoded from the deployment JSON's constructor argsData. */
+/** Infrastructure verified against deployment artifacts and adapter constructor arguments. */
 export const sepoliaHcaDeployment = {
   generation: hcaAccountGeneration,
   deployment: sepoliaV2Deployment,
@@ -63,6 +64,8 @@ export const sepoliaHcaDeployment = {
   infrastructure: {
     entryPoint: hcaAccountGeneration.entryPoint,
     intentExecutor: "0x00000000005aD9ce1f5035FD62CA96CEf16AdAAF",
+    // Verified IntentExecutorAdapter constructor points to the executor above.
+    intentExecutorAdapter: "0xa5DAC04a6cCF0eb19cE091b6B400Fc4FCD13Da1e",
     gasRefundPaymaster: "0x1d7df6Ddc7328Ac827EB4D7f171C60AFB7f9A599",
     paymentToken: "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
     secondaryPaymentToken: sepoliaV2Deployment.testTokens.usdc,
