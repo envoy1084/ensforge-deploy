@@ -27,6 +27,9 @@ options: RhinestoneOptions;
 
 Required: `profile`, `chain`, `owner`, `sessionSigner`, `sdk`. Optional: `sessionSalt`, `policy`, `crossChain`, `sponsored`. The returned adapter exposes `extensions.sessions.prepare`, `extensions.sessions.enable`, and `crossChain`. See [Providers](/hca/providers) and [Funding](/hca/funding).
 
+Use the default sponsored execution mode. `sponsored: false` is not a supported release path;
+see [Compatibility](/hca/compatibility) for the unresolved refund-route limitation.
+
 ## Return Type
 
 RhinestoneExecutionAdapter

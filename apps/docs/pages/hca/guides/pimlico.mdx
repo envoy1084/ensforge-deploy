@@ -1,0 +1,119 @@
+---
+title: Execute with Pimlico
+description: Deploy an HCA and update an ENS record with an owner-signed UserOperation.
+---
+
+# Execute with Pimlico
+
+Pimlico submits owner-signed HCA UserOperations through EntryPoint 0.7. A paymaster can sponsor gas;
+without sponsorship, the HCA pays from its native balance or EntryPoint deposit. This adapter does
+not provide session-key authorization.
+
+## Set up the owner and SDK
+
+This server-side example uses Viem local accounts. Keep private keys and provider credentials outside
+browser bundles. Install the packages using [Installation](/hca/installation), including `effect@rc`.
+
+```ts
+import { sepoliaHcaDeployment } from "@ensforge/contracts/deployments";
+import { Ensforge } from "@ensforge/sdk";
+import { createPublicClient, createWalletClient, http } from "viem";
+import { privateKeyToAccount } from "viem/accounts";
+import { sepolia } from "viem/chains";
+
+const owner = privateKeyToAccount(ownerPrivateKey);
+const publicClient = createPublicClient({ chain: sepolia, transport: http(rpcUrl) });
+const sdk = new Ensforge({
+  network: "sepolia",
+  hca: sepoliaHcaDeployment,
+  publicClient,
+  walletClient: createWalletClient({
+    chain: sepolia,
+    account: owner,
+    transport: http(rpcUrl),
+  }),
+});
+
+const hca = await sdk.hca.predictHcaAddress({ owner: owner.address });
+const deployment = await sdk.hca.deployHca({ owner: owner.address });
+if (deployment.hash) {
+  const receipt = await publicClient.waitForTransactionReceipt({ hash: deployment.hash });
+  if (receipt.status !== "success") throw new Error("HCA deployment reverted");
+}
+```
+
+`ownerPrivateKey` and `rpcUrl` are application inputs. The owner pays for this explicit deployment.
+Prediction is deterministic for an owner and salt; pass the same salt to every action if you use one.
+
+## Authorize the HCA on the name
+
+A session or owner signature authorizes the HCA to execute. It does not grant the HCA permission to
+change a resolver record. For an existing name controlled by the owner, check and grant that permission:
+
+```ts
+const name = "your-name.eth";
+const permissions = await sdk.capabilities.getRecordPermissions({
+  name,
+  account: hca,
+  records: [{ type: "text", key: "description" }],
+});
+
+if (permissions.records[0]?.authorization.status !== "authorized") {
+  await sdk.permissions.setRecordPermissions({
+    name,
+    account: hca,
+    records: [{ type: "text", key: "description" }],
+    approved: true,
+    mode: "sequential",
+    atomicity: "none",
+    allowScopeWidening: false,
+  });
+}
+```
+
+The owner pays for permission changes. A resolver that only supports broader delegation may reject
+this request. Review its reported scope before explicitly allowing broader access.
+
+## Create the sponsored adapter
+
+```ts
+import { pimlico } from "@ensforge/hca/pimlico";
+import { createPimlicoClient } from "permissionless/clients/pimlico";
+import { entryPoint07Address } from "viem/account-abstraction";
+
+const execution = pimlico({
+  profile: sepoliaHcaDeployment,
+  chain: sepolia,
+  owner,
+  client: createPimlicoClient({
+    chain: sepolia,
+    transport: http(pimlicoRpcUrl),
+    entryPoint: { address: entryPoint07Address, version: "0.7" },
+  }),
+  sponsorship: {},
+});
+```
+
+Use `sponsorship: { policyId }` for a specific policy. Omit `sponsorship` for self-funded execution,
+and fund the HCA with Sepolia ETH or use [addHcaDeposit](/sdk/api/hca/add-hca-deposit). A sponsorship failure
+never silently falls back to account funds. Sponsorship does not pay the ENS registration price.
+
+## Update the description and confirm
+
+```ts
+const submission = await sdk.hca.executeHcaCalls({
+  hca,
+  authorization: { kind: "owner" },
+  execution,
+  calls: [sdk.records.setText.call({ name, key: "description", value: "Built with ENSforge" })],
+});
+const outcome = await sdk.hca.waitForHcaExecution({ submission, execution });
+```
+
+Inspect `outcome.status` before reporting success. A UserOperation hash means submission, and an
+outer bundle transaction can succeed even when the operation reverts. If waiting times out, keep the
+submission and query it again with the same adapter instead of submitting another update.
+
+Add more ENS `.call(...)` intents to `calls` for a batch. For commit/reveal registration, use the
+[provider registration example](/hca/examples#provider-registration), which persists workflow state.
+SDK storage defaults to memory; configure durable storage for recovery across process restarts.

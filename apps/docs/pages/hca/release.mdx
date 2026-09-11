@@ -31,6 +31,17 @@ changelogs; `release` publishes them. Run those only as part of the approved rel
 reviewing the accumulated changesets and the manual checks below. The library remains usable without
 installing both optional provider peers.
 
+## Recorded verification and remaining limits
+
+Manual runs on the pinned Sepolia generation passed Pimlico sponsored/self-funded execution,
+Rhinestone sponsored sessions, registration and recovery. An explicitly configured Base Sepolia →
+Sepolia USDC route completed with confirmed source and destination receipts. Local fork checks
+covered governance, upgrades and refund-policy rejection.
+
+Token-paid Rhinestone execution is excluded from this release's supported boundary. Keep incompatible
+quotes rejected before signing. The checklist below remains a repeatable release procedure; recorded
+success does not establish every provider failure case, route, browser integration or Mainnet deployment.
+
 ## Manual Sepolia deployment verification
 
 - [ ] Run `SEPOLIA_RPC_URL=... pnpm verify:hca:sepolia` and retain the block number and result.
@@ -40,8 +51,8 @@ installing both optional provider peers.
 
 The verifier is read-only, but it is not run automatically by these documentation examples.
 Authoritative snapshot references:
-[Sepolia address list](https://github.com/ensdomains/contracts-v2/blob/09bf3ac64a6fb1b215573c019b17e8c501bb3ca0/contracts/docs/addresses/sepolia.md)
-and [deployment artifacts](https://github.com/ensdomains/contracts-v2/tree/09bf3ac64a6fb1b215573c019b17e8c501bb3ca0/contracts/deployments/sepolia).
+[Sepolia address list](https://github.com/ensdomains/contracts-v2/blob/d0c902eeb388c7fbde3f95d9eaf6076eeedff1d7/contracts/docs/addresses/sepolia.md)
+and [deployment artifacts](https://github.com/ensdomains/contracts-v2/tree/d0c902eeb388c7fbde3f95d9eaf6076eeedff1d7/contracts/deployments/sepolia).
 Use the JSON address and ABI, not a later branch source interface.
 
 ## Manual Pimlico verification
@@ -60,7 +71,7 @@ redacted failure details. Do not retain keys, API URLs with credentials, or regi
 
 - [ ] Run the [Rhinestone example](/hca/examples), verify session permissions and register a name.
 - [ ] Verify primary-name behavior, session reuse, expiry and revocation.
-- [ ] Verify actual destination sponsorship or explicitly bounded refunds.
+- [ ] Verify actual destination sponsorship. Token-paid refunds remain unsupported.
 - [ ] For each intended funding route, verify source/destination contracts and token identities.
 - [ ] Exercise ordered approvals, quote expiry, funding settlement, partial/unknown outcomes and cleanup.
 - [ ] Fund first, then run ordinary registration; verify source debit and destination credit separately.

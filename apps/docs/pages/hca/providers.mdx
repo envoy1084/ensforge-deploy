@@ -71,11 +71,16 @@ protected signer reference with registration; the storage payload does not conta
 `validUntil` is Unix time in seconds. Session preparation checks the deployed HCA generation and
 builds constrained permissions for ENS registration and the selected resolver.
 
-Destination execution is sponsored by default. Unsponsored execution needs an explicitly bounded
-refund and compatible fee limits. Do not confuse destination execution sponsorship with source-chain
+Destination execution is sponsored by default. Token-paid, unsponsored Rhinestone execution is
+not supported for this release: hosted quotes currently contain additional funding or approval
+requirements that the adapter rejects before signing. Increasing a balance or refund cap does not
+resolve this route incompatibility. Do not confuse destination execution sponsorship with source-chain
 funding fees. `sessionSalt`, `policy`, `sponsored` and `crossChain` are optional adapter configuration.
 
 Pass the enabled permission ID and confirmed enable transaction hash when starting registration.
 Use `revokeHcaSessions({ hca })` for destination revocation; cancelling a local registration does not
 revoke an enabled session. Session renewal or replacement is an explicit authorization change through
 `resumeHcaRegistration`, not a silent rebinding to a different signer.
+
+Follow [Execute with Pimlico](/hca/guides/pimlico) or [Rhinestone Sessions](/hca/guides/rhinestone)
+for a step-by-step record update.

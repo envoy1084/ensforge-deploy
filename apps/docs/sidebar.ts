@@ -729,6 +729,8 @@ export const sidebar = {
       items: [
         { link: "/hca/execution", text: "Execution Adapters" },
         { link: "/hca/providers", text: "Providers" },
+        { link: "/hca/guides/pimlico", text: "Execute with Pimlico" },
+        { link: "/hca/guides/rhinestone", text: "Rhinestone Sessions" },
         { link: "/hca/funding", text: "Cross-chain Funding" },
         { link: "/hca/remote", text: "Remote Registration" },
         { link: "/hca/examples", text: "Examples" },

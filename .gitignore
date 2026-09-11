@@ -12,3 +12,7 @@ node_modules/
 research/
 *.log
 *.tgz
+
+# Local manual verification and draft documentation
+/scripts-temp/
+/tmp-*.md

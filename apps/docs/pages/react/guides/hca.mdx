@@ -64,3 +64,10 @@ Core never imports provider packages, and the browser should import only the pro
 None of these controls means an already broadcast transaction was undone. Display pending/unknown
 states and keep tracking identifiers available. Do not enable an automatic retry policy for mutations
 unless that action's recovery semantics make retrying safe.
+
+## Provider walkthroughs
+
+Follow [Execute with Pimlico](/hca/guides/pimlico) for owner UserOperations,
+[Rhinestone Sessions](/hca/guides/rhinestone) for sponsored session calls, and
+[Cross-chain Funding](/hca/funding) for independent destination funding. The walkthroughs use SDK
+actions; the same adapter is accepted by the corresponding core actions and React hooks.

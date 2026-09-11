@@ -29,11 +29,11 @@ hooks. See [compatibility](/hca/compatibility) for exact versions and unverified
 
 ## Choose an execution route
 
-| Route        | Authorization               | Gas/payment infrastructure                              | Account deployment                |
-| ------------ | --------------------------- | ------------------------------------------------------- | --------------------------------- |
-| Direct owner | Immutable HCA owner wallet  | Ordinary wallet transaction                             | Deploy first                      |
-| Pimlico      | HCA owner signature         | EntryPoint 0.7 bundler, optional ETH sponsorship        | Supports counterfactual execution |
-| Rhinestone   | Enabled destination session | Rhinestone orchestration, sponsorship or bounded refund | Deploy and enable session first   |
+| Route        | Authorization               | Gas/payment infrastructure                       | Account deployment                |
+| ------------ | --------------------------- | ------------------------------------------------ | --------------------------------- |
+| Direct owner | Immutable HCA owner wallet  | Ordinary wallet transaction                      | Deploy first                      |
+| Pimlico      | HCA owner signature         | EntryPoint 0.7 bundler, optional ETH sponsorship | Supports counterfactual execution |
+| Rhinestone   | Enabled destination session | Rhinestone orchestration with sponsorship        | Deploy and enable session first   |
 
 Rhinestone's session signer is a separate key with constrained permissions. Pimlico provides bundler
 and paymaster infrastructure; its adapter implements the specific ENS HCA account encoding. Neither
@@ -67,3 +67,10 @@ on an account. Deployment validates the factory, implementation, owner, salt and
 Continue with [execution](/hca/execution), [registration](/core/guides/hca-registration), or the
 [runnable examples](/hca/examples). Hosted provider verification is a manual release gate;
 these guides describe implemented APIs, not a claim that every hosted route has passed.
+
+## Provider walkthroughs
+
+Follow [Execute with Pimlico](/hca/guides/pimlico) for owner UserOperations,
+[Rhinestone Sessions](/hca/guides/rhinestone) for sponsored session calls, and
+[Cross-chain Funding](/hca/funding) for independent destination funding. The walkthroughs use SDK
+actions; the same adapter is accepted by the corresponding core actions and React hooks.
