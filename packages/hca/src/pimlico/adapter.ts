@@ -433,7 +433,11 @@ export const pimlico = (input: PimlicoOptions): PimlicoExecutionAdapter => {
           try {
             result = await options.client.getUserOperationReceipt({ hash });
           } catch (cause) {
-            if (cause instanceof UserOperationReceiptNotFoundError)
+            // Provider clients can load another Viem copy or its CommonJS build.
+            if (
+              cause instanceof UserOperationReceiptNotFoundError ||
+              (cause instanceof Error && cause.name === "UserOperationReceiptNotFoundError")
+            )
               return { status: "unknown" as const };
 
             throw cause;

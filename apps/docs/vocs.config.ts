@@ -50,7 +50,7 @@ export default defineConfig({
   },
   ogImageUrl: (_path, { baseUrl }) =>
     `${baseUrl ?? ""}/api/og?title=%title&description=%description`,
-  renderStrategy: "dynamic",
+  renderStrategy: "partial-static",
   rootDir: ".",
   search: {
     boostDocument(documentId) {
