@@ -736,8 +736,12 @@ export const sidebar = {
     },
     {
       text: "Pimlico",
+      collapsed: true,
       items: [
         { link: "/hca/pimlico/getting-started", text: "Getting Started" },
+        { link: "/hca/pimlico/update-description", text: "Update a Text Record" },
+        { link: "/hca/pimlico/register-name", text: "Register a Name" },
+        { link: "/hca/pimlico/update-profile", text: "Update an ENS Profile" },
         { link: "/hca/pimlico/usage", text: "Usage" },
         { link: "/hca/pimlico/sponsorship", text: "Gas and Sponsorship" },
         { link: "/hca/api/pimlico", text: "API Reference" },
@@ -745,8 +749,12 @@ export const sidebar = {
     },
     {
       text: "Rhinestone",
+      collapsed: true,
       items: [
         { link: "/hca/rhinestone/getting-started", text: "Getting Started" },
+        { link: "/hca/rhinestone/update-description", text: "Update a Text Record" },
+        { link: "/hca/rhinestone/register-name", text: "Register a Name" },
+        { link: "/hca/rhinestone/revoke-access", text: "Revoke App Access" },
         { link: "/hca/rhinestone/sessions", text: "Sessions" },
         { link: "/hca/rhinestone/usage", text: "Usage" },
         { link: "/hca/rhinestone/cross-chain", text: "Cross-chain Funding" },
