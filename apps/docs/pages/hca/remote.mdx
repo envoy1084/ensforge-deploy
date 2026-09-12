@@ -38,7 +38,7 @@ import { createRemoteHcaRegistrationActions } from "@ensforge/hca/remote";
 
 const remote = createRemoteHcaRegistrationActions({
   transport: async (request, signal) => {
-    const response = await fetch("/api/core/guides/hca-registration", {
+    const response = await fetch("/api/hca/registration", {
       method: "POST",
       credentials: "same-origin",
       headers: { "Content-Type": "application/json" },
@@ -56,7 +56,7 @@ const progress = await remote.getRegistration(config, { id });
 `.effect`. Use `useEnsQuery`/`useEnsMutation` in React. Responses are validated against the requested ID
 and configured chain. Keep action objects stable across renders.
 
-The [HTTP example](/hca/examples) adapts Web `Request`/`Response`. Integrate your own authentication,
+The [HTTP example](https://github.com/thenamespace/ensforge/blob/main/apps/docs/examples/hca/remote.ts) adapts Web `Request`/`Response`. Integrate your own authentication,
 resource authorization, origin/CSRF checks, request limits, error logging and HTTP status mapping.
 Never expose raw server exceptions to the browser. An HTTP timeout does not establish that submission
 failed; fetch status before retrying. Aborting a browser request does not revoke server-held sessions.

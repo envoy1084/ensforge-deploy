@@ -98,7 +98,7 @@ for a conflict and throw for storage failure. A read-then-write sequence without
 is not an atomic compare-and-swap. Return copies, not shared mutable records. Listing uses increasing
 ID order and an exclusive cursor.
 
-The [SQLite example](/hca/examples) implements this with single atomic SQL statements and Node's
+The [SQLite example](/hca/guides/storage) implements this with single atomic SQL statements and Node's
 built-in SQLite module. Production stores must protect registration secrets, preserve namespaces,
 provide tenant isolation and apply an appropriate backup/retention policy.
 

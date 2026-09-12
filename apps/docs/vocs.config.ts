@@ -50,6 +50,18 @@ export default defineConfig({
   },
   ogImageUrl: (_path, { baseUrl }) =>
     `${baseUrl ?? ""}/api/og?title=%title&description=%description`,
+  redirects: [
+    { source: "/hca/release", destination: "/hca/compatibility", status: 301 },
+    { source: "/hca/examples", destination: "/hca/guides/storage", status: 301 },
+    { source: "/hca/providers", destination: "/hca/getting-started", status: 301 },
+    { source: "/hca/guides/pimlico", destination: "/hca/pimlico/getting-started", status: 301 },
+    {
+      source: "/hca/guides/rhinestone",
+      destination: "/hca/rhinestone/getting-started",
+      status: 301,
+    },
+    { source: "/hca/funding", destination: "/hca/rhinestone/cross-chain", status: 301 },
+  ],
   renderStrategy: "partial-static",
   rootDir: ".",
   search: {

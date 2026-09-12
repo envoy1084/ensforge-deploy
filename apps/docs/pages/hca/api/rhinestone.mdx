@@ -25,9 +25,9 @@ const execution = rhinestone({ profile, chain, owner, sessionSigner, sdk: { apiK
 options: RhinestoneOptions;
 ```
 
-Required: `profile`, `chain`, `owner`, `sessionSigner`, `sdk`. Optional: `sessionSalt`, `policy`, `crossChain`, `sponsored`. The returned adapter exposes `extensions.sessions.prepare`, `extensions.sessions.enable`, and `crossChain`. See [Providers](/hca/providers) and [Funding](/hca/funding).
+Required: `profile`, `chain`, `owner`, `sessionSigner`, `sdk`. Optional: `sessionSalt`, `policy`, `crossChain`, `sponsored`. The returned adapter exposes `extensions.sessions.prepare`, `extensions.sessions.enable`, and `crossChain`. See [Getting started](/hca/rhinestone/getting-started) and [Funding](/hca/rhinestone/cross-chain).
 
-Use the default sponsored execution mode. `sponsored: false` is not a supported release path;
+Use the default sponsored execution mode. `sponsored: false` is not supported;
 see [Compatibility](/hca/compatibility) for the unresolved refund-route limitation.
 
 ## Return Type
@@ -41,5 +41,5 @@ and simulation failures must be reconciled before repeating a submission.
 
 ## Related
 
-- [Examples](/hca/examples)
+- [Guides](/hca/getting-started)
 - [Compatibility](/hca/compatibility)

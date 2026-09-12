@@ -6,9 +6,9 @@
   "scripts": {
     "build": "NODE_OPTIONS='--max-old-space-size=6144' vocs build",
     "dev": "vocs dev --port 3000",
-    "lint": "oxlint --deny-warnings components pages examples server sidebar.ts vite.config.ts vocs.config.ts",
+    "lint": "oxlint --deny-warnings components pages examples snippets/hca/guides server sidebar.ts vite.config.ts vocs.config.ts",
     "preview": "vocs preview --port 3000",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc --project tsconfig.hca-guides.json",
     "example:hca:local": "tsx examples/hca/local.ts",
     "example:hca:pimlico": "tsx --env-file=.env.hca examples/hca/pimlico.ts",
     "example:hca:rhinestone": "tsx --env-file=.env.hca examples/hca/rhinestone.ts"

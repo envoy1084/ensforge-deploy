@@ -1,50 +1,45 @@
 ---
-title: Getting Started
-description: Add an execution adapter to ENS HCA actions.
+title: Introduction
+description: Build ENS applications with hierarchical contract accounts.
 ---
 
-# Getting Started
+# Introduction
 
-`@ensforge/hca` provides typed execution adapters for ENS hierarchical contract accounts. Core and
-SDK own ENS actions; this package connects those actions to Pimlico or Rhinestone and exposes each
-provider's extensions. There is no separate HCA client.
+An HCA is a smart account for ENS. It has its own address, holds funds and executes calls as that
+address. Its owner can act directly or enable a constrained session so an application can perform
+specific ENS operations without asking the owner to sign every call.
 
-## Install
+`@ensforge/hca` connects those accounts to execution providers. You keep using `sdk.hca`, core actions
+or React hooks; adding a provider does not create a second ENS client.
 
-Follow [Installation](/hca/installation), then install the optional provider you use.
+## Choose how to execute
 
-## Create an adapter
+| Path         | Who authorizes calls?                  | Who pays execution gas?   | Start here                                       |
+| ------------ | -------------------------------------- | ------------------------- | ------------------------------------------------ |
+| Owner wallet | The HCA owner                          | Owner wallet              | [Accounts and permissions](/hca/guides/accounts) |
+| Pimlico      | The owner signs a UserOperation        | Paymaster, or HCA funds   | [Pimlico](/hca/pimlico/getting-started)          |
+| Rhinestone   | An enabled session key signs an intent | Sponsored by the provider | [Rhinestone](/hca/rhinestone/getting-started)    |
 
-```ts
-import { pimlico } from "@ensforge/hca/pimlico";
+Pimlico is useful when you want owner execution with optional gas sponsorship. Rhinestone is useful
+when an application needs to reuse an authorized session. Rhinestone also exposes independent
+[cross-chain funding](/hca/rhinestone/cross-chain) before normal ENS registration.
 
-const execution = pimlico({ profile, chain, owner, client });
-const submission = await sdk.hca.executeHcaCalls({
-  hca,
-  authorization: { kind: "owner" },
-  calls,
-  execution,
-});
-const status = await sdk.hca.waitForHcaExecution({ submission, execution });
-```
+## Understand the two permissions
 
-See [`pimlico`](/hca/api/pimlico) for client configuration and sponsorship. Rhinestone provides
-destination sessions through [`rhinestone`](/hca/api/rhinestone), with independent cross-chain funding.
+The owner or session authorizes **the HCA to execute**. The ENS name or resolver must separately
+authorize **the HCA address to update records**. Connecting a wallet or enabling a session does not
+automatically grant resolver permissions.
 
-## ENS actions
+The usual flow is to deploy an account, grant it the required ENS permission, choose an execution
+path, then submit and confirm the call. [Registration](/hca/guides/registration) additionally has a
+commitment waiting period and a separate name price.
 
-Account reads, deployment, execution, registration and governance are documented in their existing
-package sections:
+## Start building
 
-- [Core HCA guide](/core/guides/hca) and [getHca](/core/api/actions/hca/get-hca).
-- [SDK HCA guide](/sdk/guides/hca) and [getHca](/sdk/api/hca/get-hca).
-- [React HCA guide](/react/guides/hca) and [useHca](/react/api/hooks/hca/use-hca).
+1. [Install the packages](/hca/installation).
+2. Follow your provider's getting-started guide, or [use the owner wallet](/hca/guides/accounts).
+3. Add [storage and recovery](/hca/guides/storage) before running workflows across restarts.
 
-Use the [examples](/hca/examples) for complete integration code and the
-[compatibility guide](/hca/compatibility) for the supported deployment generation.
-
-## Follow a guide
-
-- [Execute with Pimlico](/hca/guides/pimlico): owner execution with optional gas sponsorship.
-- [Rhinestone Sessions](/hca/guides/rhinestone): enable and reuse a session for sponsored updates.
-- [Cross-chain Funding](/hca/funding): fund the HCA before separate ENS registration.
+The supplied deployment profile targets Sepolia. See [Supported deployments](/hca/compatibility)
+for the account generation and provider limitations. Read playgrounds throughout core, SDK and React
+use a deployed Sepolia example and never submit transactions.
