@@ -1,8 +1,22 @@
 import { defineForm } from "../../../form/define-form";
-import { addressField } from "../../../form/fields/factories";
+import { addressField, bigintField } from "../../../form/fields/factories";
 import { defineReadAction } from "../types";
 
-const hcaForm = () => defineForm({ fields: { hca: addressField({ label: "HCA address" }) } });
+// Public Sepolia account used by the manual HCA verification suite.
+const exampleHca = "0x5F5cC74Fd5e538c8031412Cd63e86E310a7A2Fc4";
+const exampleOwner = "0x5b7d523F27C5b2232536fB900EBffB590d03fF5d";
+
+const hcaForm = () =>
+  defineForm({
+    fields: {
+      hca: addressField({
+        label: "HCA address",
+        initialValue: exampleHca,
+        placeholder: exampleHca,
+        description: "Deployed Sepolia example. Reads show its current on-chain state.",
+      }),
+    },
+  });
 
 export const definitions = {
   "hca.getHca": defineReadAction({
@@ -66,8 +80,24 @@ export const definitions = {
     label: "getHcaRegistry",
   }),
   "hca.predictHcaAddress": defineReadAction({
-    createForm: () => defineForm({ fields: { owner: addressField({ label: "Owner address" }) } }),
-    execute: ({ sdk, values }) => sdk.hca.predictHcaAddress({ owner: values.owner }),
+    createForm: () =>
+      defineForm({
+        fields: {
+          owner: addressField({
+            label: "Owner address",
+            initialValue: exampleOwner,
+            placeholder: exampleOwner,
+          }),
+          salt: bigintField({
+            label: "Salt",
+            initialValue: 9112026n,
+            minimum: 0n,
+            placeholder: "9112026",
+          }),
+        },
+      }),
+    execute: ({ sdk, values }) =>
+      sdk.hca.predictHcaAddress({ owner: values.owner, salt: values.salt }),
     id: "hca.predictHcaAddress",
     label: "predictHcaAddress",
   }),

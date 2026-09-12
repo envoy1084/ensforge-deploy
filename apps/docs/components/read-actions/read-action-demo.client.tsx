@@ -45,7 +45,9 @@ const initialNetwork = (): Network => {
 function ReadActionDemoContent({ action }: ReadActionDemoProps) {
   const [definition, setDefinition] = useState<AnyReadActionDefinition>();
   const [loadError, setLoadError] = useState<string>();
-  const [network, setNetwork] = useState<Network>(initialNetwork);
+  const [network, setNetwork] = useState<Network>(() =>
+    action.startsWith("hca.") ? "sepolia" : initialNetwork(),
+  );
   const [result, setResult] = useState<{ readonly json: string; readonly value: unknown }>();
   const [error, setError] = useState<string>();
   const [isRunning, setIsRunning] = useState(false);
@@ -141,16 +143,20 @@ function ReadActionDemoContent({ action }: ReadActionDemoProps) {
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <span className="text-xs font-medium text-[var(--vocs-text-color-secondary)]">Network</span>
         <div className="ml-auto flex max-w-full flex-wrap items-center justify-end gap-2">
-          <Segment
-            aria-label="Network"
-            className="ensforge-network-segment shrink-0"
-            selectedKey={network}
-            size="sm"
-            onSelectionChange={(key) => selectNetwork(String(key) as Network)}
-          >
-            <Segment.Item id="mainnet">Mainnet</Segment.Item>
-            <Segment.Item id="sepolia">Sepolia</Segment.Item>
-          </Segment>
+          {action.startsWith("hca.") ? (
+            <span className="text-sm">Sepolia</span>
+          ) : (
+            <Segment
+              aria-label="Network"
+              className="ensforge-network-segment shrink-0"
+              selectedKey={network}
+              size="sm"
+              onSelectionChange={(key) => selectNetwork(String(key) as Network)}
+            >
+              <Segment.Item id="mainnet">Mainnet</Segment.Item>
+              <Segment.Item id="sepolia">Sepolia</Segment.Item>
+            </Segment>
+          )}
           <WalletProviders>
             <WalletConnectButton />
           </WalletProviders>
