@@ -46,7 +46,8 @@ export const mainnetConfig = createConfig({
 
 export const mainnetNames = {
   ccipRead: "test.offchaindemo.eth",
-  dns: "alisha.beam.eco",
+  // Gasless DNS fixture also used by ENS contracts' Universal Resolver tests.
+  dns: "taytems.xyz",
   multichain: "test.ses.eth",
   reverse: "vitalik.eth",
   standard: "ens.eth",
