@@ -293,18 +293,28 @@ const register = async ({ name, resolver, secret }) => {
     ...(resolver === undefined ? {} : { resolver }),
   };
   let result = await sdk.registration.registerName(parameters);
-  for (let attempt = 0; result.status !== "completed" && attempt < 4; attempt += 1) {
+  const deadline = Date.now() + 10 * 60_000;
+
+  while (result.status !== "completed") {
     if (result.status === "partial") {
       throw new Error(`Registration of ${name} stopped with a partial write plan`);
     }
-    if (result.nextActionAt !== null) {
-      const delay = Math.max(0, Number(result.nextActionAt) * 1_000 - Date.now() + 2_000);
-      console.log(`  waiting ${Math.ceil(delay / 1_000)}s for ${name}'s commitment`);
-      await sleep(delay);
+    if (Date.now() >= deadline) {
+      throw new Error(
+        `Registration of ${name} is still ${result.status}. Rerun pnpm setup:docs-sepolia with the existing checkpoint to continue.`,
+      );
     }
+
+    // Commitment maturity follows block time, which can lag behind the local clock.
+    const block = await publicClient.getBlock({ blockTag: "latest" });
+    const remaining =
+      result.nextActionAt === null ? 0 : Number(BigInt(result.nextActionAt) - block.timestamp);
+    const delay = Math.min(60_000, Math.max(5_000, remaining * 1_000 + 1_000));
+    console.log(`  waiting ${Math.ceil(delay / 1_000)}s for ${name} (${result.status})`);
+    await sleep(Math.min(delay, deadline - Date.now()));
+
     result = await sdk.registration.registerName({ ...parameters, resume: result });
   }
-  if (result.status !== "completed") throw new Error(`Registration of ${name} did not complete`);
 };
 
 const ensureSubname = async ({ name, owner = account.address, resolver, expiry }) => {
