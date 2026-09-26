@@ -1,4 +1,4 @@
-/** Complete LabelStore ABI from the ENSv2 Sepolia deployment. */
+/** ABI from the pinned Sepolia deployment artifact. */
 export const labelStoreV2Abi = [
   {
     inputs: [

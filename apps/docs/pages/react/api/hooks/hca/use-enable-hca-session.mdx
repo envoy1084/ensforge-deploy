@@ -10,6 +10,9 @@ import MutationResult from "../../../../../shared/react/mutation-result.mdx";
 
 Owner-authorize a constrained session. Uses the SDK from `EnsforgeProvider`.
 
+The owner signs a reusable authorization. This action sends no transaction and cannot be batched
+with `.call`. Pass the returned proof as `{ kind: "session", session: result }`.
+
 ## Import
 
 ```tsx
@@ -64,9 +67,9 @@ HCA address to inspect or operate on.
 
 ### permissionId
 
-`` `0x${string}` ``
+`` `0x${string}` | undefined ``
 
-Permission identifier of the prepared or enabled session.
+Optional expected permission ID. Omit it to derive the ID from the signed policy.
 
 ### sessionKey
 

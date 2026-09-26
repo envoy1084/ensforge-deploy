@@ -1,4 +1,4 @@
-/** Complete ETHRegistrar ABI from the ENSv2 Sepolia deployment. */
+/** ABI from the pinned Sepolia deployment artifact. */
 export const ethRegistrarV2Abi = [
   {
     inputs: [
@@ -703,27 +703,69 @@ export const ethRegistrarV2Abi = [
   {
     inputs: [
       {
-        internalType: "string",
-        name: "label",
-        type: "string",
-      },
-      {
-        internalType: "uint64",
-        name: "duration",
-        type: "uint64",
+        components: [
+          {
+            internalType: "string",
+            name: "label",
+            type: "string",
+          },
+          {
+            internalType: "uint64",
+            name: "duration",
+            type: "uint64",
+          },
+          {
+            internalType: "bytes32",
+            name: "referrer",
+            type: "bytes32",
+          },
+        ],
+        internalType: "struct RenewData",
+        name: "rd",
+        type: "tuple",
       },
       {
         internalType: "contract IERC20",
         name: "paymentToken",
         type: "address",
       },
-      {
-        internalType: "bytes32",
-        name: "referrer",
-        type: "bytes32",
-      },
     ],
     name: "renew",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        components: [
+          {
+            internalType: "string",
+            name: "label",
+            type: "string",
+          },
+          {
+            internalType: "uint64",
+            name: "duration",
+            type: "uint64",
+          },
+          {
+            internalType: "bytes32",
+            name: "referrer",
+            type: "bytes32",
+          },
+        ],
+        internalType: "struct RenewData[]",
+        name: "rds",
+        type: "tuple[]",
+      },
+      {
+        internalType: "contract IERC20",
+        name: "paymentToken",
+        type: "address",
+      },
+    ],
+    name: "renewBatch",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",

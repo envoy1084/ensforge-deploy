@@ -118,7 +118,7 @@ export const deployUserRegistryIntent = Effect.fn("ensforge.deployUserRegistryIn
       const initialization = encodeFunctionData({
         abi: userRegistryV2InitializeAbi,
         functionName: "initialize",
-        args: [parameters.owner, parameters.roles],
+        args: [[{ account: parameters.owner, roleBitmap: parameters.roles }]],
       });
 
       return encodeFunctionData({

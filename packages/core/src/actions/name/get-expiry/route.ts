@@ -145,7 +145,7 @@ const routeOtherExpiry = Effect.fn("routeOtherExpiry")(function* (
     [
       Effect.result(
         ethereum.readContract({
-          address: v2.contracts.universalResolver,
+          address: v2.contracts.universalHelper,
           abi: getExpiryV2UniversalResolverAbi,
           functionName: "findParentRegistry",
           args: [dnsName],

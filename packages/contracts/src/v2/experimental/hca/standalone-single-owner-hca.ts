@@ -1,4 +1,4 @@
-/** Complete StandaloneSingleOwnerHCA ABI from the experimental ENSv2 Sepolia HCA deployment. */
+/** ABI from the pinned Sepolia deployment artifact. */
 export const standaloneSingleOwnerHcaV2Abi = [
   {
     inputs: [
@@ -23,13 +23,18 @@ export const standaloneSingleOwnerHcaV2Abi = [
         type: "bytes",
       },
       {
-        internalType: "contract ApprovedUpgradeGate",
-        name: "upgradeGate_",
+        internalType: "contract IAddressSet",
+        name: "upgradeSet_",
         type: "address",
       },
       {
-        internalType: "contract ApprovedUpgradeGate",
-        name: "predecessorUpgradeGate_",
+        internalType: "contract IAddressSet",
+        name: "predecessorUpgradeSet_",
+        type: "address",
+      },
+      {
+        internalType: "contract IStandaloneHCAFactory",
+        name: "ownerRegistry_",
         type: "address",
       },
     ],
@@ -610,10 +615,10 @@ export const standaloneSingleOwnerHcaV2Abi = [
   },
   {
     inputs: [],
-    name: "PREDECESSOR_UPGRADE_GATE",
+    name: "OWNER_REGISTRY",
     outputs: [
       {
-        internalType: "contract ApprovedUpgradeGate",
+        internalType: "contract IStandaloneHCAFactory",
         name: "",
         type: "address",
       },
@@ -623,10 +628,23 @@ export const standaloneSingleOwnerHcaV2Abi = [
   },
   {
     inputs: [],
-    name: "UPGRADE_GATE",
+    name: "PREDECESSOR_UPGRADE_SET",
     outputs: [
       {
-        internalType: "contract ApprovedUpgradeGate",
+        internalType: "contract IAddressSet",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "UPGRADE_SET",
+    outputs: [
+      {
+        internalType: "contract IAddressSet",
         name: "",
         type: "address",
       },
@@ -1240,7 +1258,7 @@ export const standaloneSingleOwnerHcaV2Abi = [
     outputs: [
       {
         internalType: "bytes4",
-        name: "",
+        name: "magicValue",
         type: "bytes4",
       },
     ],

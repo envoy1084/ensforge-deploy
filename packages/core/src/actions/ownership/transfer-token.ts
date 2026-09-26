@@ -1,7 +1,7 @@
 import { Effect } from "effect";
 
 import { nameWrapperV1SafeTransferFromAbi } from "@ensforge/contracts/v1";
-import { tokenizedRegistryV2InterfaceSafeTransferFromAbi } from "@ensforge/contracts/v2";
+import { permissionedRegistryV2InterfaceAbi } from "@ensforge/contracts/v2";
 import { encodeFunctionData } from "viem";
 
 import type { EnsWriteIntentPreparer } from "../../action/write-intent.js";
@@ -13,6 +13,7 @@ import type { WriteError } from "../../write/types.js";
 import { requireOwnershipAuthorization } from "./authorization.js";
 
 interface TransferTokenParameters {
+  readonly unsafe?: boolean;
   readonly name: string;
   readonly protocol: EnsProtocol;
   readonly contract: EthereumAddress;
@@ -37,9 +38,11 @@ const prepare: EnsWriteIntentPreparer<TransferTokenParameters, WriteError> = Eff
             args: [parameters.from, parameters.to, parameters.tokenId, 1n, "0x"],
           })
         : encodeFunctionData({
-            abi: tokenizedRegistryV2InterfaceSafeTransferFromAbi,
-            functionName: "safeTransferFrom",
-            args: [parameters.from, parameters.to, parameters.tokenId, 1n, "0x"],
+            abi: permissionedRegistryV2InterfaceAbi,
+            functionName: parameters.unsafe ? "unsafeTransfer" : "safeTransferFrom",
+            args: parameters.unsafe
+              ? [parameters.to, parameters.tokenId, "0x"]
+              : [parameters.from, parameters.to, parameters.tokenId, 1n, "0x"],
           }),
     catch: (cause) =>
       new ContractError({

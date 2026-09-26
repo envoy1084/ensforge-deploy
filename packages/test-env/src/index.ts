@@ -12,7 +12,6 @@ export {
   ensContractsV2Commit,
   ensContractsV2Repository,
   ensDevnetChainId,
-  ensDevnetImageDigest,
   ensDevnetImageRepository,
   ensDevnetPublishedImage,
 } from "./devnet/index.js";

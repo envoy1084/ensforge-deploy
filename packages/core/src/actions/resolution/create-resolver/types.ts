@@ -7,6 +7,7 @@ import type { CallExecutionResult, ConfirmationPolicy, WriteError } from "../../
 
 export interface CreateResolverParameters {
   readonly salt: bigint;
+  readonly grants?: ReadonlyArray<{ readonly account: Address; readonly roleBitmap: bigint }>;
   readonly admin?: string;
   readonly roles?: bigint;
   readonly setters?: ReadonlyArray<Hex>;

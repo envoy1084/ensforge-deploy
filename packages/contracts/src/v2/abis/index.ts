@@ -25,3 +25,5 @@ export * from "./batch-registrar.js";
 export * from "./dns-v1-mirror-root-batch-registrar.js";
 export * from "./upgradable-universal-resolver-proxy.js";
 export * from "./managed-universal-resolver-proxy.js";
+export * from "./universal-helper.js";
+export * from "./root-batch-registrar.js";

@@ -1,658 +1,658 @@
-/** ITokenizedRegistry ABI from the deployed ENSv2 Sepolia contract snapshot. */
+/** ITokenizedRegistry ABI from the pinned ENSv2 deployment source. */
 export const tokenizedRegistryV2InterfaceAbi = [
   {
-    type: "function",
-    name: "balanceOf",
+    anonymous: false,
     inputs: [
       {
-        name: "account",
-        type: "address",
-        internalType: "address",
-      },
-      {
-        name: "id",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
-    outputs: [
-      {
-        name: "",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "balanceOfBatch",
-    inputs: [
-      {
-        name: "accounts",
-        type: "address[]",
-        internalType: "address[]",
-      },
-      {
-        name: "ids",
-        type: "uint256[]",
-        internalType: "uint256[]",
-      },
-    ],
-    outputs: [
-      {
-        name: "",
-        type: "uint256[]",
-        internalType: "uint256[]",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "findOwner",
-    inputs: [
-      {
-        name: "label",
-        type: "string",
-        internalType: "string",
-      },
-    ],
-    outputs: [
-      {
-        name: "",
-        type: "address",
-        internalType: "address",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "findTokenId",
-    inputs: [
-      {
-        name: "label",
-        type: "string",
-        internalType: "string",
-      },
-    ],
-    outputs: [
-      {
-        name: "",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "getParent",
-    inputs: [],
-    outputs: [
-      {
-        name: "parent",
-        type: "address",
-        internalType: "contract IRegistry",
-      },
-      {
-        name: "label",
-        type: "string",
-        internalType: "string",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "getResolver",
-    inputs: [
-      {
-        name: "label",
-        type: "string",
-        internalType: "string",
-      },
-    ],
-    outputs: [
-      {
-        name: "",
-        type: "address",
-        internalType: "address",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "getSubregistry",
-    inputs: [
-      {
-        name: "label",
-        type: "string",
-        internalType: "string",
-      },
-    ],
-    outputs: [
-      {
-        name: "",
-        type: "address",
-        internalType: "contract IRegistry",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "isApprovedForAll",
-    inputs: [
-      {
-        name: "account",
-        type: "address",
-        internalType: "address",
-      },
-      {
-        name: "operator",
-        type: "address",
-        internalType: "address",
-      },
-    ],
-    outputs: [
-      {
-        name: "",
-        type: "bool",
-        internalType: "bool",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "ownerOf",
-    inputs: [
-      {
-        name: "id",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
-    outputs: [
-      {
-        name: "owner",
-        type: "address",
-        internalType: "address",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "safeBatchTransferFrom",
-    inputs: [
-      {
-        name: "from",
-        type: "address",
-        internalType: "address",
-      },
-      {
-        name: "to",
-        type: "address",
-        internalType: "address",
-      },
-      {
-        name: "ids",
-        type: "uint256[]",
-        internalType: "uint256[]",
-      },
-      {
-        name: "values",
-        type: "uint256[]",
-        internalType: "uint256[]",
-      },
-      {
-        name: "data",
-        type: "bytes",
-        internalType: "bytes",
-      },
-    ],
-    outputs: [],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "function",
-    name: "safeTransferFrom",
-    inputs: [
-      {
-        name: "from",
-        type: "address",
-        internalType: "address",
-      },
-      {
-        name: "to",
-        type: "address",
-        internalType: "address",
-      },
-      {
-        name: "id",
-        type: "uint256",
-        internalType: "uint256",
-      },
-      {
-        name: "value",
-        type: "uint256",
-        internalType: "uint256",
-      },
-      {
-        name: "data",
-        type: "bytes",
-        internalType: "bytes",
-      },
-    ],
-    outputs: [],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "function",
-    name: "setApprovalForAll",
-    inputs: [
-      {
-        name: "operator",
-        type: "address",
-        internalType: "address",
-      },
-      {
-        name: "approved",
-        type: "bool",
-        internalType: "bool",
-      },
-    ],
-    outputs: [],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "function",
-    name: "supportsInterface",
-    inputs: [
-      {
-        name: "interfaceId",
-        type: "bytes4",
-        internalType: "bytes4",
-      },
-    ],
-    outputs: [
-      {
-        name: "",
-        type: "bool",
-        internalType: "bool",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "event",
-    name: "ApprovalForAll",
-    inputs: [
-      {
-        name: "account",
-        type: "address",
         indexed: true,
         internalType: "address",
+        name: "account",
+        type: "address",
       },
       {
-        name: "operator",
-        type: "address",
         indexed: true,
         internalType: "address",
+        name: "operator",
+        type: "address",
       },
       {
-        name: "approved",
-        type: "bool",
         indexed: false,
         internalType: "bool",
+        name: "approved",
+        type: "bool",
       },
     ],
-    anonymous: false,
+    name: "ApprovalForAll",
+    type: "event",
   },
   {
-    type: "event",
-    name: "ExpiryUpdated",
+    anonymous: false,
     inputs: [
       {
-        name: "tokenId",
-        type: "uint256",
         indexed: true,
         internalType: "uint256",
+        name: "tokenId",
+        type: "uint256",
       },
       {
+        indexed: true,
+        internalType: "uint64",
         name: "newExpiry",
         type: "uint64",
-        indexed: true,
-        internalType: "uint64",
       },
       {
-        name: "sender",
-        type: "address",
         indexed: true,
         internalType: "address",
+        name: "sender",
+        type: "address",
       },
     ],
-    anonymous: false,
+    name: "ExpiryUpdated",
+    type: "event",
   },
   {
-    type: "event",
-    name: "LabelRegistered",
+    anonymous: false,
     inputs: [
       {
-        name: "tokenId",
-        type: "uint256",
         indexed: true,
         internalType: "uint256",
+        name: "tokenId",
+        type: "uint256",
       },
       {
-        name: "labelHash",
-        type: "bytes32",
         indexed: true,
         internalType: "bytes32",
+        name: "labelHash",
+        type: "bytes32",
       },
       {
-        name: "label",
-        type: "string",
         indexed: false,
         internalType: "string",
+        name: "label",
+        type: "string",
       },
       {
+        indexed: false,
+        internalType: "address",
         name: "owner",
         type: "address",
-        indexed: false,
-        internalType: "address",
       },
       {
-        name: "expiry",
-        type: "uint64",
         indexed: false,
         internalType: "uint64",
+        name: "expiry",
+        type: "uint64",
       },
       {
-        name: "sender",
-        type: "address",
         indexed: true,
         internalType: "address",
+        name: "sender",
+        type: "address",
       },
     ],
-    anonymous: false,
+    name: "LabelRegistered",
+    type: "event",
   },
   {
-    type: "event",
-    name: "LabelReserved",
+    anonymous: false,
     inputs: [
       {
-        name: "tokenId",
-        type: "uint256",
         indexed: true,
         internalType: "uint256",
+        name: "tokenId",
+        type: "uint256",
       },
       {
-        name: "labelHash",
-        type: "bytes32",
         indexed: true,
         internalType: "bytes32",
+        name: "labelHash",
+        type: "bytes32",
       },
       {
-        name: "label",
-        type: "string",
         indexed: false,
         internalType: "string",
+        name: "label",
+        type: "string",
       },
       {
-        name: "expiry",
-        type: "uint64",
         indexed: false,
         internalType: "uint64",
+        name: "expiry",
+        type: "uint64",
       },
       {
-        name: "sender",
-        type: "address",
         indexed: true,
         internalType: "address",
+        name: "sender",
+        type: "address",
       },
     ],
-    anonymous: false,
+    name: "LabelReserved",
+    type: "event",
   },
   {
-    type: "event",
-    name: "LabelUnregistered",
+    anonymous: false,
     inputs: [
       {
-        name: "tokenId",
-        type: "uint256",
         indexed: true,
         internalType: "uint256",
+        name: "tokenId",
+        type: "uint256",
       },
       {
-        name: "sender",
-        type: "address",
         indexed: true,
         internalType: "address",
+        name: "sender",
+        type: "address",
       },
     ],
-    anonymous: false,
+    name: "LabelUnregistered",
+    type: "event",
   },
   {
-    type: "event",
-    name: "ParentUpdated",
+    anonymous: false,
     inputs: [
       {
+        indexed: true,
+        internalType: "contract IRegistry",
         name: "parent",
         type: "address",
-        indexed: true,
-        internalType: "contract IRegistry",
       },
       {
+        indexed: false,
+        internalType: "string",
         name: "label",
         type: "string",
-        indexed: false,
-        internalType: "string",
       },
       {
-        name: "sender",
-        type: "address",
         indexed: true,
         internalType: "address",
+        name: "sender",
+        type: "address",
       },
     ],
-    anonymous: false,
+    name: "ParentUpdated",
+    type: "event",
   },
   {
-    type: "event",
-    name: "RegistryCreated",
+    anonymous: false,
     inputs: [],
-    anonymous: false,
+    name: "RegistryCreated",
+    type: "event",
   },
   {
-    type: "event",
-    name: "ResolverUpdated",
+    anonymous: false,
     inputs: [
       {
-        name: "tokenId",
-        type: "uint256",
         indexed: true,
         internalType: "uint256",
+        name: "tokenId",
+        type: "uint256",
       },
       {
+        indexed: true,
+        internalType: "address",
         name: "resolver",
         type: "address",
-        indexed: true,
-        internalType: "address",
       },
       {
+        indexed: true,
+        internalType: "address",
         name: "sender",
         type: "address",
-        indexed: true,
-        internalType: "address",
       },
     ],
-    anonymous: false,
+    name: "ResolverUpdated",
+    type: "event",
   },
   {
-    type: "event",
-    name: "SubregistryUpdated",
+    anonymous: false,
     inputs: [
       {
+        indexed: true,
+        internalType: "uint256",
         name: "tokenId",
         type: "uint256",
-        indexed: true,
-        internalType: "uint256",
       },
       {
-        name: "subregistry",
-        type: "address",
         indexed: true,
         internalType: "contract IRegistry",
+        name: "subregistry",
+        type: "address",
       },
       {
-        name: "sender",
-        type: "address",
         indexed: true,
         internalType: "address",
+        name: "sender",
+        type: "address",
       },
     ],
-    anonymous: false,
+    name: "SubregistryUpdated",
+    type: "event",
   },
   {
-    type: "event",
-    name: "TokenRegenerated",
+    anonymous: false,
     inputs: [
       {
+        indexed: true,
+        internalType: "uint256",
         name: "oldTokenId",
         type: "uint256",
-        indexed: true,
-        internalType: "uint256",
       },
       {
+        indexed: true,
+        internalType: "uint256",
         name: "newTokenId",
         type: "uint256",
-        indexed: true,
-        internalType: "uint256",
       },
     ],
-    anonymous: false,
+    name: "TokenRegenerated",
+    type: "event",
   },
   {
-    type: "event",
-    name: "TransferBatch",
+    anonymous: false,
     inputs: [
       {
+        indexed: true,
+        internalType: "address",
         name: "operator",
         type: "address",
-        indexed: true,
-        internalType: "address",
       },
       {
+        indexed: true,
+        internalType: "address",
         name: "from",
         type: "address",
-        indexed: true,
-        internalType: "address",
       },
       {
+        indexed: true,
+        internalType: "address",
         name: "to",
         type: "address",
-        indexed: true,
-        internalType: "address",
       },
       {
+        indexed: false,
+        internalType: "uint256[]",
         name: "ids",
         type: "uint256[]",
-        indexed: false,
-        internalType: "uint256[]",
       },
       {
+        indexed: false,
+        internalType: "uint256[]",
         name: "values",
         type: "uint256[]",
-        indexed: false,
-        internalType: "uint256[]",
       },
     ],
-    anonymous: false,
+    name: "TransferBatch",
+    type: "event",
   },
   {
-    type: "event",
-    name: "TransferSingle",
+    anonymous: false,
     inputs: [
       {
+        indexed: true,
+        internalType: "address",
         name: "operator",
         type: "address",
-        indexed: true,
-        internalType: "address",
       },
       {
+        indexed: true,
+        internalType: "address",
         name: "from",
         type: "address",
-        indexed: true,
-        internalType: "address",
       },
       {
+        indexed: true,
+        internalType: "address",
         name: "to",
         type: "address",
-        indexed: true,
-        internalType: "address",
       },
       {
+        indexed: false,
+        internalType: "uint256",
         name: "id",
         type: "uint256",
-        indexed: false,
-        internalType: "uint256",
       },
       {
+        indexed: false,
+        internalType: "uint256",
         name: "value",
         type: "uint256",
-        indexed: false,
-        internalType: "uint256",
       },
     ],
-    anonymous: false,
+    name: "TransferSingle",
+    type: "event",
   },
   {
-    type: "event",
-    name: "URI",
+    anonymous: false,
     inputs: [
       {
-        name: "value",
-        type: "string",
         indexed: false,
         internalType: "string",
+        name: "value",
+        type: "string",
       },
       {
-        name: "id",
-        type: "uint256",
         indexed: true,
         internalType: "uint256",
+        name: "id",
+        type: "uint256",
       },
     ],
-    anonymous: false,
+    name: "URI",
+    type: "event",
   },
   {
-    type: "event",
-    name: "URIUpdated",
+    anonymous: false,
     inputs: [
       {
+        indexed: false,
+        internalType: "string",
         name: "uri",
         type: "string",
-        indexed: false,
-        internalType: "string",
       },
       {
+        indexed: false,
+        internalType: "address",
         name: "renderer",
         type: "address",
-        indexed: false,
-        internalType: "address",
       },
       {
-        name: "sender",
-        type: "address",
         indexed: true,
         internalType: "address",
+        name: "sender",
+        type: "address",
       },
     ],
-    anonymous: false,
+    name: "URIUpdated",
+    type: "event",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "account",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "id",
+        type: "uint256",
+      },
+    ],
+    name: "balanceOf",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address[]",
+        name: "accounts",
+        type: "address[]",
+      },
+      {
+        internalType: "uint256[]",
+        name: "ids",
+        type: "uint256[]",
+      },
+    ],
+    name: "balanceOfBatch",
+    outputs: [
+      {
+        internalType: "uint256[]",
+        name: "",
+        type: "uint256[]",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "string",
+        name: "label",
+        type: "string",
+      },
+    ],
+    name: "findOwner",
+    outputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "string",
+        name: "label",
+        type: "string",
+      },
+    ],
+    name: "findTokenId",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "getParent",
+    outputs: [
+      {
+        internalType: "contract IRegistry",
+        name: "parent",
+        type: "address",
+      },
+      {
+        internalType: "string",
+        name: "label",
+        type: "string",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "string",
+        name: "label",
+        type: "string",
+      },
+    ],
+    name: "getResolver",
+    outputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "string",
+        name: "label",
+        type: "string",
+      },
+    ],
+    name: "getSubregistry",
+    outputs: [
+      {
+        internalType: "contract IRegistry",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "account",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "operator",
+        type: "address",
+      },
+    ],
+    name: "isApprovedForAll",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "id",
+        type: "uint256",
+      },
+    ],
+    name: "ownerOf",
+    outputs: [
+      {
+        internalType: "address",
+        name: "owner",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "from",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "to",
+        type: "address",
+      },
+      {
+        internalType: "uint256[]",
+        name: "ids",
+        type: "uint256[]",
+      },
+      {
+        internalType: "uint256[]",
+        name: "values",
+        type: "uint256[]",
+      },
+      {
+        internalType: "bytes",
+        name: "data",
+        type: "bytes",
+      },
+    ],
+    name: "safeBatchTransferFrom",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "from",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "to",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "id",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "value",
+        type: "uint256",
+      },
+      {
+        internalType: "bytes",
+        name: "data",
+        type: "bytes",
+      },
+    ],
+    name: "safeTransferFrom",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "operator",
+        type: "address",
+      },
+      {
+        internalType: "bool",
+        name: "approved",
+        type: "bool",
+      },
+    ],
+    name: "setApprovalForAll",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes4",
+        name: "interfaceId",
+        type: "bytes4",
+      },
+    ],
+    name: "supportsInterface",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
   },
 ] as const;

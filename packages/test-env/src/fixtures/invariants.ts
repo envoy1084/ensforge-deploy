@@ -142,30 +142,37 @@ export const verifyFixtureManifest = async (
     }),
   ]);
 
-  const invalid =
-    !isAddressEqual(v1Owner, fixtures.v1.activeUnwrapped.owner) ||
-    !isAddressEqual(v2State.latestOwner, fixtures.v2.active.owner) ||
-    v1Email !== fixtures.records.v1.texts.email ||
-    v2Email !== fixtures.records.v2.texts.email ||
-    !isAddressEqual(reservedAddress, fixtures.records.reserved.addresses.eth) ||
-    v2Contenthash !== fixtures.records.v2.contenthash ||
-    v2AbiJson[0] !== fixtures.records.v2.abi.json.contentType ||
-    v2AbiJson[1] !== fixtures.records.v2.abi.json.raw ||
-    v2AbiZlibJson[0] !== fixtures.records.v2.abi.zlibJson.contentType ||
-    v2AbiZlibJson[1] !== fixtures.records.v2.abi.zlibJson.raw ||
-    v2AbiCbor[0] !== fixtures.records.v2.abi.cbor.contentType ||
-    v2AbiCbor[1] !== fixtures.records.v2.abi.cbor.raw ||
-    v2AbiUri[0] !== fixtures.records.v2.abi.uri.contentType ||
-    v2AbiUri[1] !== fixtures.records.v2.abi.uri.raw ||
-    !isAddressEqual(permissionedResolver, fixtures.permissions.v2.permissionedResolver.resolver) ||
-    !permissionedResolverHasRole ||
-    !isAddressEqual(v1Approved, fixtures.permissions.operator) ||
-    !v2HasRole ||
-    v1CommitmentAt === 0n ||
-    v2CommitmentAt === 0n;
+  const checks = {
+    v1Owner: !isAddressEqual(v1Owner, fixtures.v1.activeUnwrapped.owner),
+    v2Owner: !isAddressEqual(v2State.latestOwner, fixtures.v2.active.owner),
+    v1Email: v1Email !== fixtures.records.v1.texts.email,
+    v2Email: v2Email !== fixtures.records.v2.texts.email,
+    reservedAddress: !isAddressEqual(reservedAddress, fixtures.records.reserved.addresses.eth),
+    v2Contenthash: v2Contenthash !== fixtures.records.v2.contenthash,
+    v2AbiJsonType: v2AbiJson[0] !== fixtures.records.v2.abi.json.contentType,
+    v2AbiJson: v2AbiJson[1] !== fixtures.records.v2.abi.json.raw,
+    v2AbiZlibJsonType: v2AbiZlibJson[0] !== fixtures.records.v2.abi.zlibJson.contentType,
+    v2AbiZlibJson: v2AbiZlibJson[1] !== fixtures.records.v2.abi.zlibJson.raw,
+    v2AbiCborType: v2AbiCbor[0] !== fixtures.records.v2.abi.cbor.contentType,
+    v2AbiCbor: v2AbiCbor[1] !== fixtures.records.v2.abi.cbor.raw,
+    v2AbiUriType: v2AbiUri[0] !== fixtures.records.v2.abi.uri.contentType,
+    v2AbiUri: v2AbiUri[1] !== fixtures.records.v2.abi.uri.raw,
+    permissionedResolver: !isAddressEqual(
+      permissionedResolver,
+      fixtures.permissions.v2.permissionedResolver.resolver,
+    ),
+    permissionedResolverHasRole: !permissionedResolverHasRole,
+    v1Approved: !isAddressEqual(v1Approved, fixtures.permissions.operator),
+    v2HasRole: !v2HasRole,
+    v1CommitmentAt: v1CommitmentAt === 0n,
+    v2CommitmentAt: v2CommitmentAt === 0n,
+  };
+  const failures = Object.entries(checks)
+    .filter(([, failed]) => failed)
+    .map(([name]) => name);
 
-  if (invalid) {
-    throw new Error("The completed ENS fixture manifest failed invariant verification", {
+  if (failures.length > 0) {
+    throw new Error(`ENS fixture invariants failed: ${failures.join(", ")}`, {
       cause: {
         v1Approved,
         reservedAddress,

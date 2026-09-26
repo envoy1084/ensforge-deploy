@@ -1,6 +1,7 @@
 import { Effect, Schema } from "effect";
 
 import { publicResolverV1SetInterfaceAbi } from "@ensforge/contracts/v1";
+import { permissionedResolverV2SetInterfaceAbi } from "@ensforge/contracts/v2";
 import { encodeFunctionData } from "viem";
 
 import { CodecError } from "../../../errors/codec-error.js";
@@ -36,9 +37,11 @@ export const setInterface = makeResolverWriteAction<SetInterfaceParameters>({
       return yield* Effect.try({
         try: () =>
           encodeFunctionData({
-            abi: publicResolverV1SetInterfaceAbi,
+            abi: context.permissioned
+              ? permissionedResolverV2SetInterfaceAbi
+              : publicResolverV1SetInterfaceAbi,
             functionName: "setInterface",
-            args: [context.node, interfaceId, implementer],
+            args: [context.permissioned ? context.dnsName : context.node, interfaceId, implementer],
           }),
         catch: (cause) =>
           new ContractError({

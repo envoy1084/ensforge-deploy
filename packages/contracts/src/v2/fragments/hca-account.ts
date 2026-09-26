@@ -406,7 +406,7 @@ export const standaloneHcaV2InspectionAbi = [
   },
   {
     inputs: [],
-    name: "PREDECESSOR_UPGRADE_GATE",
+    name: "PREDECESSOR_UPGRADE_SET",
     outputs: [
       {
         internalType: "contract ApprovedUpgradeGate",
@@ -419,7 +419,7 @@ export const standaloneHcaV2InspectionAbi = [
   },
   {
     inputs: [],
-    name: "UPGRADE_GATE",
+    name: "UPGRADE_SET",
     outputs: [
       {
         internalType: "contract ApprovedUpgradeGate",

@@ -33,6 +33,7 @@ const EnsV1ContractAddresses = Schema.Struct({
 
 const EnsV2PublicContractAddresses = Schema.Struct({
   universalResolver: EthereumAddress,
+  universalHelper: EthereumAddress,
   rootRegistry: EthereumAddress,
   ethRegistry: EthereumAddress,
   ethRegistrar: EthereumAddress,
@@ -68,15 +69,14 @@ const EnsV2MigrationContractAddresses = Schema.Struct({
 const EnsV2InfrastructureContractAddresses = Schema.Struct({
   managedUniversalResolverProxy: Schema.optionalKey(EthereumAddress),
   batchRegistrar: EthereumAddress,
-  dnsV1MirrorRootBatchRegistrar: EthereumAddress,
+  rootBatchRegistrar: EthereumAddress,
 });
 
 const EnsV2ExperimentalHcaContractAddresses = Schema.Struct({
   ownerAndSessionValidator: EthereumAddress,
-  upgradeGate: EthereumAddress,
+  upgradeSet: EthereumAddress,
   standaloneFactory: EthereumAddress,
   standaloneImplementation: EthereumAddress,
-  trustedSet: EthereumAddress,
 });
 
 const EnsV2TestTokenAddresses = Schema.Struct({

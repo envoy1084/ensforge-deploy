@@ -1,3 +1,5 @@
+import { fileURLToPath } from "node:url";
+
 import { Context, Effect, Layer } from "effect";
 
 import { requireProcessSuccess, runProcess } from "../internal/process.js";
@@ -35,7 +37,14 @@ export const parsePublishedPort = (output: string): number => {
 
 const makeDockerEngine = (): DockerEngineService => ({
   build: Effect.fn("DockerEngine.build")(function* (context, image) {
-    const result = yield* runProcess("docker", ["build", "--tag", image, context]);
+    const result = yield* runProcess("docker", [
+      "build",
+      "--file",
+      fileURLToPath(new URL("../../../../scripts/devnet.Dockerfile", import.meta.url)),
+      "--tag",
+      image,
+      context,
+    ]);
 
     yield* requireProcessSuccess("docker build", result);
   }),

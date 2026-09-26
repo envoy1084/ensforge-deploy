@@ -56,6 +56,14 @@ function Component() {
 import type { TransferNameParameters } from "@ensforge/sdk/ownership";
 ```
 
+### unsafe
+
+`boolean | undefined`
+
+Defaults to `false`. For ENSv2 registry transfers, opt in to bypass the safe-transfer restrictions
+on non-emancipated registries and additional role assignees. Existing roles can retain access after
+an unsafe transfer; use this only when that behavior is intended.
+
 ## Return Type
 
 ```ts

@@ -102,6 +102,7 @@ const makePlan = (
               contract: route.contract,
               tokenId: route.tokenId ?? 0n,
               from: route.from,
+              ...(parameters.unsafe === undefined ? {} : { unsafe: parameters.unsafe }),
               to,
             }),
           ];

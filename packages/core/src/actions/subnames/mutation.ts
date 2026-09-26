@@ -7,9 +7,9 @@ import {
   nameWrapperV1SetResolverAbi,
   nameWrapperV1SetSubnodeOwnerAbi,
 } from "@ensforge/contracts/v1";
+import { permissionedRegistryV2InterfaceAbi } from "@ensforge/contracts/v2";
 import {
   permissionedRegistryV2InterfaceRenewAbi,
-  permissionedRegistryV2InterfaceSafeTransferFromAbi,
   permissionedRegistryV2InterfaceSetResolverAbi,
   permissionedRegistryV2InterfaceUnregisterAbi,
 } from "@ensforge/contracts/v2";
@@ -156,9 +156,11 @@ const managerPreparer: EnsWriteIntentPreparer<SetSubnameManagerParameters, Write
 
   const data = yield* encoded("setSubnameManager", () =>
     encodeFunctionData({
-      abi: permissionedRegistryV2InterfaceSafeTransferFromAbi,
-      functionName: "safeTransferFrom",
-      args: [childState.latestOwner, manager, childState.tokenId, 1n, "0x"],
+      abi: permissionedRegistryV2InterfaceAbi,
+      functionName: parameters.unsafe ? "unsafeTransfer" : "safeTransferFrom",
+      args: parameters.unsafe
+        ? [manager, childState.tokenId, "0x"]
+        : [childState.latestOwner, manager, childState.tokenId, 1n, "0x"],
     }),
   );
 

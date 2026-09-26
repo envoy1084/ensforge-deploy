@@ -55,7 +55,7 @@ export const prepareCreateResolver: EnsWriteIntentPreparer<CreateResolverParamet
         const initialization = encodeFunctionData({
           abi: permissionedResolverInitializableV2InterfaceInitializeAbi,
           functionName: "initialize",
-          args: [admin, roles, setters],
+          args: [parameters.grants ?? [{ account: admin, roleBitmap: roles }], setters],
         });
 
         return encodeFunctionData({

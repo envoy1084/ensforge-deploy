@@ -3,7 +3,7 @@ import type { EnsAction, HcaError } from "@ensforge/core";
 import type {
   EnableHcaSessionParameters,
   HcaSessionRefund,
-  HcaTransactionSubmission,
+  HcaSessionAuthorization,
   HcaExecutionPolicy,
 } from "@ensforge/core/hca";
 import type { RhinestoneSDK } from "@rhinestone/sdk";
@@ -16,7 +16,6 @@ export interface RhinestoneOptions {
   readonly chain: Chain;
   readonly owner: Account;
   readonly sessionSigner: Account;
-  readonly sessionSalt?: Hex;
   readonly sdk: ConstructorParameters<typeof RhinestoneSDK>[0];
   readonly policy?: HcaExecutionPolicy;
   readonly crossChain?: RhinestoneCrossChainOptions;
@@ -45,8 +44,8 @@ export interface RhinestoneSessions {
     PreparedRhinestoneSession,
     HcaError
   >;
-  /** Owner-authorized on-chain enablement; no generic Smart Session Emissary proof is needed. */
-  readonly enable: EnsAction<PreparedRhinestoneSession, HcaTransactionSubmission, HcaError>;
+  /** Signs a reusable owner authorization; no transaction or gas is required. */
+  readonly enable: EnsAction<PreparedRhinestoneSession, HcaSessionAuthorization, HcaError>;
 }
 
 export interface RhinestoneExecutionPayload {

@@ -12,7 +12,6 @@ import {
   getDnsRecord,
   getInterface,
   getName,
-  getPubkey,
   getRecords,
   getResolver,
   getResolverVersion,
@@ -20,7 +19,7 @@ import {
   getZoneHash,
   toCoinType,
 } from "../../../src/index.js";
-import { sepoliaConfig, sepoliaNames } from "../setup/sepolia.js";
+import { sepoliaConfig, sepoliaNames, sepoliaFixtures } from "../setup/sepolia.js";
 
 const baseCoinType = toCoinType(8453);
 
@@ -29,51 +28,43 @@ describe("Sepolia V1 and V2 records", () => {
     Effect.gen(function* () {
       const name = sepoliaNames.v2.profile;
 
-      const [
-        address,
-        addresses,
-        text,
-        avatar,
-        contentHash,
-        abi,
-        pubkey,
-        implementer,
-        data,
-        nameRecord,
-      ] = yield* Effect.all(
-        [
-          getAddress.effect(sepoliaConfig, { name }),
-          getAddresses.effect(sepoliaConfig, { name, coinTypes: [60n, baseCoinType] }),
-          getText.effect(sepoliaConfig, { name, key: "description" }),
-          getAvatar.effect(sepoliaConfig, { name }),
-          getContentHash.effect(sepoliaConfig, { name }),
-          getAbi.effect(sepoliaConfig, { name }),
-          getPubkey.effect(sepoliaConfig, { name }),
-          getInterface.effect(sepoliaConfig, { name, interfaceId: "0x01ffc9a7" }),
-          getData.effect(sepoliaConfig, { name, key: "com.ensforge.smoke" }),
-          getName.effect(sepoliaConfig, { name }),
-        ] as const,
-        { concurrency: 3 },
-      );
+      const [address, addresses, text, avatar, contentHash, abi, implementer, data, nameRecord] =
+        yield* Effect.all(
+          [
+            getAddress.effect(sepoliaConfig, { name }),
+            getAddresses.effect(sepoliaConfig, { name, coinTypes: [60n, baseCoinType] }),
+            getText.effect(sepoliaConfig, { name, key: "description" }),
+            getAvatar.effect(sepoliaConfig, { name }),
+            getContentHash.effect(sepoliaConfig, { name }),
+            getAbi.effect(sepoliaConfig, { name }),
+            getInterface.effect(sepoliaConfig, { name, interfaceId: "0x01ffc9a7" }),
+            getData.effect(sepoliaConfig, { name, key: sepoliaFixtures.records.profile.data.key }),
+            getName.effect(sepoliaConfig, { name }),
+          ] as const,
+          { concurrency: 3 },
+        );
 
       assert.isNotNull(address.address);
       assert.strictEqual(addresses[0]?.address, address.address);
       assert.strictEqual(addresses[1]?.address, address.address);
-      assert.strictEqual(text.value, "ensforge ENSv2 Sepolia smoke-test profile");
+      assert.strictEqual(
+        text.value,
+        sepoliaFixtures.records.profile.texts.find(({ key }) => key === "description")?.value,
+      );
       assert.isNotNull(avatar);
       assert.strictEqual(avatar?.status, "resolved");
 
       if (avatar?.status === "resolved") {
-        assert.strictEqual(avatar.uri, "https://ensforge.envoy1084.xyz/og.png");
+        assert.strictEqual(
+          avatar.uri,
+          sepoliaFixtures.records.profile.texts.find(({ key }) => key === "avatar")?.value,
+        );
       }
 
       assert.strictEqual(contentHash.protocol, "ipfs");
       assert.isNotNull(contentHash.value);
       assert.strictEqual(abi.contentType, "json");
       assert.isArray(abi.value);
-      assert.isNotNull(pubkey);
-      assert.strictEqual(pubkey?.x, `0x${"11".repeat(32)}`);
-      assert.strictEqual(pubkey?.y, `0x${"22".repeat(32)}`);
       assert.strictEqual(implementer.implementer, address.address);
       assert.strictEqual(data.value, "0x656e73666f726765");
       assert.strictEqual(nameRecord.name, name);
@@ -92,10 +83,10 @@ describe("Sepolia V1 and V2 records", () => {
           avatar: true,
           contentHash: true,
           abi: true,
-          pubkey: true,
+          pubkey: false,
           name: true,
           interfaces: ["0x01ffc9a7"],
-          data: ["com.ensforge.smoke"],
+          data: [sepoliaFixtures.records.profile.data.key],
         },
       });
 
@@ -107,7 +98,6 @@ describe("Sepolia V1 and V2 records", () => {
       assert.strictEqual(records.avatar?.status, "resolved");
       assert.strictEqual(records.contentHash?.protocol, "ipfs");
       assert.strictEqual(records.abi?.contentType, "json");
-      assert.strictEqual(records.pubkey?.x, `0x${"11".repeat(32)}`);
       assert.strictEqual(records.nameRecord?.name, name);
       assert.isNotNull(records.interfaces[0]?.implementer);
       assert.strictEqual(records.data[0]?.value, "0x656e73666f726765");
@@ -126,13 +116,18 @@ describe("Sepolia V1 and V2 records", () => {
         { concurrency: 2 },
       );
 
-      assert.isTrue(alias.supported);
-      assert.strictEqual(String(alias.target), sepoliaNames.v2.profile);
+      assert.isFalse(alias.supported);
+      const linked = yield* getText.effect(sepoliaConfig, {
+        name: sepoliaNames.v2.alias,
+        key: "description",
+      });
+      assert.strictEqual(
+        linked.value,
+        sepoliaFixtures.records.profile.texts.find(({ key }) => key === "description")?.value,
+      );
       assert.isNotNull(profileResolver);
       assert.strictEqual(inheritedResolver, profileResolver);
-      assert.isTrue(version.supported);
-
-      if (version.supported) assert.strictEqual(version.version, 0n);
+      assert.isFalse(version.supported);
     }),
   );
 

@@ -1,24 +1,28 @@
 import { Effect } from "effect";
 
 import { publicResolverV1SetTextAbi } from "@ensforge/contracts/v1";
+import { permissionedResolverV2SetTextAbi } from "@ensforge/contracts/v2";
 import { encodeFunctionData } from "viem";
 
 import { ContractError } from "../../../errors/contract-error.js";
-import { makeResolverWriteAction } from "../../../internal/write/resolver-write-action.js";
+import {
+  type ResolverWriteEncodingContext,
+  makeResolverWriteAction,
+} from "../../../internal/write/resolver-write-action.js";
 import type { ClearAvatarParameters, SetAvatarParameters } from "./types.js";
 
-const encodeAvatar = (node: `0x${string}`, value: string, name: string) =>
+const encodeAvatar = (context: ResolverWriteEncodingContext, value: string) =>
   Effect.try({
     try: () =>
       encodeFunctionData({
-        abi: publicResolverV1SetTextAbi,
+        abi: context.permissioned ? permissionedResolverV2SetTextAbi : publicResolverV1SetTextAbi,
         functionName: "setText",
-        args: [node, "avatar", value],
+        args: [context.permissioned ? context.dnsName : context.node, "avatar", value],
       }),
     catch: (cause) =>
       new ContractError({
         code: "ENCODE_FAILED",
-        message: `Unable to encode the avatar write for ${name}`,
+        message: `Unable to encode the avatar write for ${context.name}`,
         cause,
       }),
   });
@@ -26,13 +30,13 @@ const encodeAvatar = (node: `0x${string}`, value: string, name: string) =>
 export const setAvatar = makeResolverWriteAction<SetAvatarParameters>({
   operation: "setAvatar",
   records: () => [{ type: "text", key: "avatar" }],
-  encode: (parameters, context) => encodeAvatar(context.node, parameters.value, context.name),
+  encode: (parameters, context) => encodeAvatar(context, parameters.value),
 });
 
 export const clearAvatar = makeResolverWriteAction<ClearAvatarParameters>({
   operation: "clearAvatar",
   records: () => [{ type: "text", key: "avatar" }],
-  encode: (_parameters, context) => encodeAvatar(context.node, "", context.name),
+  encode: (_parameters, context) => encodeAvatar(context, ""),
 });
 
 export type {

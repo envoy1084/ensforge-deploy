@@ -9,7 +9,7 @@ import { requireProcessSuccess, runProcess } from "../internal/process.js";
 
 export const ensContractsV2Repository = "https://github.com/ensdomains/contracts-v2.git" as const;
 
-export const ensContractsV2Commit = "09bf3ac64a6fb1b215573c019b17e8c501bb3ca0" as const;
+export const ensContractsV2Commit = "71a3b7339dbc55ab47667abdfe8303bac4f4c24e" as const;
 
 export const ensDevnetChainId = 31337 as const;
 
@@ -18,11 +18,9 @@ export const ensDevnetImage =
 
 export const ensDevnetImageRepository = "ghcr.io/envoy1084/ensforge-devnet" as const;
 
-export const ensDevnetImageDigest =
-  "sha256:63415642daad6f3486d305b5660a0b9c659203fc20194bafb50b6b1e1bedeef3" as const;
-
+/** Available after the devnet image workflow publishes this source revision. */
 export const ensDevnetPublishedImage =
-  `${ensDevnetImageRepository}@${ensDevnetImageDigest}` as const;
+  `${ensDevnetImageRepository}:v2-${ensContractsV2Commit.slice(0, 7)}` as const;
 
 export const defaultEnsContractsV2Directory = fileURLToPath(
   new URL("../../../../.repos/ens-contracts-v2/", import.meta.url),

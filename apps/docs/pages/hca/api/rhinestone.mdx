@@ -25,7 +25,7 @@ const execution = rhinestone({ profile, chain, owner, sessionSigner, sdk: { apiK
 options: RhinestoneOptions;
 ```
 
-Required: `profile`, `chain`, `owner`, `sessionSigner`, `sdk`. Optional: `sessionSalt`, `policy`, `crossChain`, `sponsored`. The returned adapter exposes `extensions.sessions.prepare`, `extensions.sessions.enable`, and `crossChain`. See [Getting started](/hca/rhinestone/getting-started) and [Funding](/hca/rhinestone/cross-chain).
+Required: `profile`, `chain`, `owner`, `sessionSigner`, `sdk`. Optional: `policy`, `crossChain`, `sponsored`. The returned adapter exposes `extensions.sessions.prepare`, `extensions.sessions.enable`, and `crossChain`. Session salt is derived from the signed policy. `sessions.enable` returns a reusable owner authorization without sending a transaction. See [Getting started](/hca/rhinestone/getting-started) and [Funding](/hca/rhinestone/cross-chain).
 
 Use the default sponsored execution mode. `sponsored: false` is not supported;
 see [Compatibility](/hca/compatibility) for the unresolved refund-route limitation.

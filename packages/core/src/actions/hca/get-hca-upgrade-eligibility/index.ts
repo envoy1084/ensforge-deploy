@@ -1,6 +1,7 @@
 import { Effect } from "effect";
 
-import { standaloneHcaV2UpgradeAbi, hcaUpgradeGateV2ManagementAbi } from "@ensforge/contracts/v2";
+import { standaloneHcaV2UpgradeAbi } from "@ensforge/contracts/v2";
+import { hcaUpgradeSetV2Abi } from "@ensforge/contracts/v2/experimental/hca";
 import { zeroAddress, type Address } from "viem";
 
 import { defineReadAction } from "../../../action/read-request.js";
@@ -27,15 +28,15 @@ export const getHcaUpgradeEligibility = defineReadAction<
         config.publicClient.readContract({
           address: account.address,
           abi: standaloneHcaV2UpgradeAbi,
-          functionName: "UPGRADE_GATE",
+          functionName: "UPGRADE_SET",
           blockNumber,
         }),
       );
       const targetApproved = yield* hcaRpc(() =>
         config.publicClient.readContract({
           address: currentGate,
-          abi: hcaUpgradeGateV2ManagementAbi,
-          functionName: "approvedImplementations",
+          abi: hcaUpgradeSetV2Abi,
+          functionName: "includes",
           args: [implementation],
           blockNumber,
         }),
@@ -68,7 +69,7 @@ export const getHcaUpgradeEligibility = defineReadAction<
         blockNumber,
       } as const;
       const predecessorGate = yield* hcaRpc(() =>
-        config.publicClient.readContract({ ...target, functionName: "PREDECESSOR_UPGRADE_GATE" }),
+        config.publicClient.readContract({ ...target, functionName: "PREDECESSOR_UPGRADE_SET" }),
       );
       const canUpgradeFrom = yield* hcaRpc(() =>
         config.publicClient.readContract({
@@ -88,8 +89,8 @@ export const getHcaUpgradeEligibility = defineReadAction<
           : yield* hcaRpc(() =>
               config.publicClient.readContract({
                 address: predecessorGate,
-                abi: hcaUpgradeGateV2ManagementAbi,
-                functionName: "approvedImplementations",
+                abi: hcaUpgradeSetV2Abi,
+                functionName: "includes",
                 args: [account.currentImplementation],
                 blockNumber,
               }),

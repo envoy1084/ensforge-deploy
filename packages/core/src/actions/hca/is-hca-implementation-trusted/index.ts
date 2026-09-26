@@ -18,7 +18,7 @@ export const isHcaImplementationTrusted = defineReadAction<
     Effect.gen(function* () {
       const implementation = yield* validateHcaAddress(parameters.implementation);
 
-      const address = yield* validateHcaAddress(profile.deployment.experimental?.hca.trustedSet);
+      const address = yield* validateHcaAddress(profile.deployment.experimental?.hca.upgradeSet);
 
       return yield* hcaRpc(() =>
         config.publicClient.readContract({

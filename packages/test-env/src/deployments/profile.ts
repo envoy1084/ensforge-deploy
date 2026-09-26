@@ -14,7 +14,7 @@ import { DevnetDeploymentAddress, type DevnetDeploymentManifest } from "./schema
 
 const DevnetRequiredDeployments = Schema.Struct({
   HCAOwnerAndSessionValidator: DevnetDeploymentAddress,
-  HCAUpgradeGate: DevnetDeploymentAddress,
+  HCAUpgradeSet: DevnetDeploymentAddress,
   StandaloneHCAFactory: DevnetDeploymentAddress,
   StandaloneHCAImplementation: DevnetDeploymentAddress,
   MockRegistrationIntentExecutor: DevnetDeploymentAddress,
@@ -31,7 +31,7 @@ const DevnetRequiredDeployments = Schema.Struct({
   DNSSECImpl: DevnetDeploymentAddress,
   DNSTLDResolver: DevnetDeploymentAddress,
   DNSTXTResolver: DevnetDeploymentAddress,
-  DNSV1MirrorRootBatchRegistrar: DevnetDeploymentAddress,
+  RootBatchRegistrar: DevnetDeploymentAddress,
   ENSRegistry: DevnetDeploymentAddress,
   ENSV1Resolver: DevnetDeploymentAddress,
   ENSV2Resolver: DevnetDeploymentAddress,
@@ -62,6 +62,7 @@ const DevnetRequiredDeployments = Schema.Struct({
   StaticBulkRenewal: DevnetDeploymentAddress,
   UniversalResolver: DevnetDeploymentAddress,
   UniversalResolverV2: DevnetDeploymentAddress,
+  UniversalHelper: DevnetDeploymentAddress,
   UnlockedMigrationController: DevnetDeploymentAddress,
   UserRegistryImpl: DevnetDeploymentAddress,
   VerifiableFactory: DevnetDeploymentAddress,
@@ -141,6 +142,7 @@ export const mapDevnetDeployments = Effect.fn("mapDevnetDeployments")(function* 
     status: "beta",
     contracts: {
       universalResolver: source.UniversalResolverV2,
+      universalHelper: source.UniversalHelper,
       rootRegistry: source.RootRegistry,
       ethRegistry: source.ETHRegistry,
       ethRegistrar: source.ETHRegistrar,
@@ -172,7 +174,7 @@ export const mapDevnetDeployments = Effect.fn("mapDevnetDeployments")(function* 
     },
     infrastructure: {
       batchRegistrar: source.BatchRegistrar,
-      dnsV1MirrorRootBatchRegistrar: source.DNSV1MirrorRootBatchRegistrar,
+      rootBatchRegistrar: source.RootBatchRegistrar,
     },
     testTokens: {
       dai: source.MockDAI,
@@ -189,7 +191,7 @@ export const mapDevnetDeployments = Effect.fn("mapDevnetDeployments")(function* 
       deployment: v2,
       contracts: {
         ownerAndSessionValidator: source.HCAOwnerAndSessionValidator,
-        upgradeGate: source.HCAUpgradeGate,
+        upgradeSet: source.HCAUpgradeSet,
         standaloneFactory: source.StandaloneHCAFactory,
         standaloneImplementation: source.StandaloneHCAImplementation,
       },
@@ -210,7 +212,7 @@ export const mapDevnetDeployments = Effect.fn("mapDevnetDeployments")(function* 
       dnssecGatewayProvider: source.DNSSECGatewayProvider,
       dnssecOracle: source.DNSSECImpl,
       registrar: source.DNSRegistrar,
-      rootBatchRegistrar: source.DNSV1MirrorRootBatchRegistrar,
+      rootBatchRegistrar: source.RootBatchRegistrar,
       publicSuffixList: source.SimplePublicSuffixList,
       tldResolver: source.DNSTLDResolver,
       txtResolver: source.DNSTXTResolver,

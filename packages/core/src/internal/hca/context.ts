@@ -48,7 +48,7 @@ const HcaProfileShape = Schema.Struct({
     standaloneFactory: EthereumAddress,
     standaloneImplementation: EthereumAddress,
     ownerAndSessionValidator: EthereumAddress,
-    upgradeGate: EthereumAddress,
+    upgradeSet: EthereumAddress,
   }),
   infrastructure: Schema.Struct({
     entryPoint: EthereumAddress,

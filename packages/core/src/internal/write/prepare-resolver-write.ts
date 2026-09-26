@@ -3,6 +3,7 @@ import { Effect } from "effect";
 import type { Account, Address } from "viem";
 
 import { getRecordPermissions } from "../../actions/capabilities/get-record-permissions/index.js";
+import { getResolverCapabilities } from "../../actions/capabilities/get-resolver-capabilities/index.js";
 import { getWriteTarget } from "../../actions/capabilities/get-write-target/index.js";
 import type { RecordOperation } from "../../actions/capabilities/types.js";
 import type { EnsforgeConfig } from "../../config/config.js";
@@ -69,5 +70,7 @@ export const prepareResolverWrite = Effect.fn("prepareResolverWrite")(function* 
     });
   }
 
-  return { name, account, target } as const;
+  const capabilities = yield* getResolverCapabilities.effect(config, { name });
+
+  return { name, account, target, permissioned: capabilities.permissioned } as const;
 });

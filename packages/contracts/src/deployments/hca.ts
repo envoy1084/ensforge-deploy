@@ -5,11 +5,11 @@ import type { EnsV2Deployment, EnsV2ExperimentalHcaContractAddresses } from "./t
 
 /** Account generation matched to the saved Sepolia compiler inputs, not branch-tip source. */
 export const hcaAccountGeneration = {
-  id: "ens-standalone-hca-1.1.0",
+  id: "ens-standalone-hca-1.1.0-71a3b73",
   accountId: "ens-standalone-hca.1.1.0",
   rhinestoneAccountVersion: "ens-standalone-1.1.0",
   artifactCommit: sepoliaV2Deployment.provenance.commit,
-  sourceCommit: "09bf3ac64a6fb1b215573c019b17e8c501bb3ca0",
+  sourceCommit: "71a3b7339dbc55ab47667abdfe8303bac4f4c24e",
   canonicalSalt: 0n,
   entryPoint: "0x0000000071727De22E5E9d8BAf0edAc6f37da032",
   entryPointVersion: "0.7",
@@ -37,7 +37,7 @@ export interface HcaSourceFundingManifest {
 export interface HcaDeploymentProfile {
   readonly generation: typeof hcaAccountGeneration;
   readonly deployment: EnsV2Deployment;
-  readonly contracts: Omit<EnsV2ExperimentalHcaContractAddresses, "trustedSet">;
+  readonly contracts: EnsV2ExperimentalHcaContractAddresses;
   readonly environment: "sepolia" | "devnet";
   readonly infrastructure: {
     readonly entryPoint: Address;
@@ -58,7 +58,7 @@ export const sepoliaHcaDeployment = {
     standaloneFactory: sepoliaV2Deployment.experimental.hca.standaloneFactory,
     standaloneImplementation: sepoliaV2Deployment.experimental.hca.standaloneImplementation,
     ownerAndSessionValidator: sepoliaV2Deployment.experimental.hca.ownerAndSessionValidator,
-    upgradeGate: sepoliaV2Deployment.experimental.hca.upgradeGate,
+    upgradeSet: sepoliaV2Deployment.experimental.hca.upgradeSet,
   },
   environment: "sepolia",
   infrastructure: {

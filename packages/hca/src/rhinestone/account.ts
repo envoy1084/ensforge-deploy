@@ -3,14 +3,14 @@ import { verifiableFactoryV2ProxyLogicAbi } from "@ensforge/contracts/v2";
 import { HcaError, type EnsforgeConfig } from "@ensforge/core";
 import { verifyHca } from "@ensforge/core/hca";
 import type { RhinestoneSDK, Session } from "@rhinestone/sdk";
-import type { Address } from "viem";
+import type { Address, Hex } from "viem";
 
 import type { RhinestoneOptions } from "./types.js";
 
-export const sessionFor = (options: RhinestoneOptions, hca: Address): Session => ({
+export const sessionFor = (options: RhinestoneOptions, hca: Address, salt: Hex): Session => ({
   chain: options.chain,
   account: hca,
-  ...(options.sessionSalt === undefined ? {} : { salt: options.sessionSalt }),
+  salt,
   owners: { type: "ecdsa", accounts: [options.sessionSigner] },
 });
 
@@ -60,6 +60,7 @@ export const createRhinestoneHca = async (
   });
 
   const result = await sdk.createAccount({
+    initData: { address: hca },
     account: {
       type: "hca",
       version: "ens-standalone-1.1.0",
@@ -69,7 +70,6 @@ export const createRhinestoneHca = async (
       verifiableFactory: profile.deployment.contracts.verifiableFactory,
       proxyLogic,
       userSalt: salt,
-      intentExecutor: profile.infrastructure.intentExecutor,
     },
     owners: {
       type: "ecdsa",

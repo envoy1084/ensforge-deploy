@@ -122,7 +122,7 @@ import type { SetRecordPermissionsResult } from "@ensforge/sdk/permissions";
 | `resolver`    | `&#96;0x${string}&#96;`                                       | The resolver value returned by the operation.    |
 | `account`     | `&#96;0x${string}&#96;`                                       | The account value returned by the operation.     |
 | `approved`    | `boolean`                                                     | The approved value returned by the operation.    |
-| `scope`       | `"node" \| "exact"`                                           | The scope value returned by the operation.       |
+| `scope`       | `"node" \| "exact" \| "resolver"`                             | The scope value returned by the operation.       |
 | `widened`     | `true \| false`                                               | The widened value returned by the operation.     |
 | `execution`   | `SendCallsResult`                                             | The execution value returned by the operation.   |
 | `permissions` | `readonly AppliedRecordPermission[] \| undefined`             | The permissions value returned by the operation. |

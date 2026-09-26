@@ -15,7 +15,7 @@ await sdk.permissions.setRecordPermissions({
   approved: true,
   mode: "sequential",
   atomicity: "none",
-  allowScopeWidening: false,
+  allowScopeWidening: true,
 });
 
 const description = "Building with ENS";

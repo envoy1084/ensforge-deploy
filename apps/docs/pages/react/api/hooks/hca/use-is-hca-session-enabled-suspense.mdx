@@ -10,6 +10,9 @@ import ResultGuide from "../../../../../shared/react/suspense-atom-result.mdx";
 
 Check a permission ID on the destination validator. Uses the SDK from `EnsforgeProvider`.
 
+The current stateless validator always returns `false`. This legacy query does not determine
+whether a signed session authorization is usable. Preparation checks its signature, expiry and current nonce.
+
 ## Import
 
 ```tsx

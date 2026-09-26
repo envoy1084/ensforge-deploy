@@ -1,3 +1,4 @@
+/** Legacy ABI. Not deployed by the current Sepolia profile. */
 /** Complete HCAUpgradeGate ABI from the experimental ENSv2 Sepolia HCA deployment. */
 export const hcaUpgradeGateV2Abi = [
   {

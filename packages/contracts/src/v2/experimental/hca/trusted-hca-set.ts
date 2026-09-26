@@ -1,3 +1,4 @@
+/** Legacy ABI. Not deployed by the current Sepolia profile. */
 /** Complete TrustedHCASet ABI from the experimental ENSv2 Sepolia HCA deployment. */
 export const trustedHcaSetV2Abi = [
   {

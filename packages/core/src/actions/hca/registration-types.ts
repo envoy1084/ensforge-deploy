@@ -11,6 +11,7 @@ import {
 import type { HcaStorage } from "./storage.js";
 import {
   HcaSalt,
+  HcaSessionAuthorizationSchema,
   type ExecutionAdapter,
   type HcaAdapterSubmission,
   type HcaExecutionSubmission,
@@ -22,8 +23,7 @@ const authorization = Schema.Union([
   Schema.Struct({ kind: Schema.Literal("owner") }),
   Schema.Struct({
     kind: Schema.Literal("session"),
-    permissionId: HcaExecutionHash,
-    enableTransactionHash: HcaExecutionHash,
+    session: HcaSessionAuthorizationSchema,
   }),
 ]);
 

@@ -61,7 +61,7 @@ export const getExpiryV2 = Effect.fn("getExpiryV2")(function* (
   const dnsName = yield* dnsEncodeName.effect(name);
 
   const parentRegistry = yield* ethereum.readContract({
-    address: deployment.contracts.universalResolver,
+    address: deployment.contracts.universalHelper,
     abi: getExpiryV2UniversalResolverAbi,
     functionName: "findParentRegistry",
     args: [dnsName],

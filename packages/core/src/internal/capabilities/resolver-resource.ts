@@ -1,4 +1,4 @@
-import { encodePacked, keccak256, stringToHex, toHex, type Hex } from "viem";
+import { keccak256, stringToHex, toHex, type Hex } from "viem";
 
 import type { Namehash } from "../../schemas/hash.js";
 
@@ -41,19 +41,19 @@ export const resolverRecordRole = (record: ResolverRecord): bigint => {
     case "contentHash":
       return 1n << 8n;
     case "pubkey":
-      return 1n << 12n;
+      return 0n;
     case "abi":
-      return 1n << 16n;
+      return 1n << 12n;
     case "interface":
-      return 1n << 20n;
+      return 1n << 16n;
     case "name":
-      return 1n << 24n;
+      return 1n << 20n;
     case "alias":
       return 1n << 28n;
     case "clear":
-      return 1n << 32n;
+      return 0n;
     case "data":
-      return 1n << 36n;
+      return 1n << 24n;
     case "dnsRecord":
     case "dnsZone":
       return 0n;
@@ -68,7 +68,13 @@ export const resolverRecordPart = (record: ResolverRecord): Hex => {
     case "data":
       return keccak256(stringToHex(record.key));
     case "abi":
+      return record.contentType === undefined
+        ? toHex(0n, { size: 32 })
+        : keccak256(toHex(record.contentType, { size: 32 }));
     case "interface":
+      return record.interfaceId === undefined
+        ? toHex(0n, { size: 32 })
+        : keccak256(record.interfaceId);
     case "contentHash":
     case "pubkey":
     case "name":
@@ -82,8 +88,5 @@ export const resolverRecordPart = (record: ResolverRecord): Hex => {
   }
 };
 
-export const resolverResource = (node: Namehash, part: Hex): bigint => {
-  if (BigInt(node) === 0n && BigInt(part) === 0n) return 0n;
-
-  return BigInt(keccak256(encodePacked(["bytes32", "bytes32"], [node, part])));
-};
+/** Permissioned Resolver resources are argument-scoped across every name it serves. */
+export const resolverResource = (_node: Namehash, part: Hex): bigint => BigInt(part);

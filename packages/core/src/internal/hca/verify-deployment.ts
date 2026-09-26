@@ -10,7 +10,10 @@ import {
   standaloneHcaV2InspectionAbi,
   verifiableFactoryV2ProxyLogicAbi,
 } from "@ensforge/contracts/v2";
-import { hcaAuthorizerV2Abi } from "@ensforge/contracts/v2/experimental/hca";
+import {
+  standaloneSingleOwnerHcaV2Abi,
+  hcaAuthorizerV2Abi,
+} from "@ensforge/contracts/v2/experimental/hca";
 import {
   isAddressEqual,
   keccak256,
@@ -150,13 +153,13 @@ export const verifyHcaDeployment: (
 
       expectAddress(
         "upgrade gate",
-        await client.readContract({ ...account, functionName: "UPGRADE_GATE" }),
-        hca.upgradeGate,
+        await client.readContract({ ...account, functionName: "UPGRADE_SET" }),
+        hca.upgradeSet,
       );
 
       expectAddress(
         "initial predecessor gate",
-        await client.readContract({ ...account, functionName: "PREDECESSOR_UPGRADE_GATE" }),
+        await client.readContract({ ...account, functionName: "PREDECESSOR_UPGRADE_SET" }),
         zeroAddress,
       );
 
@@ -168,6 +171,17 @@ export const verifyHcaDeployment: (
         }))
       )
         throw new Error("HCA default executor is missing");
+
+      expectAddress(
+        "HCA owner registry",
+        await client.readContract({
+          address: hca.standaloneImplementation,
+          abi: standaloneSingleOwnerHcaV2Abi,
+          functionName: "OWNER_REGISTRY",
+          blockNumber,
+        }),
+        hca.standaloneFactory,
+      );
 
       const proxyLogic = await client.readContract({
         address: deployment.contracts.verifiableFactory,
@@ -183,11 +197,10 @@ export const verifyHcaDeployment: (
       const wiring = {
         DEFAULT_REVERSE_REGISTRAR_HCA_ADAPTER: deployment.contracts.defaultReverseRegistrarAdapter,
         PERMITTED_RESOLVER_IMPL: deployment.implementations.permissionedResolver,
-        ETH_REGISTRAR: deployment.contracts.ethRegistrar,
+        ETH_REGISTRY: deployment.contracts.ethRegistry,
+        REVERSE_REGISTRAR_HCA_ADAPTER: deployment.contracts.reverseRegistrarAdapter,
         VERIFIABLE_FACTORY: deployment.contracts.verifiableFactory,
         VERIFIABLE_PROXY_LOGIC: proxyLogic,
-        PAYMENT_TOKEN: infrastructure.paymentToken,
-        SECONDARY_PAYMENT_TOKEN: infrastructure.secondaryPaymentToken,
         INTENT_EXECUTOR: infrastructure.intentExecutor,
         GAS_REFUND_PAYMASTER: infrastructure.gasRefundPaymaster,
       } as const;

@@ -1,10 +1,7 @@
 import { Effect } from "effect";
 
 import {
-  permissionedResolverV2AuthorizeAddrRolesAbi,
-  permissionedResolverV2AuthorizeDataRolesAbi,
-  permissionedResolverV2AuthorizeNameRolesAbi,
-  permissionedResolverV2AuthorizeTextRolesAbi,
+  permissionedResolverV2Abi,
   permissionedResolverV2RootRoleMutationAbi,
 } from "@ensforge/contracts/v2";
 import { encodeFunctionData } from "viem";
@@ -14,7 +11,10 @@ import type { EnsforgeConfig } from "../../../config/config.js";
 import { AuthorizationError } from "../../../errors/authorization-error.js";
 import { ContractError } from "../../../errors/contract-error.js";
 import { readResolverPermissionTarget } from "../../../internal/capabilities/resolver-permissions.js";
-import { resolverRecordRole } from "../../../internal/capabilities/resolver-resource.js";
+import {
+  resolverRecordPart,
+  resolverRecordRole,
+} from "../../../internal/capabilities/resolver-resource.js";
 import { executeRead } from "../../../internal/read/execute-read.js";
 import { makeSingleWriteAction } from "../../../internal/write/single-write-action.js";
 import { dnsEncodeName } from "../../../names/dns.js";
@@ -61,7 +61,9 @@ const makeScopedPreparer = (
       if (
         (parameters.record.type === "address" ||
           parameters.record.type === "text" ||
-          parameters.record.type === "data") &&
+          parameters.record.type === "data" ||
+          parameters.record.type === "abi" ||
+          parameters.record.type === "interface") &&
         roles !== expectedRole
       ) {
         return yield* new AuthorizationError({
@@ -74,36 +76,77 @@ const makeScopedPreparer = (
 
       const data = yield* Effect.try({
         try: () => {
-          const grant = mutation === "grantRoles";
+          const resource = BigInt(resolverRecordPart(parameters.record));
 
-          if (parameters.record.type === "address") {
+          if (mutation === "revokeRoles") {
             return encodeFunctionData({
-              abi: permissionedResolverV2AuthorizeAddrRolesAbi,
-              functionName: "authorizeAddrRoles",
-              args: [encodedName, parameters.record.coinType, account, grant],
+              abi: permissionedResolverV2Abi,
+              functionName: resource === 0n ? "revokeRootRoles" : "revokeRoles",
+              args: resource === 0n ? [roles, account] : [resource, roles, account],
             });
           }
 
-          if (parameters.record.type === "text") {
+          if (resource === 0n) {
             return encodeFunctionData({
-              abi: permissionedResolverV2AuthorizeTextRolesAbi,
-              functionName: "authorizeTextRoles",
-              args: [encodedName, parameters.record.key, account, grant],
+              abi: permissionedResolverV2Abi,
+              functionName: "grantRootRoles",
+              args: [roles, account],
             });
           }
 
-          if (parameters.record.type === "data") {
-            return encodeFunctionData({
-              abi: permissionedResolverV2AuthorizeDataRolesAbi,
-              functionName: "authorizeDataRoles",
-              args: [encodedName, parameters.record.key, account, grant],
-            });
+          const record = parameters.record;
+          let setter: `0x${string}`;
+
+          switch (record.type) {
+            case "address":
+              setter = encodeFunctionData({
+                abi: permissionedResolverV2Abi,
+                functionName: "setAddress",
+                args: [encodedName, record.coinType, "0x"],
+              });
+              break;
+            case "text":
+              setter = encodeFunctionData({
+                abi: permissionedResolverV2Abi,
+                functionName: "setText",
+                args: [encodedName, record.key, ""],
+              });
+              break;
+            case "data":
+              setter = encodeFunctionData({
+                abi: permissionedResolverV2Abi,
+                functionName: "setData",
+                args: [encodedName, record.key, "0x"],
+              });
+              break;
+            case "abi":
+              if (record.contentType === undefined) throw new Error("Missing ABI content type");
+              setter = encodeFunctionData({
+                abi: permissionedResolverV2Abi,
+                functionName: "setABI",
+                args: [encodedName, record.contentType, "0x"],
+              });
+              break;
+            case "interface":
+              if (record.interfaceId === undefined) throw new Error("Missing interface ID");
+              setter = encodeFunctionData({
+                abi: permissionedResolverV2Abi,
+                functionName: "setInterface",
+                args: [
+                  encodedName,
+                  record.interfaceId,
+                  "0x0000000000000000000000000000000000000000",
+                ],
+              });
+              break;
+            default:
+              throw new Error("Unsupported resolver permission resource");
           }
 
           return encodeFunctionData({
-            abi: permissionedResolverV2AuthorizeNameRolesAbi,
-            functionName: "authorizeNameRoles",
-            args: [encodedName, roles, account, grant],
+            abi: permissionedResolverV2Abi,
+            functionName: "grantSetterRoles",
+            args: [setter, account],
           });
         },
         catch: (cause) =>

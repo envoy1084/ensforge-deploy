@@ -26,7 +26,9 @@
     "test:watch": "turbo run test:watch",
     "typecheck": "turbo run typecheck",
     "version-packages": "changeset version",
-    "verify:hca:sepolia": "pnpm --filter @ensforge/test-env... build && node --env-file-if-exists=.env scripts/verify-hca-sepolia.mjs"
+    "verify:hca:sepolia": "pnpm --filter @ensforge/test-env... build && node --env-file-if-exists=.env scripts/verify-hca-sepolia.mjs",
+    "build:devnet": "pnpm --filter @ensforge/test-env... build && node scripts/build-devnet.mjs",
+    "verify:sepolia-v2": "pnpm --filter @ensforge/contracts build && node --env-file-if-exists=.env scripts/verify-sepolia-v2.mjs"
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "0.18.5",

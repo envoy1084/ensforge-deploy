@@ -67,26 +67,26 @@ type CancelHcaRegistrationResult = Awaited<ReturnType<typeof cancelHcaRegistrati
 
 Narrow discriminated unions before accessing fields specific to a status or execution route.
 
-| Property                 | Type                                                                                                                                                  |
-| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `authorization`          | ``{ readonly kind: "owner"; } \| { readonly kind: "session"; readonly permissionId: `0x${string}`; readonly enableTransactionHash: `0x${string}`; }`` |
-| `id`                     | `string`                                                                                                                                              |
-| `chainId`                | `number`                                                                                                                                              |
-| `owner`                  | `` `0x${string}` ``                                                                                                                                   |
-| `profileId`              | `string`                                                                                                                                              |
-| `salt`                   | `bigint`                                                                                                                                              |
-| `hca`                    | `` `0x${string}` ``                                                                                                                                   |
-| `registration`           | `CancelHcaRegistrationResult["registration"]`                                                                                                         |
-| `schemaVersion`          | `1`                                                                                                                                                   |
-| `route`                  | `{ readonly kind: "owner"; } \| { readonly kind: "adapter"; readonly id: string; readonly instanceId: string; }`                                      |
-| `revision`               | `number`                                                                                                                                              |
-| `limits`                 | `CancelHcaRegistrationResult["limits"]`                                                                                                               |
-| `progress`               | `CancelHcaRegistrationResult["progress"]`                                                                                                             |
-| `createdAt`              | `bigint`                                                                                                                                              |
-| `updatedAt`              | `bigint`                                                                                                                                              |
-| `signerReference`        | `string \| undefined`                                                                                                                                 |
-| `commitmentSubmission`   | `CancelHcaRegistrationResult["commitmentSubmission"]`                                                                                                 |
-| `registrationSubmission` | `CancelHcaRegistrationResult["registrationSubmission"]`                                                                                               |
+| Property                 | Type                                                                                                             |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------- |
+| `authorization`          | `{ readonly kind: "owner"; } \| { readonly kind: "session"; readonly session: HcaSessionAuthorization; }`        |
+| `id`                     | `string`                                                                                                         |
+| `chainId`                | `number`                                                                                                         |
+| `owner`                  | `` `0x${string}` ``                                                                                              |
+| `profileId`              | `string`                                                                                                         |
+| `salt`                   | `bigint`                                                                                                         |
+| `hca`                    | `` `0x${string}` ``                                                                                              |
+| `registration`           | `CancelHcaRegistrationResult["registration"]`                                                                    |
+| `schemaVersion`          | `1`                                                                                                              |
+| `route`                  | `{ readonly kind: "owner"; } \| { readonly kind: "adapter"; readonly id: string; readonly instanceId: string; }` |
+| `revision`               | `number`                                                                                                         |
+| `limits`                 | `CancelHcaRegistrationResult["limits"]`                                                                          |
+| `progress`               | `CancelHcaRegistrationResult["progress"]`                                                                        |
+| `createdAt`              | `bigint`                                                                                                         |
+| `updatedAt`              | `bigint`                                                                                                         |
+| `signerReference`        | `string \| undefined`                                                                                            |
+| `commitmentSubmission`   | `CancelHcaRegistrationResult["commitmentSubmission"]`                                                            |
+| `registrationSubmission` | `CancelHcaRegistrationResult["registrationSubmission"]`                                                          |
 
 Registration results contain a commitment secret. Do not log or render the whole operation. Use [remote progress](/hca/remote) for a public response.
 

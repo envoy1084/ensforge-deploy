@@ -26,7 +26,7 @@ export const getTrustedHcaRoles = defineReadAction<
           message: "Role resource must be uint256",
         });
 
-      const address = yield* validateHcaAddress(profile.deployment.experimental?.hca.trustedSet);
+      const address = yield* validateHcaAddress(profile.deployment.experimental?.hca.upgradeSet);
 
       return yield* hcaRpc(() =>
         config.publicClient.readContract({

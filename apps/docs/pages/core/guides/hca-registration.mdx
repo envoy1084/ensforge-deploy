@@ -37,7 +37,7 @@ Optional: `id`, `salt`, `subregistry`, `referrer`, `primaryName`, `execution`, `
 Prices and amounts use token base units; durations use seconds. `fees: []` authorizes no nonzero
 execution fees. Add explicit per-chain, per-token fee limits when using an unsponsored route.
 
-For sessions use `{ kind: "session", permissionId, enableTransactionHash }` and the matching
+For sessions use `{ kind: "session", session: authorization }` and the matching
 `execution` adapter. The owner route omits `execution`, or supplies Pimlico with owner authorization.
 Store a server-resolvable `signerReference` only when the application explicitly provisions signer custody.
 

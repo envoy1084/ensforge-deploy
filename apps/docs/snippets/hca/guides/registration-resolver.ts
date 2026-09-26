@@ -1,11 +1,16 @@
+import { enhancedAccessControlRoles } from "@ensforge/contracts/v2";
+
 /* oxlint-disable no-console -- Runnable guide reports the resolver configuration. */
 import "./deploy";
 import { hca } from "./account";
-import { sdk } from "./client";
+import { owner, sdk } from "./client";
 
 const deployment = await sdk.resolution.createResolver({
   salt: 1n,
-  admin: hca,
+  grants: [
+    { account: hca, roleBitmap: enhancedAccessControlRoles.allRoles },
+    { account: owner.address, roleBitmap: enhancedAccessControlRoles.allRoles },
+  ],
 });
 if (!("resolver" in deployment)) throw new Error("Resolver deployment did not complete");
 

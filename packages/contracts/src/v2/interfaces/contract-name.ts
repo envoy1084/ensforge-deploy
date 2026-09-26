@@ -1,16 +1,16 @@
-/** IContractName ABI from the deployed ENSv2 Sepolia contract snapshot. */
+/** IContractName ABI from the pinned ENSv2 deployment source. */
 export const contractNameV2InterfaceAbi = [
   {
-    type: "function",
-    name: "contractName",
     inputs: [],
+    name: "contractName",
     outputs: [
       {
+        internalType: "string",
         name: "",
         type: "string",
-        internalType: "string",
       },
     ],
     stateMutability: "view",
+    type: "function",
   },
 ] as const;

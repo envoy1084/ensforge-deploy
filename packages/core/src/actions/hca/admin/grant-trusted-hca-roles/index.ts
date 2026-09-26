@@ -24,7 +24,7 @@ export const grantTrustedHcaRoles = defineAction<
 >(
   Effect.fn("ensforge.grantTrustedHcaRoles")(function* (config, parameters) {
     const profile = yield* resolveHcaProfile(config);
-    const address = yield* validateHcaAddress(profile.deployment.experimental?.hca.trustedSet);
+    const address = yield* validateHcaAddress(profile.deployment.experimental?.hca.upgradeSet);
 
     const assignee = yield* validateHcaAddress(parameters.assignee);
     const roles = yield* validateRoleBitmap(parameters.roles);

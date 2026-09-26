@@ -1,11 +1,10 @@
 import { Effect } from "effect";
 
 import { defineAction, HcaError } from "@ensforge/core";
-import { enableHcaSession, enableHcaSessionWithRefund, prepareHcaCalls } from "@ensforge/core/hca";
+import { enableHcaSession, enableHcaSessionWithRefund } from "@ensforge/core/hca";
 import type { RhinestoneSDK } from "@rhinestone/sdk";
-import { getPermissionId } from "@rhinestone/sdk/smart-sessions";
 
-import { createRhinestoneHca, sessionFor } from "./account.js";
+import { createRhinestoneHca } from "./account.js";
 import type { PreparedRhinestoneSession, RhinestoneOptions, RhinestoneSessions } from "./types.js";
 
 export const createRhinestoneSessions = (
@@ -26,11 +25,9 @@ export const createRhinestoneSessions = (
             parameters.salt,
           );
 
-          const permissionId = getPermissionId(sessionFor(options, account.address));
           const result: PreparedRhinestoneSession = Object.freeze({
             parameters: Object.freeze({
               ...parameters,
-              permissionId,
               sessionKey: options.sessionSigner.address,
               ...(parameters.refund === undefined
                 ? {}
@@ -39,21 +36,6 @@ export const createRhinestoneSessions = (
             sessionNonce: account.sessionNonce,
             chainId: account.chainId,
             profileId: account.profileId,
-          });
-
-          const intent =
-            result.parameters.refund === undefined
-              ? enableHcaSession.call(result.parameters)
-              : enableHcaSessionWithRefund.call({
-                  ...result.parameters,
-                  refund: result.parameters.refund,
-                });
-
-          await prepareHcaCalls(config, {
-            hca: account.address,
-            salt: account.salt,
-            authorization: { kind: "owner" },
-            calls: [intent],
           });
 
           prepared.add(result);

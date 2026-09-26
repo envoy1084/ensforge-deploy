@@ -2,11 +2,11 @@
 export const registryInterfaceIds = {
   registry: "0x51f67f40",
   ownedRegistry: "0x63560a8e",
-  permissionedRegistry: "0x6be50c69",
+  permissionedRegistry: "0xc18bd555",
   standardRegistry: "0xb844ab6c",
   temporalRegistry: "0x6f537c72",
   tokenizedRegistry: "0x91b3c037",
-  wrapperRegistry: "0xe01aaa11",
+  wrapperRegistry: "0xf5586a0b",
 } as const;
 
 export type RegistryInterfaceId = (typeof registryInterfaceIds)[keyof typeof registryInterfaceIds];

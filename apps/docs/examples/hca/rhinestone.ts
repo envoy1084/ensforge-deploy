@@ -25,29 +25,14 @@ const session = await execution.extensions.sessions.prepare(sdk.config, {
   resolver: registration.resolver,
   validUntil: Number(process.env.HCA_SESSION_VALID_UNTIL),
 });
-const enabledHash = process.env.HCA_SESSION_ENABLE_HASH;
-if (!enabledHash) {
-  const enabled = await execution.extensions.sessions.enable(sdk.config, session);
-  await sdk.config.publicClient.waitForTransactionReceipt({ hash: enabled.hash });
-  process.stdout.write(
-    `Save HCA_SESSION_ENABLE_HASH=${enabled.hash} in .env.hca, then run again.\n`,
-  );
-} else {
-  if (!isHex(enabledHash) || enabledHash.length !== 66)
-    throw new Error("Invalid session enable hash");
-
-  const operation = await advanceRegistration(sdk, {
-    ...registration,
-    hca,
-    execution,
-    authorization: {
-      kind: "session",
-      permissionId: session.parameters.permissionId,
-      enableTransactionHash: enabledHash,
-    },
-    signerReference: "local-example-session",
-  });
-  process.stdout.write(
-    `${JSON.stringify({ id: operation.id, status: operation.progress.status })}\n`,
-  );
-}
+const authorization = await execution.extensions.sessions.enable(sdk.config, session);
+const operation = await advanceRegistration(sdk, {
+  ...registration,
+  hca,
+  execution,
+  authorization: { kind: "session", session: authorization },
+  signerReference: "local-example-session",
+});
+process.stdout.write(
+  `${JSON.stringify({ id: operation.id, status: operation.progress.status })}\n`,
+);

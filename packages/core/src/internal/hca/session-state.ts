@@ -1,146 +1,61 @@
 import { Effect, Schema } from "effect";
 
-import { hcaValidatorV2SessionsAbi } from "@ensforge/contracts/v2";
-import { getAbiItem, parseEventLogs, type Hex } from "viem";
+import { isAddressEqual, recoverAddress } from "viem";
 
-import { HcaExecutionHash } from "../../actions/hca/execution-contract.js";
-import type { VerifiedHcaAccount, VerifiedHcaSession } from "../../actions/hca/types.js";
+import {
+  HcaSessionAuthorizationSchema,
+  type HcaAuthorization,
+  type VerifiedHcaAccount,
+  type VerifiedHcaSession,
+} from "../../actions/hca/types.js";
 import type { EnsforgeConfig } from "../../config/config.js";
 import { HcaError } from "../../errors/hca-error.js";
-import { hcaRpc, resolveHcaProfile } from "./context.js";
+import { hcaRpc } from "./context.js";
+import { hcaSessionAuthorizationData } from "./session-authorization.js";
 
-/** Receipt evidence avoids trusting caller-supplied signer, resolver or refund limits. */
+/** Validate the owner proof again on every preparation, including expiry and revocation. */
 export const readHcaSession = Effect.fn("readHcaSession")(function* (
   config: EnsforgeConfig,
   account: VerifiedHcaAccount,
-  reference: { readonly permissionId: Hex; readonly enableTransactionHash: Hex },
+  reference: Extract<HcaAuthorization, { kind: "session" }>,
 ) {
-  if (
-    !Schema.is(HcaExecutionHash)(reference.permissionId) ||
-    !Schema.is(HcaExecutionHash)(reference.enableTransactionHash)
-  )
+  const session = reference.session;
+
+  if (!Schema.is(HcaSessionAuthorizationSchema)(session))
     return yield* new HcaError({
       code: "INVALID_PARAMETERS",
-      message: "Session requires a permission ID and confirmed enablement transaction hash",
+      message:
+        "Expected a signed HCA session authorization; transaction-based sessions belong to the previous deployment",
     });
-
-  const profile = yield* resolveHcaProfile(config);
-  const validator = profile.contracts.ownerAndSessionValidator;
-  const receipt = yield* hcaRpc(() =>
-    config.publicClient.getTransactionReceipt({ hash: reference.enableTransactionHash }),
-  );
 
   const block = yield* hcaRpc(() => config.publicClient.getBlock());
-  const canonical = yield* hcaRpc(() =>
-    config.publicClient.getBlock({ blockNumber: receipt.blockNumber }),
-  );
-
-  if (receipt.status !== "success" || canonical.hash !== receipt.blockHash)
-    return yield* new HcaError({
-      code: "INVALID_EXECUTION",
-      message: "Session enablement receipt is not canonical and successful",
-    });
-
-  const logs = receipt.logs.filter((log) => log.address.toLowerCase() === validator.toLowerCase());
-  const enabledEvents = parseEventLogs({
-    abi: hcaValidatorV2SessionsAbi,
-    eventName: "SessionEnabled",
-    logs,
-  });
-
-  let enabled: (typeof enabledEvents)[number] | undefined;
-
-  for (const event of enabledEvents) {
-    if (
-      event.args.account.toLowerCase() === account.address.toLowerCase() &&
-      event.args.permissionId.toLowerCase() === reference.permissionId.toLowerCase()
-    )
-      enabled = event;
-  }
 
   if (
-    !enabled ||
-    enabled.args.sessionNonce !== account.sessionNonce ||
-    BigInt(enabled.args.validUntil) < block.timestamp
+    !isAddressEqual(session.hca, account.address) ||
+    session.chainId !== account.chainId ||
+    session.sessionNonce !== account.sessionNonce ||
+    BigInt(session.validUntil) <= block.timestamp
   )
     return yield* new HcaError({
       code: "INVALID_EXECUTION",
-      message: "Session is missing, expired or revoked",
+      message: "Session belongs to a different account/network, has expired, or has been revoked",
     });
 
-  // A permission ID may be re-enabled with different settings. Scan every block,
-  // including the receipt block, in ranges accepted by restricted RPC providers.
-  for (let fromBlock = receipt.blockNumber; fromBlock <= block.number; fromBlock += 10n) {
-    const toBlock = fromBlock + 9n < block.number ? fromBlock + 9n : block.number;
-    const later = yield* hcaRpc(() =>
-      config.publicClient.getLogs({
-        address: validator,
-        event: getAbiItem({ abi: hcaValidatorV2SessionsAbi, name: "SessionEnabled" }),
-        args: { account: account.address, permissionId: reference.permissionId },
-        fromBlock,
-        toBlock,
-      }),
-    );
-
-    if (
-      later.some(
-        (log) =>
-          log.blockNumber !== null &&
-          (log.blockNumber > receipt.blockNumber ||
-            (log.blockNumber === receipt.blockNumber &&
-              log.logIndex !== null &&
-              enabled.logIndex !== null &&
-              log.logIndex > enabled.logIndex)),
-      )
-    )
-      return yield* new HcaError({
-        code: "INVALID_EXECUTION",
-        message: "Session was re-enabled; use its latest enablement transaction",
-      });
-  }
-
-  const usable = yield* hcaRpc(() =>
-    config.publicClient.readContract({
-      address: validator,
-      abi: hcaValidatorV2SessionsAbi,
-      functionName: "isPermissionEnabled",
-      args: [account.address, reference.permissionId],
-      blockNumber: block.number,
-    }),
+  const authorization = hcaSessionAuthorizationData(account.address, account.chainId, session);
+  const signer = yield* hcaRpc(() =>
+    recoverAddress({ hash: authorization.digest, signature: session.ownerSignature }),
   );
 
-  if (!usable)
-    return yield* new HcaError({ code: "INVALID_EXECUTION", message: "Session is not enabled" });
-
-  const refundEvent = parseEventLogs({
-    abi: hcaValidatorV2SessionsAbi,
-    eventName: "SessionRefundConfigured",
-    logs,
-  }).find(
-    (log) =>
-      log.args.account.toLowerCase() === account.address.toLowerCase() &&
-      log.args.permissionId.toLowerCase() === reference.permissionId.toLowerCase() &&
-      log.logIndex !== null &&
-      enabled.logIndex !== null &&
-      log.logIndex === enabled.logIndex + 1,
-  );
+  if (!isAddressEqual(signer, account.owner) || authorization.permissionId !== session.permissionId)
+    return yield* new HcaError({
+      code: "INVALID_EXECUTION",
+      message: "Session policy or owner signature is invalid",
+    });
 
   return Object.freeze({
-    permissionId: reference.permissionId,
-    enableTransactionHash: reference.enableTransactionHash,
-    sessionKey: enabled.args.sessionKey,
-    resolver: enabled.args.resolver,
-    validUntil: enabled.args.validUntil,
-    sessionNonce: enabled.args.sessionNonce,
-    ...(refundEvent === undefined
-      ? {}
-      : {
-          refund: Object.freeze({
-            token: refundEvent.args.token,
-            maxExchangeRate: refundEvent.args.maxExchangeRate,
-            maxGasOverhead: BigInt(refundEvent.args.maxGasOverhead),
-            maxAmount: refundEvent.args.maxRefundAmount,
-          }),
-        }),
+    ...session,
+    ...(session.refund ? { refund: Object.freeze({ ...session.refund }) } : {}),
+    salt: authorization.salt,
+    sessionDigest: authorization.sessionDigest,
   }) satisfies VerifiedHcaSession;
 });

@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs";
+
+import type { Address } from "viem";
 import { createPublicClient, http, type PublicClient } from "viem";
 import { sepolia } from "viem/chains";
 
@@ -53,9 +56,26 @@ export const sepoliaConfig = createConfig({
   },
 });
 
-const configuredRoot = (process.env.ENSFORGE_SEPOLIA_V2_NAME ?? "ensforge-smoke.eth").toLowerCase();
-
-const root = configuredRoot.endsWith(".eth") ? configuredRoot : `${configuredRoot}.eth`;
+// The setup script is the source of truth for names and expected record values.
+export const sepoliaFixtures = JSON.parse(
+  readFileSync(
+    new URL("../../../../../.ensforge/sepolia-v2-fixtures.json", import.meta.url),
+    "utf8",
+  ),
+) as {
+  contractsCommit: string;
+  names: { root: string };
+  accounts: { owner: Address; operator: Address; secondary: Address };
+  records: {
+    profile: { texts: { key: string; value: string }[]; data: { key: string; value: string } };
+  };
+};
+if (sepoliaFixtures.contractsCommit !== "71a3b7339dbc55ab47667abdfe8303bac4f4c24e") {
+  throw new Error(
+    "Refresh Sepolia fixtures with pnpm setup:docs-sepolia before running live checks",
+  );
+}
+const root = sepoliaFixtures.names.root;
 
 const rootLabel = root.slice(0, -4);
 
@@ -85,11 +105,7 @@ export const sepoliaNames = {
   migrated: "raffy.eth",
 } as const;
 
-export const sepoliaFixtureAccounts = {
-  owner: "0x5b7d523F27C5b2232536fB900EBffB590d03fF5d",
-  operator: "0x000000000000000000000000000000000000bEEF",
-  secondary: "0x000000000000000000000000000000000000dEaD",
-} as const;
+export const sepoliaFixtureAccounts = sepoliaFixtures.accounts;
 
 export const missingSepoliaName =
   `${rootLabel}-missing-${Date.now().toString(36)}-${process.pid.toString(36)}.eth` as const;

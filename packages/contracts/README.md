@@ -49,12 +49,15 @@ Package entrypoints include `deployments`, `resolver-profiles`, `shared`, `v1`, 
 
 ## Sepolia V2 snapshot
 
-Sepolia V2 addresses and the 32 complete deployed-contract ABIs were checked against the
-[`post-audit-2` deployment artifacts](https://github.com/ensdomains/contracts-v2/tree/d0c902eeb388c7fbde3f95d9eaf6076eeedff1d7/contracts/deployments/sepolia)
-at commit `d0c902eeb388c7fbde3f95d9eaf6076eeedff1d7`. The JSON artifacts define the deployed addresses
-and ABIs; compiling source from the same commit can produce newer contracts. The exported HCA
-funding validator, authorizer, and interfaces have no standalone deployment JSON in this snapshot
-and are not additional verified Sepolia deployments.
+Sepolia V2 addresses and ABIs follow the
+[deployment artifacts](https://github.com/ensdomains/contracts-v2/tree/71a3b7339dbc55ab47667abdfe8303bac4f4c24e/contracts/deployments/sepolia)
+at commit `71a3b7339dbc55ab47667abdfe8303bac4f4c24e`. Use the artifacts rather than branch-tip
+source. Run `pnpm verify:sepolia-v2` from the repository root to compare addresses and critical
+ABIs with this snapshot and check deployed code.
+
+Legacy upgrade-gate, trusted-set and DNS mirror batch registrar ABI exports are retained for
+compatibility, but are not contracts in the current deployment profile. The current profile uses
+`HCAUpgradeSet`, `RootBatchRegistrar` and `UniversalHelper`.
 
 ## HCA deployment profile
 
@@ -67,9 +70,8 @@ separate source manifest list is empty until verified.
 Focused HCA factory, account-inspection and validator-wiring fragments live in `src/v2/fragments/`
 and are exported from `@ensforge/contracts/v2`. Complete ABIs retain their existing experimental export.
 
-The recorded `TrustedHCASet` address remains historical metadata. This account generation authorizes
-reverse operations through `StandaloneHCAFactory.authorizedOwnerOf`; the local deployment does not
-create a trusted set. It is not a required dependency of the active HCA profile.
+The upgrade set uses role-based access control. Reverse operations use
+`StandaloneHCAFactory.authorizedOwnerOf`; the active profile has no trusted-set dependency.
 
 ## License
 

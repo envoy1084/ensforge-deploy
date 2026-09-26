@@ -37,6 +37,7 @@ export interface EnsV1Deployment {
 
 export interface EnsV2PublicContractAddresses {
   readonly universalResolver: Address;
+  readonly universalHelper: Address;
   readonly rootRegistry: Address;
   readonly ethRegistry: Address;
   readonly ethRegistrar: Address;
@@ -72,15 +73,14 @@ export interface EnsV2MigrationContractAddresses {
 export interface EnsV2InfrastructureContractAddresses {
   readonly managedUniversalResolverProxy?: Address;
   readonly batchRegistrar: Address;
-  readonly dnsV1MirrorRootBatchRegistrar: Address;
+  readonly rootBatchRegistrar: Address;
 }
 
 export interface EnsV2ExperimentalHcaContractAddresses {
   readonly ownerAndSessionValidator: Address;
-  readonly upgradeGate: Address;
+  readonly upgradeSet: Address;
   readonly standaloneFactory: Address;
   readonly standaloneImplementation: Address;
-  readonly trustedSet: Address;
 }
 
 export interface EnsV2TestTokenAddresses {

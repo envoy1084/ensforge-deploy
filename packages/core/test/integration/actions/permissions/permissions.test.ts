@@ -284,6 +284,7 @@ describe("permission writes integration", () => {
       });
 
       const exactResult = yield* setRecordPermissions.effect(devnet.configs.v2, {
+        allowScopeWidening: true,
         name: permissionedName,
         account: devnet.accounts.owner2,
         records: [

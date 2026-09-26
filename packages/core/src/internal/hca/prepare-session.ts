@@ -1,101 +1,91 @@
 import { Effect, Schema } from "effect";
 
-import { hcaValidatorV2SessionsAbi } from "@ensforge/contracts/v2";
-import { encodeFunctionData, isAddressEqual, type Hex } from "viem";
+import { isAddressEqual } from "viem";
 
-import { type EnsWriteIntentPreparer } from "../../action/write-intent.js";
 import type { EnableHcaSessionWithRefundParameters } from "../../actions/hca/enable-hca-session-with-refund/types.js";
 import type { EnableHcaSessionParameters } from "../../actions/hca/enable-hca-session/types.js";
-import { HcaExecutionHash } from "../../actions/hca/execution-contract.js";
+import {
+  HcaSessionAuthorizationSchema,
+  type HcaSessionAuthorization,
+} from "../../actions/hca/types.js";
 import { verifyHca } from "../../actions/hca/verify-hca/index.js";
+import type { EnsforgeConfig } from "../../config/config.js";
 import { HcaError } from "../../errors/hca-error.js";
-import type { WriteError } from "../../write/types.js";
-import { hcaRpc, resolveHcaProfile, validateHcaAddress } from "./context.js";
+import { provideConfig } from "../config/context.js";
+import { resolveWalletContext } from "../services/wallet-client.js";
+import { hcaRpc, resolveHcaProfile } from "./context.js";
+import { hcaSessionAuthorizationData } from "./session-authorization.js";
 
-const uint = (value: unknown, bits: number, positive: boolean) =>
-  typeof value === "bigint" && value >= (positive ? 1n : 0n) && value < 1n << BigInt(bits);
-
-export const prepareHcaSession: EnsWriteIntentPreparer<
-  EnableHcaSessionParameters | EnableHcaSessionWithRefundParameters,
-  WriteError
-> = Effect.fn("prepareHcaSession")(function* (config, parameters, context) {
-  const profile = yield* resolveHcaProfile(config);
+/** The current validator consumes a reusable owner proof; enablement sends no transaction. */
+export const prepareHcaSession = Effect.fn("prepareHcaSession")(function* (
+  config: EnsforgeConfig,
+  parameters: EnableHcaSessionParameters | EnableHcaSessionWithRefundParameters,
+) {
   const account = yield* verifyHca.effect(config, parameters);
-  const sender = typeof context.account === "string" ? context.account : context.account.address;
+  const wallet = yield* provideConfig(config, resolveWalletContext(parameters));
+  const signer = typeof wallet.account === "string" ? wallet.account : wallet.account.address;
 
-  // The validator records msg.sender as the session account, so enablement must come from the HCA.
-  if (!isAddressEqual(sender, account.address))
+  if (!isAddressEqual(signer, account.owner))
     return yield* new HcaError({
-      code: "INVALID_EXECUTION",
-      message: "Session enablement intents must execute through their HCA",
+      code: "OWNER_MISMATCH",
+      message: "Only the HCA owner can authorize a session",
     });
 
-  yield* validateHcaAddress(parameters.sessionKey);
-  yield* validateHcaAddress(parameters.resolver);
+  const profile = yield* resolveHcaProfile(config);
+
+  const policy = {
+    hca: account.address,
+    chainId: account.chainId,
+    sessionKey: parameters.sessionKey,
+    resolver: parameters.resolver,
+    validUntil: parameters.validUntil,
+    sessionNonce: account.sessionNonce,
+    // The deployed validator requires nonzero refund bounds even for sponsored sessions.
+    // Minimal bounds preserve the sponsored flow; paid refunds need an explicit policy.
+    refund:
+      "refund" in parameters
+        ? parameters.refund
+        : {
+            token: profile.infrastructure.paymentToken,
+            maxExchangeRate: 1n,
+            maxGasOverhead: 0n,
+            maxAmount: 1n,
+          },
+  };
+  const placeholder = `0x${"00".repeat(65)}` as const;
   const block = yield* hcaRpc(() => config.publicClient.getBlock());
 
   if (
-    !Schema.is(HcaExecutionHash)(parameters.permissionId) ||
-    !Number.isSafeInteger(parameters.validUntil) ||
-    parameters.validUntil >= 2 ** 48 ||
-    BigInt(parameters.validUntil) <= block.timestamp
+    !Schema.is(HcaSessionAuthorizationSchema)({
+      ...policy,
+      ownerSignature: placeholder,
+      permissionId: `0x${"00".repeat(32)}`,
+    }) ||
+    BigInt(policy.validUntil) <= block.timestamp
   )
     return yield* new HcaError({
       code: "INVALID_PARAMETERS",
-      message: "Expected bytes32 permission ID and a future uint48 session expiry",
+      message: "Expected a session key, resolver, future uint48 expiry and bounded refund limits",
     });
 
-  const args = [
-    parameters.permissionId,
-    parameters.sessionKey,
-    parameters.validUntil,
-    parameters.resolver,
-  ] as const;
+  const authorization = hcaSessionAuthorizationData(account.address, account.chainId, policy);
 
-  let data: Hex;
-
-  if ("refund" in parameters) {
-    const refund = parameters.refund;
-
-    if (
-      !refund ||
-      typeof refund.token !== "string" ||
-      ![profile.infrastructure.paymentToken, profile.infrastructure.secondaryPaymentToken].some(
-        (token) => token.toLowerCase() === refund.token?.toLowerCase(),
-      ) ||
-      !uint(refund.maxExchangeRate, 96, true) ||
-      !uint(refund.maxGasOverhead, 48, false) ||
-      !uint(refund.maxAmount, 96, true)
-    )
-      return yield* new HcaError({
-        code: "INVALID_PARAMETERS",
-        message:
-          "Refund requires a supported payment token and bounded uint96 rate/amount and uint48 overhead",
-      });
-
-    data = encodeFunctionData({
-      abi: hcaValidatorV2SessionsAbi,
-      functionName: "enableSessionWithRefund",
-      args: [
-        ...args,
-        refund.token,
-        refund.maxExchangeRate,
-        Number(refund.maxGasOverhead),
-        refund.maxAmount,
-      ],
+  if (
+    parameters.permissionId !== undefined &&
+    parameters.permissionId !== authorization.permissionId
+  )
+    return yield* new HcaError({
+      code: "INVALID_PARAMETERS",
+      message: "Permission ID does not match the session policy",
     });
-  } else {
-    data = encodeFunctionData({
-      abi: hcaValidatorV2SessionsAbi,
-      functionName: "enableSession",
-      args,
-    });
-  }
+
+  const ownerSignature = yield* hcaRpc(() =>
+    wallet.walletClient.signTypedData({ account: wallet.account, ...authorization.data }),
+  );
 
   return {
-    to: profile.contracts.ownerAndSessionValidator,
-    data,
-    value: 0n,
-    protocol: "v2" as const,
-  };
+    ...policy,
+    permissionId: authorization.permissionId,
+    ownerSignature,
+  } satisfies HcaSessionAuthorization;
 });

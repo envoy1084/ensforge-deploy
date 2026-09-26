@@ -6,7 +6,7 @@ import type { DevnetConfigs } from "./config/config.js";
 import type { DevnetDeployments } from "./deployments/profile.js";
 import { DockerEngine } from "./devnet/docker-engine.js";
 import { startDevnet, type DevnetInstance, type DevnetOptions } from "./devnet/lifecycle.js";
-import { ensDevnetPublishedImage } from "./devnet/source.js";
+import { ensDevnetImage } from "./devnet/source.js";
 import { createDevnetEnvironment } from "./environment.js";
 import type { EnsFixtureManifest } from "./fixtures/manifest.js";
 import { seedFixtures } from "./fixtures/seed.js";
@@ -28,7 +28,7 @@ export interface EnsDevnet {
 }
 
 export interface StartEnsDevnetOptions extends DevnetOptions {
-  /** Use the immutable published image by default so local and CI runs share the same contracts. */
+  /** Use the locally built pinned revision, or supply a published image using ENSFORGE_TEST_IMAGE. */
   readonly image?: string;
 }
 
@@ -49,7 +49,7 @@ export const startEnsDevnet = async (options: StartEnsDevnetOptions = {}): Promi
         const instance = yield* startDevnet({
           build: "never",
           ...options,
-          image: options.image ?? process.env.ENSFORGE_TEST_IMAGE ?? ensDevnetPublishedImage,
+          image: options.image ?? process.env.ENSFORGE_TEST_IMAGE ?? ensDevnetImage,
         });
 
         const seededEnvironment = yield* createDevnetEnvironment(instance);

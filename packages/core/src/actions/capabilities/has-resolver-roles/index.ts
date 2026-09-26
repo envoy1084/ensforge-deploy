@@ -13,7 +13,6 @@ import {
 } from "../../../internal/capabilities/resolver-resource.js";
 import { EthereumClient } from "../../../internal/client/ethereum-client.js";
 import { executeRead } from "../../../internal/read/execute-read.js";
-import { namehash } from "../../../names/hashes.js";
 import { normalizeName } from "../../../names/normalize.js";
 import type {
   AccountCapabilityParameters,
@@ -49,14 +48,7 @@ const hasResolverRolesEffect = Effect.fn("ensforge.hasResolverRoles")(function* 
 
       const resource = resolverResource(target.node, part);
 
-      const resources =
-        BigInt(part) === 0n
-          ? [resource]
-          : [
-              resource,
-              resolverResource(namehash(""), part),
-              resolverResource(target.node, toHex(0n, { size: 32 })),
-            ];
+      const resources = resource === 0n ? [0n] : [resource, 0n];
 
       const checks = yield* Effect.all(
         resources.map((candidate) =>

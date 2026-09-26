@@ -1,16 +1,15 @@
 import {
   ethRegistrarV2CommitAbi,
   ethRegistrarV2RegisterAbi,
-  permissionedResolverV2AuthorizeNameRolesAbi,
   permissionedResolverV2Abi,
   defaultReverseRegistrarAdapterV2Abi,
-  enhancedAccessControlRoles,
 } from "@ensforge/contracts/v2";
-import { encodeFunctionData, erc20Abi, namehash } from "viem";
+import { encodeFunctionData, erc20Abi } from "viem";
 
 import type { HcaRegistrationOperation } from "../../../actions/hca/registration-types.js";
 import type { HcaCall } from "../../../actions/hca/types.js";
 import type { EnsforgeConfig } from "../../../config/config.js";
+import { dnsEncodeName } from "../../../names/dns.js";
 
 /** Register and grant resolver authority atomically, so the owner's name is never left unusable. */
 export const registrationCalls = (
@@ -75,19 +74,10 @@ export const registrationCalls = (
       to: registration.resolver,
       data: encodeFunctionData({
         abi: permissionedResolverV2Abi,
-        functionName: "setAddr",
-        args: [namehash(registration.name), operation.owner],
+        functionName: "setAddress",
+        args: [dnsEncodeName(registration.name), 60n, operation.owner],
       }),
     });
-
-  calls.push({
-    to: registration.resolver,
-    data: encodeFunctionData({
-      abi: permissionedResolverV2AuthorizeNameRolesAbi,
-      functionName: "authorizeNameRoles",
-      args: ["0x00", enhancedAccessControlRoles.allRoles, operation.owner, true],
-    }),
-  });
 
   if (registration.primaryName && config.deployments.protocol === "v2")
     calls.push({

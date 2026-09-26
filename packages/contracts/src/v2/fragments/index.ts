@@ -28,3 +28,5 @@ export * from "./hca-sessions.js";
 export * from "./hca-user-operation.js";
 
 export * from "./hca-management.js";
+export * from "./universal-helper.js";
+export * from "./resolver-records.js";

@@ -3,8 +3,8 @@ import { Effect, Result } from "effect";
 import {
   ethRegistryV2GetStateAbi,
   ethRenewerV1IsRenewableAbi,
-  universalResolverV2FindOwnerAbi,
-  universalResolverV2FindParentRegistryAbi,
+  universalHelperV2FindExactOwnerAbi,
+  universalHelperV2FindParentRegistryAbi,
   universalResolverV2FindResolverAbi,
 } from "@ensforge/contracts/v2";
 import { isAddressEqual, zeroAddress } from "viem";
@@ -43,9 +43,9 @@ const routeEthOwner = Effect.fn("routeEthOwner")(function* (
     [
       Effect.result(
         ethereum.readContract({
-          address: v2.contracts.universalResolver,
-          abi: universalResolverV2FindOwnerAbi,
-          functionName: "findOwner",
+          address: v2.contracts.universalHelper,
+          abi: universalHelperV2FindExactOwnerAbi,
+          functionName: "findExactOwner",
           args: [dnsName],
         }),
       ),
@@ -120,16 +120,16 @@ const routeOtherOwner = Effect.fn("routeOtherOwner")(function* (
     [
       Effect.result(
         ethereum.readContract({
-          address: v2.contracts.universalResolver,
-          abi: universalResolverV2FindOwnerAbi,
-          functionName: "findOwner",
+          address: v2.contracts.universalHelper,
+          abi: universalHelperV2FindExactOwnerAbi,
+          functionName: "findExactOwner",
           args: [dnsName],
         }),
       ),
       Effect.result(
         ethereum.readContract({
-          address: v2.contracts.universalResolver,
-          abi: universalResolverV2FindParentRegistryAbi,
+          address: v2.contracts.universalHelper,
+          abi: universalHelperV2FindParentRegistryAbi,
           functionName: "findParentRegistry",
           args: [dnsName],
         }),

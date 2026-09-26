@@ -48,6 +48,13 @@ import type { CreateResolverParameters } from "@ensforge/core";
 
 Deterministic deployment salt.
 
+### grants
+
+`readonly { account: Address; roleBitmap: bigint }[] | undefined`
+
+Initial role grants for the resolver. When provided, these replace the default grant derived from
+`admin` and `roles`. For HCA session registration, grant all roles to the HCA first and its owner second.
+
 ### admin
 
 `string | undefined`

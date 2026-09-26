@@ -79,7 +79,7 @@ export const rhinestone = (input: RhinestoneOptions): RhinestoneExecutionAdapter
   const configurationFingerprint = keccak256(
     stringToHex(
       JSON.stringify({
-        provider: "rhinestone-1.8.0-ensforge-1",
+        provider: "rhinestone-1.8.0-ensforge-2",
         endpoint:
           options.sdk.endpointUrl === undefined
             ? "default"
@@ -89,7 +89,6 @@ export const rhinestone = (input: RhinestoneOptions): RhinestoneExecutionAdapter
         infrastructure: options.profile.infrastructure,
         owner: options.owner.address,
         sessionSigner: options.sessionSigner.address,
-        sessionSalt: options.sessionSalt ?? null,
         sponsored: options.sponsored ?? true,
       }),
     ),
@@ -226,10 +225,15 @@ export const rhinestone = (input: RhinestoneOptions): RhinestoneExecutionAdapter
             plan.account.salt,
           );
 
-          const session = sessionFor(options, plan.account.address);
+          if (!plan.session)
+            throw new HcaError({
+              code: "INVALID_EXECUTION",
+              message: "A signed session authorization is required",
+            });
+
+          const session = sessionFor(options, plan.account.address, plan.session.salt);
 
           if (
-            !plan.session ||
             getPermissionId(session).toLowerCase() !== plan.session.permissionId.toLowerCase() ||
             options.sessionSigner.address.toLowerCase() !== plan.session.sessionKey.toLowerCase()
           )
@@ -243,9 +247,29 @@ export const rhinestone = (input: RhinestoneOptions): RhinestoneExecutionAdapter
             chain: options.chain,
             calls: plan.calls.map((call) => ({ ...call })),
             sponsored: options.sponsored ?? true,
-            ...(plan.session.refund === undefined ? {} : { feeAsset: plan.session.refund.token }),
+            ...(options.sponsored === false ? { feeAsset: plan.session.refund.token } : {}),
             // The API selects same-chain routes automatically; reviewRoute verifies the result.
-            signers: { type: "experimental_session", session, verifyExecutions: true },
+            signers: {
+              type: "experimental_session",
+              session,
+              enableData: {
+                userSignature: plan.session.ownerSignature,
+                hashesAndChainIds: [
+                  { chainId: BigInt(config.chainId), sessionDigest: plan.session.sessionDigest },
+                ],
+                sessionToEnableIndex: 0,
+                hcaSessionNonce: plan.session.sessionNonce,
+                hcaSessionConfig: {
+                  sessionKey: plan.session.sessionKey,
+                  validUntil: plan.session.validUntil,
+                  resolver: plan.session.resolver,
+                  refundToken: plan.session.refund.token,
+                  maxRefundExchangeRate: plan.session.refund.maxExchangeRate,
+                  maxRefundGasOverhead: Number(plan.session.refund.maxGasOverhead),
+                  maxRefundAmount: plan.session.refund.maxAmount,
+                },
+              },
+            },
           });
 
           const review = await reviewRoute(options, config, plan, prepared);

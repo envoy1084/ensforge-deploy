@@ -24,14 +24,10 @@ describe("resolver metadata integration", () => {
         { concurrency: "unbounded" },
       );
 
-      assert.isTrue(result.v2.supported);
+      assert.isFalse(result.v2.supported);
 
       if (!v1.supported) {
         assert.strictEqual(v1.reason, "VERSIONING_UNSUPPORTED");
-      }
-
-      if (result.v2.supported) {
-        assert.typeOf(result.v2.version, "bigint");
       }
 
       assert.isFalse(result.missing.supported);
@@ -56,12 +52,7 @@ describe("resolver metadata integration", () => {
         { concurrency: "unbounded" },
       );
 
-      assert.isTrue(permissioned.supported);
-
-      if (permissioned.supported) {
-        assert.isNull(permissioned.target);
-        assert.strictEqual(permissioned.raw, "0x");
-      }
+      assert.isFalse(permissioned.supported);
 
       assert.isFalse(publicResolver.supported);
 

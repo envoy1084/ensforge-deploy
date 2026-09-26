@@ -69,7 +69,7 @@ Saved operation identifier. Start registration can generate it from matching unf
 
 ### authorization
 
-``{ readonly kind: "owner"; } | { readonly kind: "session"; readonly permissionId: `0x${string}`; readonly enableTransactionHash: `0x${string}`; } | undefined``
+`{ readonly kind: "owner"; } | { readonly kind: "session"; readonly session: HcaSessionAuthorization; } | undefined`
 
 Owner authorization or an enabled destination session.
 

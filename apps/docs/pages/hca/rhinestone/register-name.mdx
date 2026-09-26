@@ -20,11 +20,9 @@ Set the client and provider environment variables from that guide, plus:
 - `ENSFORGE_HCA_SESSION_VALID_UNTIL`: a fixed future Unix timestamp in seconds, long enough for the
   commitment wait and registration. Keep this value unchanged when resuming.
 
-Use the same protected session key throughout the workflow. On the first run, the script enables
-that session and prints `ENSFORGE_HCA_SESSION_ENABLE_HASH`. Save that hash in your environment
-before running the script again; subsequent runs reuse the enabled session.
+Use the same protected session key and fixed expiry throughout the workflow. The owner signs a reusable session authorization before registration; no enablement transaction is needed.
 
-The owner needs Sepolia ETH for explicit HCA deployment and session enablement. Sponsorship covers
+The owner needs Sepolia ETH for explicit HCA deployment. Session authorization only requires an owner signature. Sponsorship covers
 execution gas, not the name price. Send the registrar's payment token to the predicted HCA address.
 `registration.ts` sets a maximum price of 10 USDC for one year; adjust that limit for your name.
 
@@ -119,7 +117,7 @@ Rerun with the same inputs and `.ensforge-workflows` directory to continue saved
 the database or change the name, salt or registration parameters to retry a pending transaction.
 The SDK derives the workflow identity from the inputs; you do not need to invent a new ID.
 
-Keep the session key, fixed expiry and enable hash unchanged too. If the session expires while the
+Keep the session key, fixed expiry and signed authorization unchanged too. If the session expires while the
 workflow is pending, explicitly authorize a replacement through
 [registration recovery](/hca/guides/registration); do not silently create a different session.
 

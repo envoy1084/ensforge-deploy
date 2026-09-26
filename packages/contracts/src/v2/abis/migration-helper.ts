@@ -1,4 +1,4 @@
-/** Complete MigrationHelper ABI from the ENSv2 Sepolia deployment. */
+/** ABI from the pinned Sepolia deployment artifact. */
 export const migrationHelperV2Abi = [
   {
     inputs: [
@@ -15,6 +15,11 @@ export const migrationHelperV2Abi = [
       {
         internalType: "contract AbstractWrapperReceiver",
         name: "lockedController",
+        type: "address",
+      },
+      {
+        internalType: "contract IStandaloneHCAFactory",
+        name: "standaloneHCAFactory",
         type: "address",
       },
       {

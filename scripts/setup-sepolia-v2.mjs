@@ -29,7 +29,7 @@ import { fixtureVersion, jsonReplacer, makeSepoliaV2Fixtures } from "./sepolia-v
 
 const directory = dirname(fileURLToPath(import.meta.url));
 const repository = resolve(directory, "..");
-const statePath = resolve(repository, ".ensforge/sepolia-v2-state.json");
+const statePath = resolve(repository, ".ensforge/sepolia-v2-71a3b73-state.json");
 const manifestPath = resolve(repository, ".ensforge/sepolia-v2-fixtures.json");
 const day = 86_400n;
 const duration = 365n * day;
@@ -43,7 +43,7 @@ const fixtureConfig = {
   addresses: {
     bitcoin: "bc1qvwplh0kq7t398ewqgzhf0tf3t0d5e5a245569u",
     solana: "BpXue2S7nqaaMkSNpKpeNSEg3pZCgHtuhLj3JboA7cGo",
-    secondary: "0xc0d86456F6f2930b892f3DAD007CDBE32c081FE6",
+    secondary: "0x000000000000000000000000000000000000dEaD",
     operator: "0xc0d86456F6f2930b892f3DAD007CDBE32c081FE6",
   },
   profile: {
@@ -91,14 +91,6 @@ if (!/^0x[\da-fA-F]{64}$/.test(privateKey)) {
 }
 
 const account = privateKeyToAccount(privateKey);
-const publicKey = account.publicKey;
-const pubkey = {
-  x: `0x${publicKey.slice(4, 68)}`,
-  y: `0x${publicKey.slice(68, 132)}`,
-};
-if (!/^0x[\da-fA-F]{64}$/.test(pubkey.x) || !/^0x[\da-fA-F]{64}$/.test(pubkey.y)) {
-  throw new Error("Unable to derive an uncompressed secp256k1 public key from the signer");
-}
 const root = fixtureConfig.rootName.toLowerCase();
 const rootName = root.endsWith(".eth") ? root : `${root}.eth`;
 const rootLabel = rootName.slice(0, -4);
@@ -131,7 +123,7 @@ const fixtures = makeSepoliaV2Fixtures({
   bareRoot,
   btcAddress: fixtureConfig.addresses.bitcoin,
   operator,
-  profile: { ...fixtureConfig.profile, pubkey },
+  profile: fixtureConfig.profile,
   root: rootName,
   secondary,
   solanaAddress: fixtureConfig.addresses.solana,
@@ -414,7 +406,6 @@ await step("set-profile-records", () =>
       ...fixtures.records.profile.texts.map((record) => ({ type: "text", ...record })),
       { type: "contentHash", ...fixtures.records.profile.contentHash },
       { type: "abi", contentType: "json", value: fixtures.records.profile.abi },
-      { type: "pubkey", ...fixtures.records.profile.pubkey },
       { type: "interface", ...fixtures.records.profile.interface },
       { type: "data", ...fixtures.records.profile.data },
       { type: "name", value: fixtures.records.profile.name },
@@ -431,7 +422,6 @@ await step("set-root-records", () =>
       ...fixtures.records.root.texts.map((record) => ({ type: "text", ...record })),
       { type: "contentHash", ...fixtures.records.root.contentHash },
       { type: "abi", contentType: "json", value: fixtures.records.root.abi },
-      { type: "pubkey", ...fixtures.records.root.pubkey },
       { type: "interface", ...fixtures.records.root.interface },
       { type: "data", ...fixtures.records.root.data },
       { type: "name", value: fixtures.records.root.name },
@@ -476,6 +466,7 @@ await step("grant-permission-fixtures", async () => {
       { type: "address", coinType: 60n },
     ],
     approved: true,
+    allowScopeWidening: true,
     mode: "sequential",
   });
   await sdk.permissions.setResolverDelegateApproval({
@@ -501,6 +492,7 @@ await step("transfer-different-owner", async () => {
   await sdk.subnames.transferSubname({
     name: fixtures.names.differentOwner,
     to: secondary,
+    unsafe: true,
     mode: "sequential",
   });
 });
@@ -513,7 +505,7 @@ const profile = await sdk.records.getRecords({
     avatar: true,
     contentHash: true,
     abi: true,
-    pubkey: true,
+    pubkey: false,
     name: true,
     interfaces: [fixtures.records.profile.interface.interfaceId],
     data: [fixtures.records.profile.data.key],
@@ -544,7 +536,7 @@ const [
 ] = await Promise.all([
   sdk.name.getNameState({ name: rootName }),
   sdk.name.getNameState({ name: bareRoot }),
-  sdk.resolution.getAlias({ name: fixtures.names.alias }),
+  sdk.records.getText({ name: fixtures.names.alias, key: "description" }),
   sdk.resolution.getResolver({ name: fixtures.names.inherited }),
   sdk.reverse.getPrimaryName({ address: account.address }),
   sdk.dns.getDnsRecord({
@@ -611,7 +603,7 @@ if (rootState.protocol !== "v2" || rootState.resolver === null) {
 if (bareState.protocol !== "v2" || bareState.resolver !== null) {
   throw new Error("Bare root did not verify as an ENSv2 name without a resolver");
 }
-if (!alias.supported || alias.target !== fixtures.names.profile) {
+if (alias.value !== fixtureConfig.profile.description) {
   throw new Error("Alias fixture did not round-trip through the ENSv2 resolver");
 }
 if (inheritedResolver === null || profile.addresses.some(({ address }) => address === null)) {
@@ -641,7 +633,7 @@ if (
 ) {
   throw new Error("Operator or resolver-delegate fixture did not verify");
 }
-if (nestedResource === null || emptyResolver === null || !resolverVersion.supported) {
+if (nestedResource === null || emptyResolver === null || resolverVersion.supported) {
   throw new Error("Nested registry or resolver topology did not verify");
 }
 if (differentOwnerState.owner === null || !isAddressEqual(differentOwnerState.owner, secondary)) {
@@ -658,6 +650,7 @@ const manifest = {
   ...fixtures,
   chainId: sepolia.id,
   deployment: deployment.id,
+  contractsCommit: "71a3b7339dbc55ab47667abdfe8303bac4f4c24e",
   seededAtBlock,
   resolver: permissionedResolver,
   expected: {

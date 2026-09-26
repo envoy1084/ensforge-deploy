@@ -288,24 +288,31 @@ export const ethRegistrarV2RenewAbi = [
   {
     inputs: [
       {
-        internalType: "string",
-        name: "label",
-        type: "string",
-      },
-      {
-        internalType: "uint64",
-        name: "duration",
-        type: "uint64",
+        components: [
+          {
+            internalType: "string",
+            name: "label",
+            type: "string",
+          },
+          {
+            internalType: "uint64",
+            name: "duration",
+            type: "uint64",
+          },
+          {
+            internalType: "bytes32",
+            name: "referrer",
+            type: "bytes32",
+          },
+        ],
+        internalType: "struct RenewData",
+        name: "rd",
+        type: "tuple",
       },
       {
         internalType: "contract IERC20",
         name: "paymentToken",
         type: "address",
-      },
-      {
-        internalType: "bytes32",
-        name: "referrer",
-        type: "bytes32",
       },
     ],
     name: "renew",
@@ -558,24 +565,31 @@ export const ethRenewerV1RenewAbi = [
   {
     inputs: [
       {
-        internalType: "string",
-        name: "label",
-        type: "string",
-      },
-      {
-        internalType: "uint64",
-        name: "duration",
-        type: "uint64",
+        components: [
+          {
+            internalType: "string",
+            name: "label",
+            type: "string",
+          },
+          {
+            internalType: "uint64",
+            name: "duration",
+            type: "uint64",
+          },
+          {
+            internalType: "bytes32",
+            name: "referrer",
+            type: "bytes32",
+          },
+        ],
+        internalType: "struct RenewData",
+        name: "rd",
+        type: "tuple",
       },
       {
         internalType: "contract IERC20",
         name: "paymentToken",
         type: "address",
-      },
-      {
-        internalType: "bytes32",
-        name: "referrer",
-        type: "bytes32",
       },
     ],
     name: "renew",

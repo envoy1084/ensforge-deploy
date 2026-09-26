@@ -1,6 +1,7 @@
 import { Effect } from "effect";
 
 import { publicResolverV1MulticallAbi, publicResolverV1SetTextAbi } from "@ensforge/contracts/v1";
+import { permissionedResolverV2SetTextAbi } from "@ensforge/contracts/v2";
 import { encodeFunctionData } from "viem";
 
 import { ContractError } from "../../../errors/contract-error.js";
@@ -16,9 +17,11 @@ export const setTexts = makeResolverWriteAction<SetTextsParameters>({
       try: () => {
         const calls = parameters.texts.map((text) =>
           encodeFunctionData({
-            abi: publicResolverV1SetTextAbi,
+            abi: context.permissioned
+              ? permissionedResolverV2SetTextAbi
+              : publicResolverV1SetTextAbi,
             functionName: "setText",
-            args: [context.node, text.key, text.value],
+            args: [context.permissioned ? context.dnsName : context.node, text.key, text.value],
           }),
         );
 

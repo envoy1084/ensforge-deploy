@@ -778,6 +778,7 @@ export const sidebar = {
         { link: "/core/guides/error-handling", text: "Error Handling" },
         { link: "/core/guides/batching", text: "Batching" },
         { link: "/core/guides/protocol-routing", text: "Protocol Routing" },
+        { link: "/core/guides/sepolia-deployment", text: "Sepolia Deployment" },
         { link: "/core/guides/writes", text: "Writes" },
         { link: "/core/guides/hca", text: "HCA" },
         { link: "/core/guides/hca-registration", text: "HCA Registration" },

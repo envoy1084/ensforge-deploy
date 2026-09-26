@@ -1,4 +1,4 @@
-/** Complete ManagedUniversalResolverProxy ABI from the ENSv2 Sepolia deployment. */
+/** ABI from the pinned Sepolia deployment artifact. */
 export const managedUniversalResolverProxyV2Abi = [
   {
     inputs: [

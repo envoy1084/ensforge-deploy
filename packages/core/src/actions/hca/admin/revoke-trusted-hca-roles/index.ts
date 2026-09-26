@@ -24,7 +24,7 @@ export const revokeTrustedHcaRoles = defineAction<
 >(
   Effect.fn("ensforge.revokeTrustedHcaRoles")(function* (config, parameters) {
     const profile = yield* resolveHcaProfile(config);
-    const address = yield* validateHcaAddress(profile.deployment.experimental?.hca.trustedSet);
+    const address = yield* validateHcaAddress(profile.deployment.experimental?.hca.upgradeSet);
 
     const assignee = yield* validateHcaAddress(parameters.assignee);
     const roles = yield* validateRoleBitmap(parameters.roles);

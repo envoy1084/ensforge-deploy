@@ -153,11 +153,23 @@ describe("subname management integration", () => {
         name,
         resolver: devnet.deployments.v2.contracts.publicResolver,
       });
+      const safeTransferError = yield* setSubnameManager
+        .effect(devnet.configs.v2, { name, manager: devnet.accounts.owner2 })
+        .pipe(Effect.flip);
+      assert.isDefined(safeTransferError);
+      const beforeTransfer = yield* getNameState.effect(devnet.configs.v2, { name });
+      assert.strictEqual(beforeTransfer.owner, devnet.accounts.owner);
+
       yield* setSubnameManager.effect(devnet.configs.v2, {
         name,
         manager: devnet.accounts.owner2,
+        unsafe: true,
       });
-      yield* setSubnameManager.effect(owner2Config, { name, manager: devnet.accounts.owner });
+      yield* setSubnameManager.effect(owner2Config, {
+        name,
+        manager: devnet.accounts.owner,
+        unsafe: true,
+      });
       yield* deleteSubname.effect(devnet.configs.v2, { name });
 
       const deleted = yield* getNameState.effect(devnet.configs.v2, { name });

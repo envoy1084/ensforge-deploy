@@ -1,6 +1,7 @@
 import { Effect } from "effect";
 
 import { publicResolverV1SetContenthashAbi } from "@ensforge/contracts/v1";
+import { permissionedResolverV2SetContenthashAbi } from "@ensforge/contracts/v2";
 import { encodeFunctionData } from "viem";
 
 import { CodecError } from "../../../errors/codec-error.js";
@@ -16,10 +17,12 @@ export const setContentHash = makeResolverWriteAction<SetContentHashParameters>(
     Effect.try({
       try: () =>
         encodeFunctionData({
-          abi: publicResolverV1SetContenthashAbi,
+          abi: context.permissioned
+            ? permissionedResolverV2SetContenthashAbi
+            : publicResolverV1SetContenthashAbi,
           functionName: "setContenthash",
           args: [
-            context.node,
+            context.permissioned ? context.dnsName : context.node,
             encodeContentHash({ protocol: parameters.protocol, value: parameters.value }),
           ],
         }),

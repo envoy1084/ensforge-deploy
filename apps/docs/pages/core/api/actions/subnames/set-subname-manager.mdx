@@ -55,6 +55,14 @@ Address that should manage the name.
 
 ENS name to operate on. ensforge normalizes it before hashing or contract interaction.
 
+### unsafe
+
+`boolean | undefined`
+
+Defaults to `false`. For ENSv2 registry transfers, opt in to bypass the safe-transfer restrictions
+on non-emancipated registries and additional role assignees. Existing roles can retain access after
+an unsafe transfer; use this only when that behavior is intended.
+
 ## Return Type
 
 ```ts

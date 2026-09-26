@@ -1,6 +1,6 @@
 import { Effect } from "effect";
 
-import { hcaUpgradeGateV2ManagementAbi } from "@ensforge/contracts/v2";
+import { hcaUpgradeSetV2Abi } from "@ensforge/contracts/v2/experimental/hca";
 import type { Address } from "viem";
 
 import type { BlockParameters } from "../../../action/block.js";
@@ -17,13 +17,13 @@ export const getHcaUpgradeImplementationApproval = defineReadAction<
   withHcaSnapshot(config, parameters, (profile, blockNumber) =>
     Effect.gen(function* () {
       const implementation = yield* validateHcaAddress(parameters.implementation);
-      const address = yield* validateHcaAddress(parameters.gate ?? profile.contracts.upgradeGate);
+      const address = yield* validateHcaAddress(parameters.gate ?? profile.contracts.upgradeSet);
 
       return yield* hcaRpc(() =>
         config.publicClient.readContract({
           address,
-          abi: hcaUpgradeGateV2ManagementAbi,
-          functionName: "approvedImplementations",
+          abi: hcaUpgradeSetV2Abi,
+          functionName: "includes",
           args: [implementation],
           blockNumber,
         }),

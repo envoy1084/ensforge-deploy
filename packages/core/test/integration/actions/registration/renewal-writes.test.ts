@@ -63,7 +63,7 @@ describe("renewal writes integration", () => {
         encodeFunctionData({
           abi: ethRegistrarV2Abi,
           functionName: "renew",
-          args: [nativeName.slice(0, -4), duration, paymentToken, zeroHash],
+          args: [{ label: nativeName.slice(0, -4), duration, referrer: zeroHash }, paymentToken],
         }),
       );
       assert.strictEqual(
@@ -71,7 +71,7 @@ describe("renewal writes integration", () => {
         encodeFunctionData({
           abi: ethRenewerV1Abi,
           functionName: "renew",
-          args: [reservedName.slice(0, -4), duration, paymentToken, zeroHash],
+          args: [{ label: reservedName.slice(0, -4), duration, referrer: zeroHash }, paymentToken],
         }),
       );
     }),

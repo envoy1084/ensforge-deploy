@@ -19,8 +19,6 @@ const indexedV2Name = sepoliaNames.v2.root;
 
 const indexedV2Owner = sepoliaFixtureAccounts.owner;
 
-const fixtureSeededAtBlock = 11_601_253n;
-
 describe("Sepolia indexers", () => {
   it.effect("reports V1 and V2 health and reads exact names from both protocols", () =>
     Effect.gen(function* () {
@@ -52,20 +50,7 @@ describe("Sepolia indexers", () => {
 
       const fixture = yield* getIndexedName.effect(sepoliaConfig, { name: sepoliaNames.v2.root });
 
-      if (fixture === null && sepoliaNames.v2.root === "ensforge-smoke.eth") {
-        const v2 = status.sources.find((source) => source.protocol === "v2");
-
-        assert.strictEqual(v2?.status, "ready");
-
-        if (v2?.status === "ready") {
-          assert.isTrue(
-            v2.indexedBlock.number < fixtureSeededAtBlock,
-            "ensforge-smoke.eth is missing even though the V2 indexer passed its seed block",
-          );
-        }
-      } else {
-        assert.strictEqual(fixture?.protocol, "v2");
-      }
+      assert.strictEqual(fixture?.protocol, "v2");
     }),
   );
 

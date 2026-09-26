@@ -81,7 +81,7 @@ overrides:
   vite@<6.4.3: 6.4.3
 
 patchedDependencies:
-  '@rhinestone/sdk@1.8.0': 358b2302ad360224b413b87d3492e2029434cc50ecfc03ed6414ef17fcba2f11
+  '@rhinestone/sdk@1.8.0': 805bf1463590449f22dea003cae7f68471945c029cb685406c54af47a18714bf
   vocs@2.8.1: 21412b1c246604cce93e7b06526de34d994abccbb22246426350b88ee037ca89
 
 importers:
@@ -220,7 +220,7 @@ importers:
         version: link:../../packages/test-env
       '@rhinestone/sdk':
         specifier: 1.8.0
-        version: 1.8.0(patch_hash=358b2302ad360224b413b87d3492e2029434cc50ecfc03ed6414ef17fcba2f11)(express@5.2.1)(jose@6.2.10)(typescript@6.0.3)(viem@2.56.0(bufferutil@4.1.0)(typescript@6.0.3)(utf-8-validate@5.0.10)(zod@3.25.76))
+        version: 1.8.0(patch_hash=805bf1463590449f22dea003cae7f68471945c029cb685406c54af47a18714bf)(express@5.2.1)(jose@6.2.10)(typescript@6.0.3)(viem@2.56.0(bufferutil@4.1.0)(typescript@6.0.3)(utf-8-validate@5.0.10)(zod@3.25.76))
       '@tailwindcss/vite':
         specifier: 4.3.3
         version: 4.3.3(vite@8.0.16(@types/node@24.13.3)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.22.4)(yaml@2.9.0))
@@ -318,7 +318,7 @@ importers:
     devDependencies:
       '@rhinestone/sdk':
         specifier: 1.8.0
-        version: 1.8.0(patch_hash=358b2302ad360224b413b87d3492e2029434cc50ecfc03ed6414ef17fcba2f11)(express@5.2.1)(jose@6.2.10)(typescript@6.0.3)(viem@2.56.0(bufferutil@4.1.0)(typescript@6.0.3)(utf-8-validate@5.0.10)(zod@4.5.4))
+        version: 1.8.0(patch_hash=805bf1463590449f22dea003cae7f68471945c029cb685406c54af47a18714bf)(express@5.2.1)(jose@6.2.10)(typescript@6.0.3)(viem@2.56.0(bufferutil@4.1.0)(typescript@6.0.3)(utf-8-validate@5.0.10)(zod@4.5.4))
       permissionless:
         specifier: 0.4.0
         version: 0.4.0(viem@2.56.0(bufferutil@4.1.0)(typescript@6.0.3)(utf-8-validate@5.0.10)(zod@4.5.4))
@@ -12415,7 +12415,7 @@ snapshots:
       '@codemirror/state': 6.7.2
       '@codemirror/view': 6.43.10
 
-  '@rhinestone/sdk@1.8.0(patch_hash=358b2302ad360224b413b87d3492e2029434cc50ecfc03ed6414ef17fcba2f11)(express@5.2.1)(jose@6.2.10)(typescript@6.0.3)(viem@2.56.0(bufferutil@4.1.0)(typescript@6.0.3)(utf-8-validate@5.0.10)(zod@3.25.76))':
+  '@rhinestone/sdk@1.8.0(patch_hash=805bf1463590449f22dea003cae7f68471945c029cb685406c54af47a18714bf)(express@5.2.1)(jose@6.2.10)(typescript@6.0.3)(viem@2.56.0(bufferutil@4.1.0)(typescript@6.0.3)(utf-8-validate@5.0.10)(zod@3.25.76))':
     dependencies:
       '@rhinestone/shared-configs': 1.6.10(typescript@6.0.3)(viem@2.56.0(bufferutil@4.1.0)(typescript@6.0.3)(utf-8-validate@5.0.10)(zod@3.25.76))
       solady: 0.1.26
@@ -12426,7 +12426,7 @@ snapshots:
     transitivePeerDependencies:
       - typescript
 
-  '@rhinestone/sdk@1.8.0(patch_hash=358b2302ad360224b413b87d3492e2029434cc50ecfc03ed6414ef17fcba2f11)(express@5.2.1)(jose@6.2.10)(typescript@6.0.3)(viem@2.56.0(bufferutil@4.1.0)(typescript@6.0.3)(utf-8-validate@5.0.10)(zod@4.5.4))':
+  '@rhinestone/sdk@1.8.0(patch_hash=805bf1463590449f22dea003cae7f68471945c029cb685406c54af47a18714bf)(express@5.2.1)(jose@6.2.10)(typescript@6.0.3)(viem@2.56.0(bufferutil@4.1.0)(typescript@6.0.3)(utf-8-validate@5.0.10)(zod@4.5.4))':
     dependencies:
       '@rhinestone/shared-configs': 1.6.10(typescript@6.0.3)(viem@2.56.0(bufferutil@4.1.0)(typescript@6.0.3)(utf-8-validate@5.0.10)(zod@4.5.4))
       solady: 0.1.26

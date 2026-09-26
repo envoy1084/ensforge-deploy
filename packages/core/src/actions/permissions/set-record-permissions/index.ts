@@ -103,6 +103,14 @@ const implementation = Effect.fn("ensforge.setRecordPermissions")(function* (
     });
   }
 
+  if (parameters.approved && parameters.allowScopeWidening !== true) {
+    return yield* new AuthorizationError({
+      code: "SCOPE_WIDENING_REQUIRED",
+      message:
+        "Permissioned Resolver grants apply to the selected record arguments across every name served by this resolver",
+    });
+  }
+
   const exact = permissions.records.map((permission) => ({
     record: permission.record,
     resource: permission.resource,
@@ -152,8 +160,8 @@ const implementation = Effect.fn("ensforge.setRecordPermissions")(function* (
     resolver: resolver.address,
     account,
     approved: parameters.approved,
-    scope: "exact",
-    widened: false,
+    scope: "resolver",
+    widened: true,
     permissions: exact.map((permission) => ({
       record: permission.record,
       resource: permission.resource as bigint,

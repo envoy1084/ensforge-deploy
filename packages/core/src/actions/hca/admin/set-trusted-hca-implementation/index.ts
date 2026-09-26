@@ -18,7 +18,7 @@ export const setTrustedHcaImplementation = defineAction<
 >(
   Effect.fn("ensforge.setTrustedHcaImplementation")(function* (config, parameters) {
     const profile = yield* resolveHcaProfile(config);
-    const address = yield* validateHcaAddress(profile.deployment.experimental?.hca.trustedSet);
+    const address = yield* validateHcaAddress(profile.deployment.experimental?.hca.upgradeSet);
 
     const implementation = yield* validateHcaAddress(parameters.implementation);
 

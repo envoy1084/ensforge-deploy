@@ -22,7 +22,6 @@ export {
   ensContractsV2Repository,
   ensDevnetChainId,
   ensDevnetImage,
-  ensDevnetImageDigest,
   ensDevnetImageRepository,
   ensDevnetPublishedImage,
   verifyContractsSource,

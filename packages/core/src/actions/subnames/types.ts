@@ -44,6 +44,8 @@ export interface CreateSubnameResult extends WorkflowProgress {
 }
 
 export interface SetSubnameManagerParameters extends SubnameParameters {
+  /** Explicitly accept ENSv2 transfers while parent control or other role assignees remain. */
+  readonly unsafe?: boolean;
   readonly manager: string;
 }
 
@@ -72,6 +74,8 @@ export interface SetSubnameRecordResult {
 }
 
 export interface TransferSubnameParameters extends SubnameParameters {
+  /** Explicitly accept ENSv2 transfers while parent control or other role assignees remain. */
+  readonly unsafe?: boolean;
   readonly to: string;
   readonly walletClient?: WalletClient;
   readonly account?: Account | Address;

@@ -68,11 +68,18 @@ export const startHcaRegistration = defineAction<
           args: [enhancedAccessControlRoles.allRoles, account.address],
         });
 
-        if (!controlsResolver)
+        const ownerControlsResolver = await config.publicClient.readContract({
+          address: parameters.resolver,
+          abi: permissionedResolverV2InterfaceHasRootRolesAbi,
+          functionName: "hasRootRoles",
+          args: [enhancedAccessControlRoles.allRoles, account.owner],
+        });
+
+        if (!controlsResolver || !ownerControlsResolver)
           throw new HcaError({
             code: "INVALID_PARAMETERS",
             message:
-              "Deploy a permissioned resolver controlled by the HCA before starting registration",
+              "Deploy a permissioned resolver with ALL root roles for both the HCA and owner before starting registration",
           });
 
         const secret = bytesToHex(crypto.getRandomValues(new Uint8Array(32)));

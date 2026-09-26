@@ -3,8 +3,23 @@ import type { Abi } from "viem";
 export const userRegistryV2InitializeAbi = [
   {
     inputs: [
-      { internalType: "address", name: "rootAccount", type: "address" },
-      { internalType: "uint256", name: "roleBitmap", type: "uint256" },
+      {
+        components: [
+          {
+            internalType: "address",
+            name: "account",
+            type: "address",
+          },
+          {
+            internalType: "uint256",
+            name: "roleBitmap",
+            type: "uint256",
+          },
+        ],
+        internalType: "struct Grant[]",
+        name: "grants",
+        type: "tuple[]",
+      },
     ],
     name: "initialize",
     outputs: [],

@@ -1,15 +1,12 @@
-/** Compiler immutable-reference offsets from the pinned StandaloneHCAImplementation artifact.
- * Template hash excludes the 53-byte Solidity metadata trailer and zero-fills immutable words.
- * The pinned image differs from Sepolia only in its metadata hash, not executable instructions.
- * The default validator has no public getter and is not part of Nexus's installed-validator list.
- */
+/** Runtime layout from the pinned StandaloneHCAImplementation deployment artifact. */
 export const hcaImplementationRuntime = {
   metadataBytes: 53,
-  runtimeBytes: 21632,
-  templateHash: "0x85419472040278bfde2060abf1bdec7199bf3b04e87e8386ae8705374bfe09eb",
+  runtimeBytes: 21624,
+  templateHash: "0x279dcbae782ac50372344c7a011af75b7d081392a9e6ce4b3f1c39c99c17dbac",
   immutableWordOffsets: [
-    1670, 2678, 3193, 3589, 3664, 5194, 6354, 7211, 7341, 7847, 2870, 3064, 6267, 9676, 3486, 11739,
-    11790, 10648, 13448, 16262, 16297, 16377, 16415, 16229, 1087, 13938, 1622, 8391,
+    1690, 2775, 3289, 3640, 3715, 5288, 6472, 7330, 7460, 7966, 2583, 2967, 3160, 6385, 14104,
+    11689, 11740, 10384, 13398, 16345, 16380, 16460, 16498, 16312, 1774, 13903, 1114, 8510, 1430,
+    3420, 10433, 3561,
   ],
-  defaultValidatorWordOffsets: [2870, 3064, 6267, 9676],
+  defaultValidatorWordOffsets: [2583, 2967, 3160, 6385, 14104],
 } as const;

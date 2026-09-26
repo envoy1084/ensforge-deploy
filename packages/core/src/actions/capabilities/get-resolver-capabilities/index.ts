@@ -93,7 +93,21 @@ const getResolverCapabilitiesEffect = Effect.fn("ensforge.getResolverCapabilitie
           permissioned,
           deployment.profile,
         ),
-        profiles,
+        profiles: permissioned
+          ? {
+              ...profiles,
+              address: true,
+              text: true,
+              contentHash: true,
+              abi: true,
+              interface: true,
+              name: true,
+              data: true,
+              pubkey: false,
+              dnsRecord: false,
+              dnsZone: false,
+            }
+          : profiles,
       } as const satisfies ResolverCapabilities;
     }),
   );

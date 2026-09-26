@@ -47,6 +47,13 @@ import type { CreateResolverParameters } from "@ensforge/sdk/resolution";
 
 Value used for `salt` by this method.
 
+### grants
+
+`readonly { account: Address; roleBitmap: bigint }[] | undefined`
+
+Initial role grants for the resolver. When provided, these replace the default grant derived from
+`admin` and `roles`. For HCA session registration, grant all roles to the HCA first and its owner second.
+
 ### admin
 
 `string | undefined`

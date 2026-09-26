@@ -13,7 +13,7 @@ concurrency:
 
 env:
   # Source matches the compiler inputs saved with the Sepolia deployment artifacts.
-  CONTRACTS_COMMIT: 09bf3ac64a6fb1b215573c019b17e8c501bb3ca0
+  CONTRACTS_COMMIT: 71a3b7339dbc55ab47667abdfe8303bac4f4c24e
 
 jobs:
   publish:
@@ -22,6 +22,9 @@ jobs:
     timeout-minutes: 60
 
     steps:
+      - name: Checkout Ensforge build configuration
+        uses: actions/checkout@v7
+
       - name: Prepare image metadata
         id: metadata
         shell: bash
@@ -54,7 +57,7 @@ jobs:
         uses: docker/build-push-action@v7
         with:
           context: .repos/ens-contracts-v2
-          file: .repos/ens-contracts-v2/Dockerfile
+          file: scripts/devnet.Dockerfile
           platforms: linux/amd64
           push: true
           tags: |

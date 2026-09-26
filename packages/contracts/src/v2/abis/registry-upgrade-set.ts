@@ -1,4 +1,4 @@
-/** Complete RegistryUpgradeSet ABI from the ENSv2 Sepolia deployment. */
+/** ABI from the pinned Sepolia deployment artifact. */
 export const registryUpgradeSetV2Abi = [
   {
     inputs: [
@@ -401,6 +401,35 @@ export const registryUpgradeSetV2Abi = [
       },
     ],
     name: "isContractNamer",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "resource",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "roleBitmap",
+        type: "uint256",
+      },
+      {
+        internalType: "address",
+        name: "account",
+        type: "address",
+      },
+    ],
+    name: "isOnlyAssignee",
     outputs: [
       {
         internalType: "bool",

@@ -1,4 +1,4 @@
-/** Complete LockedMigrationController ABI from the ENSv2 Sepolia deployment. */
+/** ABI from the pinned Sepolia deployment artifact. */
 export const lockedMigrationControllerV2Abi = [
   {
     inputs: [

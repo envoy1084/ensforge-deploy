@@ -1,11 +1,15 @@
 import { Effect } from "effect";
 
-import { permissionedResolverV2InterfaceSetAliasAbi } from "@ensforge/contracts/v2";
+import {
+  permissionedResolverV2LinkToNodeAbi,
+  permissionedResolverV2LinkToRecordAbi,
+} from "@ensforge/contracts/v2";
 import { encodeFunctionData } from "viem";
 
 import { ContractError } from "../../../errors/contract-error.js";
 import { makeResolverWriteAction } from "../../../internal/write/resolver-write-action.js";
 import { dnsEncodeName } from "../../../names/dns.js";
+import { namehash } from "../../../names/hashes.js";
 import type { SetAliasParameters } from "./types.js";
 
 export const setAlias = makeResolverWriteAction<SetAliasParameters>({
@@ -15,16 +19,21 @@ export const setAlias = makeResolverWriteAction<SetAliasParameters>({
     Effect.gen(function* () {
       const fromName = yield* dnsEncodeName.effect(context.name);
 
-      const toName =
-        parameters.target === null ? "0x" : yield* dnsEncodeName.effect(parameters.target);
+      const toName = parameters.target === null ? null : namehash(parameters.target);
 
       return yield* Effect.try({
         try: () =>
-          encodeFunctionData({
-            abi: permissionedResolverV2InterfaceSetAliasAbi,
-            functionName: "setAlias",
-            args: [fromName, toName],
-          }),
+          toName === null
+            ? encodeFunctionData({
+                abi: permissionedResolverV2LinkToRecordAbi,
+                functionName: "linkToRecord",
+                args: [fromName, 0n],
+              })
+            : encodeFunctionData({
+                abi: permissionedResolverV2LinkToNodeAbi,
+                functionName: "linkToNode",
+                args: [fromName, toName],
+              }),
         catch: (cause) =>
           new ContractError({
             code: "ENCODE_FAILED",

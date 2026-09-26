@@ -87,7 +87,7 @@ export const standaloneHcaV2SignatureAbi = [
     outputs: [
       {
         internalType: "bytes4",
-        name: "",
+        name: "magicValue",
         type: "bytes4",
       },
     ],

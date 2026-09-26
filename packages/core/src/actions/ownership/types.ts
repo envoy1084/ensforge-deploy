@@ -57,6 +57,8 @@ export interface TransferNameProgress extends WorkflowProgress {
 }
 
 export interface TransferNameParameters extends WorkflowParameters {
+  /** Explicitly accept ENSv2 transfers while parent control or other role assignees remain. */
+  readonly unsafe?: boolean;
   readonly name: string;
   readonly to: string;
   readonly walletClient?: WalletClient;

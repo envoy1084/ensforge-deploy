@@ -1,4 +1,4 @@
-/** Complete WrapperRegistry ABI from the ENSv2 Sepolia deployment. */
+/** ABI from the pinned Sepolia deployment artifact. */
 export const wrapperRegistryV2Abi = [
   {
     inputs: [
@@ -428,6 +428,27 @@ export const wrapperRegistryV2Abi = [
       },
     ],
     name: "TransferDisallowed",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "TransferUnsafeUntilRegistryIsEmancipated",
+    type: "error",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "tokenId",
+        type: "uint256",
+      },
+      {
+        internalType: "address",
+        name: "from",
+        type: "address",
+      },
+    ],
+    name: "TransferUnsafeWithMultipleAssignees",
     type: "error",
   },
   {
@@ -1446,6 +1467,24 @@ export const wrapperRegistryV2Abi = [
   },
   {
     inputs: [],
+    name: "getURI",
+    outputs: [
+      {
+        internalType: "string",
+        name: "uri_",
+        type: "string",
+      },
+      {
+        internalType: "contract IRegistryURIRenderer",
+        name: "renderer",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
     name: "getWrappedName",
     outputs: [
       {
@@ -1527,7 +1566,7 @@ export const wrapperRegistryV2Abi = [
     inputs: [
       {
         internalType: "uint256",
-        name: "anyId",
+        name: "resource",
         type: "uint256",
       },
       {
@@ -1661,6 +1700,48 @@ export const wrapperRegistryV2Abi = [
       },
     ],
     name: "isContractNamer",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "isEmancipated",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "pure",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "resource",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "roleBitmap",
+        type: "uint256",
+      },
+      {
+        internalType: "address",
+        name: "account",
+        type: "address",
+      },
+    ],
+    name: "isOnlyAssignee",
     outputs: [
       {
         internalType: "bool",
@@ -2142,6 +2223,52 @@ export const wrapperRegistryV2Abi = [
       },
     ],
     name: "unregister",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "to",
+        type: "address",
+      },
+      {
+        internalType: "uint256[]",
+        name: "tokenIds",
+        type: "uint256[]",
+      },
+      {
+        internalType: "bytes",
+        name: "data",
+        type: "bytes",
+      },
+    ],
+    name: "unsafeBatchTransfer",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "to",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "tokenId",
+        type: "uint256",
+      },
+      {
+        internalType: "bytes",
+        name: "data",
+        type: "bytes",
+      },
+    ],
+    name: "unsafeTransfer",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",

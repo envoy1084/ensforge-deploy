@@ -10,6 +10,9 @@ import ErrorGuide from "../../../../../shared/core/error.mdx";
 
 Owner-authorize a constrained session.
 
+The owner signs a reusable authorization. This action sends no transaction and cannot be batched
+with `.call`. Pass the returned proof as `{ kind: "session", session: result }`.
+
 ## Import
 
 ```ts
@@ -61,9 +64,9 @@ HCA address to inspect or operate on.
 
 ### permissionId
 
-`` `0x${string}` ``
+`` `0x${string}` | undefined ``
 
-Permission identifier of the prepared or enabled session.
+Optional expected permission ID. Omit it to derive the ID from the signed policy.
 
 ### sessionKey
 
@@ -104,7 +107,7 @@ Wallet account override for the operation.
 ## Return Type
 
 ```ts
-import type { HcaTransactionSubmission } from "@ensforge/core/hca";
+import type { HcaSessionAuthorization } from "@ensforge/core/hca";
 ```
 
 ## Effect
@@ -123,16 +126,6 @@ type Failure = Effect.Error<typeof program>;
 
 const result = await Effect.runPromise(program);
 ```
-
-## Call
-
-```ts
-const intent = enableHcaSession.call({
-  ...session.parameters,
-});
-```
-
-Preparing an intent does not submit a transaction.
 
 ## Error
 

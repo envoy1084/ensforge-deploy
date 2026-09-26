@@ -49,6 +49,7 @@ const completeRecordCalls = (
   name: string,
   suffix: string,
   bitcoinAddress: string,
+  includePubkey = true,
 ) => [
   setTexts.call({
     name,
@@ -67,7 +68,7 @@ const completeRecordCalls = (
   }),
   setContentHash.call({ name, protocol: "ipfs", value: contentHashValue }),
   setAbi.call({ name, contentType: "json", value: phaseAbi }),
-  setPubkey.call({ name, ...pubkey }),
+  ...(includePubkey ? [setPubkey.call({ name, ...pubkey })] : []),
   setInterface.call({ name, interfaceId, implementer: devnet.accounts.owner2 }),
   setData.call({ name, key: `com.ensforge.phase10.${suffix}`, value: "0x1234" }),
   setName.call({ name, value: `primary-${suffix}.eth` }),
@@ -139,7 +140,7 @@ describe("resolver write integration", () => {
       assert.isNotNull(bitcoinAddress);
 
       const result = yield* sendCalls.effect(devnet.configs.v2, {
-        calls: completeRecordCalls(devnet, fixture.name, "v2-role", bitcoinAddress),
+        calls: completeRecordCalls(devnet, fixture.name, "v2-role", bitcoinAddress, false),
         mode: "sequential",
       });
 
@@ -150,7 +151,7 @@ describe("resolver write integration", () => {
           texts: ["com.ensforge.phase10.v2-role.one", "avatar"],
           contentHash: true,
           abi: { contentTypes: ["json"] },
-          pubkey: true,
+          pubkey: false,
           interfaces: [interfaceId],
           data: ["com.ensforge.phase10.v2-role"],
           name: true,
@@ -165,7 +166,6 @@ describe("resolver write integration", () => {
       assert.isNull(records.texts[1]?.value);
       assert.strictEqual(records.contentHash.value, contentHashValue);
       assert.deepStrictEqual(records.abi.value, phaseAbi);
-      assert.deepStrictEqual(records.pubkey, pubkey);
       assert.strictEqual(records.interfaces[0]?.implementer, devnet.accounts.owner2);
       assert.strictEqual(records.data[0]?.value, "0x1234");
       assert.strictEqual(records.nameRecord.name, "primary-v2-role.eth");

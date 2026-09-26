@@ -1,4 +1,4 @@
-/** Complete PermissionedResolver ABI from the ENSv2 Sepolia deployment. */
+/** ABI from the pinned Sepolia deployment artifact. */
 export const permissionedResolverV2Abi = [
   {
     inputs: [
@@ -199,6 +199,11 @@ export const permissionedResolverV2Abi = [
   },
   {
     inputs: [],
+    name: "InvalidRecord",
+    type: "error",
+  },
+  {
+    inputs: [],
     name: "NotInitializing",
     type: "error",
   },
@@ -234,9 +239,9 @@ export const permissionedResolverV2Abi = [
     inputs: [
       {
         indexed: true,
-        internalType: "bytes32",
-        name: "node",
-        type: "bytes32",
+        internalType: "uint256",
+        name: "recordId",
+        type: "uint256",
       },
       {
         indexed: true,
@@ -245,7 +250,7 @@ export const permissionedResolverV2Abi = [
         type: "uint256",
       },
     ],
-    name: "ABIChanged",
+    name: "ABIUpdated",
     type: "event",
   },
   {
@@ -253,28 +258,9 @@ export const permissionedResolverV2Abi = [
     inputs: [
       {
         indexed: true,
-        internalType: "bytes32",
-        name: "node",
-        type: "bytes32",
-      },
-      {
-        indexed: false,
-        internalType: "address",
-        name: "a",
-        type: "address",
-      },
-    ],
-    name: "AddrChanged",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "bytes32",
-        name: "node",
-        type: "bytes32",
+        internalType: "uint256",
+        name: "recordId",
+        type: "uint256",
       },
       {
         indexed: false,
@@ -285,11 +271,11 @@ export const permissionedResolverV2Abi = [
       {
         indexed: false,
         internalType: "bytes",
-        name: "newAddress",
+        name: "addressBytes",
         type: "bytes",
       },
     ],
-    name: "AddressChanged",
+    name: "AddressUpdated",
     type: "event",
   },
   {
@@ -297,30 +283,12 @@ export const permissionedResolverV2Abi = [
     inputs: [
       {
         indexed: true,
-        internalType: "bytes",
-        name: "indexedFromName",
-        type: "bytes",
-      },
-      {
-        indexed: true,
-        internalType: "bytes",
-        name: "indexedToName",
-        type: "bytes",
-      },
-      {
-        indexed: false,
-        internalType: "bytes",
-        name: "fromName",
-        type: "bytes",
-      },
-      {
-        indexed: false,
-        internalType: "bytes",
-        name: "toName",
-        type: "bytes",
+        internalType: "uint256",
+        name: "recordId",
+        type: "uint256",
       },
     ],
-    name: "AliasChanged",
+    name: "Cleared",
     type: "event",
   },
   {
@@ -328,9 +296,9 @@ export const permissionedResolverV2Abi = [
     inputs: [
       {
         indexed: true,
-        internalType: "bytes32",
-        name: "node",
-        type: "bytes32",
+        internalType: "uint256",
+        name: "recordId",
+        type: "uint256",
       },
       {
         indexed: false,
@@ -339,7 +307,7 @@ export const permissionedResolverV2Abi = [
         type: "bytes",
       },
     ],
-    name: "ContenthashChanged",
+    name: "ContenthashUpdated",
     type: "event",
   },
   {
@@ -347,14 +315,14 @@ export const permissionedResolverV2Abi = [
     inputs: [
       {
         indexed: true,
-        internalType: "bytes32",
-        name: "node",
-        type: "bytes32",
+        internalType: "uint256",
+        name: "recordId",
+        type: "uint256",
       },
       {
         indexed: true,
         internalType: "string",
-        name: "indexedKey",
+        name: "keyHash",
         type: "string",
       },
       {
@@ -364,13 +332,13 @@ export const permissionedResolverV2Abi = [
         type: "string",
       },
       {
-        indexed: true,
+        indexed: false,
         internalType: "bytes",
-        name: "indexedData",
+        name: "value",
         type: "bytes",
       },
     ],
-    name: "DataChanged",
+    name: "DataUpdated",
     type: "event",
   },
   {
@@ -422,14 +390,14 @@ export const permissionedResolverV2Abi = [
     inputs: [
       {
         indexed: true,
-        internalType: "bytes32",
-        name: "node",
-        type: "bytes32",
+        internalType: "uint256",
+        name: "recordId",
+        type: "uint256",
       },
       {
         indexed: true,
         internalType: "bytes4",
-        name: "interfaceID",
+        name: "interfaceId",
         type: "bytes4",
       },
       {
@@ -439,12 +407,18 @@ export const permissionedResolverV2Abi = [
         type: "address",
       },
     ],
-    name: "InterfaceChanged",
+    name: "InterfaceUpdated",
     type: "event",
   },
   {
     anonymous: false,
     inputs: [
+      {
+        indexed: true,
+        internalType: "uint256",
+        name: "recordId",
+        type: "uint256",
+      },
       {
         indexed: true,
         internalType: "bytes32",
@@ -453,12 +427,37 @@ export const permissionedResolverV2Abi = [
       },
       {
         indexed: false,
-        internalType: "string",
+        internalType: "bytes",
         name: "name",
+        type: "bytes",
+      },
+    ],
+    name: "Linked",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "uint256",
+        name: "recordId",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "string",
+        name: "primaryName",
         type: "string",
       },
     ],
-    name: "NameChanged",
+    name: "NameUpdated",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [],
+    name: "ResolverCreated",
     type: "event",
   },
   {
@@ -473,17 +472,11 @@ export const permissionedResolverV2Abi = [
       {
         indexed: false,
         internalType: "bytes",
-        name: "name",
+        name: "arg",
         type: "bytes",
-      },
-      {
-        indexed: true,
-        internalType: "uint256",
-        name: "coinType",
-        type: "uint256",
       },
     ],
-    name: "NamedAddrResource",
+    name: "ResourceArgument",
     type: "event",
   },
   {
@@ -492,119 +485,13 @@ export const permissionedResolverV2Abi = [
       {
         indexed: true,
         internalType: "uint256",
-        name: "resource",
+        name: "recordId",
         type: "uint256",
       },
       {
-        indexed: false,
-        internalType: "bytes",
-        name: "name",
-        type: "bytes",
-      },
-      {
         indexed: true,
-        internalType: "bytes32",
+        internalType: "string",
         name: "keyHash",
-        type: "bytes32",
-      },
-      {
-        indexed: false,
-        internalType: "string",
-        name: "key",
-        type: "string",
-      },
-    ],
-    name: "NamedDataResource",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "uint256",
-        name: "resource",
-        type: "uint256",
-      },
-      {
-        indexed: false,
-        internalType: "bytes",
-        name: "name",
-        type: "bytes",
-      },
-    ],
-    name: "NamedResource",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "uint256",
-        name: "resource",
-        type: "uint256",
-      },
-      {
-        indexed: false,
-        internalType: "bytes",
-        name: "name",
-        type: "bytes",
-      },
-      {
-        indexed: true,
-        internalType: "bytes32",
-        name: "keyHash",
-        type: "bytes32",
-      },
-      {
-        indexed: false,
-        internalType: "string",
-        name: "key",
-        type: "string",
-      },
-    ],
-    name: "NamedTextResource",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "bytes32",
-        name: "node",
-        type: "bytes32",
-      },
-      {
-        indexed: false,
-        internalType: "bytes32",
-        name: "x",
-        type: "bytes32",
-      },
-      {
-        indexed: false,
-        internalType: "bytes32",
-        name: "y",
-        type: "bytes32",
-      },
-    ],
-    name: "PubkeyChanged",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "bytes32",
-        name: "node",
-        type: "bytes32",
-      },
-      {
-        indexed: true,
-        internalType: "string",
-        name: "indexedKey",
         type: "string",
       },
       {
@@ -620,7 +507,7 @@ export const permissionedResolverV2Abi = [
         type: "string",
       },
     ],
-    name: "TextChanged",
+    name: "TextUpdated",
     type: "event",
   },
   {
@@ -635,54 +522,6 @@ export const permissionedResolverV2Abi = [
     ],
     name: "Upgraded",
     type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "bytes32",
-        name: "node",
-        type: "bytes32",
-      },
-      {
-        indexed: false,
-        internalType: "uint64",
-        name: "newVersion",
-        type: "uint64",
-      },
-    ],
-    name: "VersionChanged",
-    type: "event",
-  },
-  {
-    inputs: [
-      {
-        internalType: "bytes32",
-        name: "node",
-        type: "bytes32",
-      },
-      {
-        internalType: "uint256",
-        name: "contentTypes",
-        type: "uint256",
-      },
-    ],
-    name: "ABI",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "contentType",
-        type: "uint256",
-      },
-      {
-        internalType: "bytes",
-        name: "value",
-        type: "bytes",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
   },
   {
     inputs: [],
@@ -713,185 +552,6 @@ export const permissionedResolverV2Abi = [
   {
     inputs: [
       {
-        internalType: "bytes32",
-        name: "node",
-        type: "bytes32",
-      },
-    ],
-    name: "addr",
-    outputs: [
-      {
-        internalType: "address payable",
-        name: "",
-        type: "address",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "bytes32",
-        name: "node",
-        type: "bytes32",
-      },
-      {
-        internalType: "uint256",
-        name: "coinType",
-        type: "uint256",
-      },
-    ],
-    name: "addr",
-    outputs: [
-      {
-        internalType: "bytes",
-        name: "addressBytes",
-        type: "bytes",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "bytes",
-        name: "toName",
-        type: "bytes",
-      },
-      {
-        internalType: "uint256",
-        name: "coinType",
-        type: "uint256",
-      },
-      {
-        internalType: "address",
-        name: "account",
-        type: "address",
-      },
-      {
-        internalType: "bool",
-        name: "grant",
-        type: "bool",
-      },
-    ],
-    name: "authorizeAddrRoles",
-    outputs: [
-      {
-        internalType: "bool",
-        name: "updated",
-        type: "bool",
-      },
-    ],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "bytes",
-        name: "toName",
-        type: "bytes",
-      },
-      {
-        internalType: "string",
-        name: "key",
-        type: "string",
-      },
-      {
-        internalType: "address",
-        name: "account",
-        type: "address",
-      },
-      {
-        internalType: "bool",
-        name: "grant",
-        type: "bool",
-      },
-    ],
-    name: "authorizeDataRoles",
-    outputs: [
-      {
-        internalType: "bool",
-        name: "",
-        type: "bool",
-      },
-    ],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "bytes",
-        name: "toName",
-        type: "bytes",
-      },
-      {
-        internalType: "uint256",
-        name: "roleBitmap",
-        type: "uint256",
-      },
-      {
-        internalType: "address",
-        name: "account",
-        type: "address",
-      },
-      {
-        internalType: "bool",
-        name: "grant",
-        type: "bool",
-      },
-    ],
-    name: "authorizeNameRoles",
-    outputs: [
-      {
-        internalType: "bool",
-        name: "",
-        type: "bool",
-      },
-    ],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "bytes",
-        name: "toName",
-        type: "bytes",
-      },
-      {
-        internalType: "string",
-        name: "key",
-        type: "string",
-      },
-      {
-        internalType: "address",
-        name: "account",
-        type: "address",
-      },
-      {
-        internalType: "bool",
-        name: "grant",
-        type: "bool",
-      },
-    ],
-    name: "authorizeTextRoles",
-    outputs: [
-      {
-        internalType: "bool",
-        name: "",
-        type: "bool",
-      },
-    ],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
         internalType: "address",
         name: "",
         type: "address",
@@ -911,76 +571,30 @@ export const permissionedResolverV2Abi = [
   {
     inputs: [
       {
-        internalType: "bytes32",
-        name: "node",
-        type: "bytes32",
+        internalType: "bytes",
+        name: "setter",
+        type: "bytes",
       },
     ],
-    name: "clearRecords",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "bytes32",
-        name: "node",
-        type: "bytes32",
-      },
-    ],
-    name: "contenthash",
+    name: "decodeSetter",
     outputs: [
       {
         internalType: "bytes",
-        name: "",
+        name: "arg",
         type: "bytes",
       },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
       {
-        internalType: "bytes32",
-        name: "node",
-        type: "bytes32",
+        internalType: "uint256",
+        name: "resource",
+        type: "uint256",
       },
       {
-        internalType: "string",
-        name: "key",
-        type: "string",
+        internalType: "uint256",
+        name: "roleBitmap",
+        type: "uint256",
       },
     ],
-    name: "data",
-    outputs: [
-      {
-        internalType: "bytes",
-        name: "",
-        type: "bytes",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "bytes",
-        name: "fromName",
-        type: "bytes",
-      },
-    ],
-    name: "getAlias",
-    outputs: [
-      {
-        internalType: "bytes",
-        name: "toName",
-        type: "bytes",
-      },
-    ],
-    stateMutability: "view",
+    stateMutability: "pure",
     type: "function",
   },
   {
@@ -1006,6 +620,38 @@ export const permissionedResolverV2Abi = [
       {
         internalType: "uint256",
         name: "mask",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "getRecordCount",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes32",
+        name: "node",
+        type: "bytes32",
+      },
+    ],
+    name: "getRecordId",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
         type: "uint256",
       },
     ],
@@ -1068,17 +714,17 @@ export const permissionedResolverV2Abi = [
   {
     inputs: [
       {
-        internalType: "bytes32",
-        name: "node",
-        type: "bytes32",
+        internalType: "bytes",
+        name: "setter",
+        type: "bytes",
       },
       {
-        internalType: "uint256",
-        name: "coinType",
-        type: "uint256",
+        internalType: "address",
+        name: "account",
+        type: "address",
       },
     ],
-    name: "hasAddr",
+    name: "grantSetterRoles",
     outputs: [
       {
         internalType: "bool",
@@ -1086,7 +732,7 @@ export const permissionedResolverV2Abi = [
         type: "bool",
       },
     ],
-    stateMutability: "view",
+    stateMutability: "nonpayable",
     type: "function",
   },
   {
@@ -1169,48 +815,31 @@ export const permissionedResolverV2Abi = [
   {
     inputs: [
       {
-        internalType: "address",
-        name: "admin",
-        type: "address",
-      },
-      {
-        internalType: "uint256",
-        name: "roleBitmap",
-        type: "uint256",
+        components: [
+          {
+            internalType: "address",
+            name: "account",
+            type: "address",
+          },
+          {
+            internalType: "uint256",
+            name: "roleBitmap",
+            type: "uint256",
+          },
+        ],
+        internalType: "struct Grant[]",
+        name: "grants",
+        type: "tuple[]",
       },
       {
         internalType: "bytes[]",
-        name: "setters",
+        name: "calls",
         type: "bytes[]",
       },
     ],
     name: "initialize",
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "bytes32",
-        name: "node",
-        type: "bytes32",
-      },
-      {
-        internalType: "bytes4",
-        name: "interfaceId",
-        type: "bytes4",
-      },
-    ],
-    name: "interfaceImplementer",
-    outputs: [
-      {
-        internalType: "address",
-        name: "implementer",
-        type: "address",
-      },
-    ],
-    stateMutability: "view",
     type: "function",
   },
   {
@@ -1230,6 +859,71 @@ export const permissionedResolverV2Abi = [
       },
     ],
     stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "resource",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "roleBitmap",
+        type: "uint256",
+      },
+      {
+        internalType: "address",
+        name: "account",
+        type: "address",
+      },
+    ],
+    name: "isOnlyAssignee",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes",
+        name: "sourceName",
+        type: "bytes",
+      },
+      {
+        internalType: "bytes32",
+        name: "targetNode",
+        type: "bytes32",
+      },
+    ],
+    name: "linkToNode",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes",
+        name: "sourceName",
+        type: "bytes",
+      },
+      {
+        internalType: "uint256",
+        name: "recordId",
+        type: "uint256",
+      },
+    ],
+    name: "linkToRecord",
+    outputs: [],
+    stateMutability: "nonpayable",
     type: "function",
   },
   {
@@ -1276,25 +970,6 @@ export const permissionedResolverV2Abi = [
     type: "function",
   },
   {
-    inputs: [
-      {
-        internalType: "bytes32",
-        name: "node",
-        type: "bytes32",
-      },
-    ],
-    name: "name",
-    outputs: [
-      {
-        internalType: "string",
-        name: "",
-        type: "string",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
     inputs: [],
     name: "proxiableUUID",
     outputs: [
@@ -1310,56 +985,13 @@ export const permissionedResolverV2Abi = [
   {
     inputs: [
       {
-        internalType: "bytes32",
-        name: "node",
-        type: "bytes32",
-      },
-    ],
-    name: "pubkey",
-    outputs: [
-      {
-        internalType: "bytes32",
-        name: "x",
-        type: "bytes32",
-      },
-      {
-        internalType: "bytes32",
-        name: "y",
-        type: "bytes32",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "bytes32",
-        name: "node",
-        type: "bytes32",
-      },
-    ],
-    name: "recordVersions",
-    outputs: [
-      {
-        internalType: "uint64",
-        name: "",
-        type: "uint64",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
         internalType: "bytes",
-        name: "fromName",
+        name: "name",
         type: "bytes",
       },
       {
         internalType: "bytes",
-        name: "fromData",
+        name: "data",
         type: "bytes",
       },
     ],
@@ -1400,7 +1032,7 @@ export const permissionedResolverV2Abi = [
         type: "bool",
       },
     ],
-    stateMutability: "pure",
+    stateMutability: "nonpayable",
     type: "function",
   },
   {
@@ -1473,9 +1105,9 @@ export const permissionedResolverV2Abi = [
   {
     inputs: [
       {
-        internalType: "bytes32",
-        name: "node",
-        type: "bytes32",
+        internalType: "bytes",
+        name: "name",
+        type: "bytes",
       },
       {
         internalType: "uint256",
@@ -1484,7 +1116,7 @@ export const permissionedResolverV2Abi = [
       },
       {
         internalType: "bytes",
-        name: "value",
+        name: "data",
         type: "bytes",
       },
     ],
@@ -1496,9 +1128,9 @@ export const permissionedResolverV2Abi = [
   {
     inputs: [
       {
-        internalType: "bytes32",
-        name: "node",
-        type: "bytes32",
+        internalType: "bytes",
+        name: "name",
+        type: "bytes",
       },
       {
         internalType: "uint256",
@@ -1511,25 +1143,7 @@ export const permissionedResolverV2Abi = [
         type: "bytes",
       },
     ],
-    name: "setAddr",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "bytes32",
-        name: "node",
-        type: "bytes32",
-      },
-      {
-        internalType: "address",
-        name: "addr_",
-        type: "address",
-      },
-    ],
-    name: "setAddr",
+    name: "setAddress",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
@@ -1538,26 +1152,8 @@ export const permissionedResolverV2Abi = [
     inputs: [
       {
         internalType: "bytes",
-        name: "fromName",
+        name: "name",
         type: "bytes",
-      },
-      {
-        internalType: "bytes",
-        name: "toName",
-        type: "bytes",
-      },
-    ],
-    name: "setAlias",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "bytes32",
-        name: "node",
-        type: "bytes32",
       },
       {
         internalType: "bytes",
@@ -1573,9 +1169,9 @@ export const permissionedResolverV2Abi = [
   {
     inputs: [
       {
-        internalType: "bytes32",
-        name: "node",
-        type: "bytes32",
+        internalType: "bytes",
+        name: "name",
+        type: "bytes",
       },
       {
         internalType: "string",
@@ -1596,9 +1192,9 @@ export const permissionedResolverV2Abi = [
   {
     inputs: [
       {
-        internalType: "bytes32",
-        name: "node",
-        type: "bytes32",
+        internalType: "bytes",
+        name: "name",
+        type: "bytes",
       },
       {
         internalType: "bytes4",
@@ -1619,13 +1215,13 @@ export const permissionedResolverV2Abi = [
   {
     inputs: [
       {
-        internalType: "bytes32",
-        name: "node",
-        type: "bytes32",
+        internalType: "bytes",
+        name: "name",
+        type: "bytes",
       },
       {
         internalType: "string",
-        name: "primary",
+        name: "primaryName",
         type: "string",
       },
     ],
@@ -1637,32 +1233,9 @@ export const permissionedResolverV2Abi = [
   {
     inputs: [
       {
-        internalType: "bytes32",
-        name: "node",
-        type: "bytes32",
-      },
-      {
-        internalType: "bytes32",
-        name: "x",
-        type: "bytes32",
-      },
-      {
-        internalType: "bytes32",
-        name: "y",
-        type: "bytes32",
-      },
-    ],
-    name: "setPubkey",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "bytes32",
-        name: "node",
-        type: "bytes32",
+        internalType: "bytes",
+        name: "name",
+        type: "bytes",
       },
       {
         internalType: "string",
@@ -1713,30 +1286,6 @@ export const permissionedResolverV2Abi = [
         internalType: "bool",
         name: "",
         type: "bool",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "bytes32",
-        name: "node",
-        type: "bytes32",
-      },
-      {
-        internalType: "string",
-        name: "key",
-        type: "string",
-      },
-    ],
-    name: "text",
-    outputs: [
-      {
-        internalType: "string",
-        name: "",
-        type: "string",
       },
     ],
     stateMutability: "view",

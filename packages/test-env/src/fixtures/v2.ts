@@ -125,7 +125,9 @@ export const seedV2Fixtures = Effect.fn("seedV2Fixtures")(function* (
     const initialization = encodeFunctionData({
       abi: userRegistryV2InitializeAbi,
       functionName: "initialize",
-      args: [environment.accounts.owner, enhancedAccessControlRoles.allRoles],
+      args: [
+        [{ account: environment.accounts.owner, roleBitmap: enhancedAccessControlRoles.allRoles }],
+      ],
     });
 
     ensRegistry = yield* seedRead(

@@ -1,9 +1,6 @@
 import { Effect } from "effect";
 
-import {
-  permissionedResolverV2InterfaceGetAliasAbi,
-  resolverInterfaceIds,
-} from "@ensforge/contracts/v2";
+import { permissionedResolverV2InterfaceGetAliasAbi } from "@ensforge/contracts/v2";
 
 import { defineReadAction } from "../../../action/read-request.js";
 import type { EnsforgeConfig } from "../../../config/config.js";
@@ -37,10 +34,7 @@ const getAliasEffect = Effect.fn("ensforge.getAlias")(function* (
         } as const satisfies AliasResult;
       }
 
-      const permissioned = yield* supportsInterface(
-        discovery.address,
-        resolverInterfaceIds.permissionedResolver,
-      );
+      const permissioned = yield* supportsInterface(discovery.address, "0x91413117");
 
       if (!permissioned) {
         return {

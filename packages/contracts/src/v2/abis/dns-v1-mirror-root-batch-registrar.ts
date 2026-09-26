@@ -1,3 +1,4 @@
+/** Legacy ABI. Not deployed by the current Sepolia profile. */
 /** Complete DNSV1MirrorRootBatchRegistrar ABI from the ENSv2 Sepolia deployment. */
 export const dnsV1MirrorRootBatchRegistrarV2Abi = [
   {

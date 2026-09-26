@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 
+import { enhancedAccessControlRoles } from "@ensforge/contracts/v2";
 import { createMemoryWorkflowStorage } from "@ensforge/core/storage";
 import { createTestConfig } from "@ensforge/core/testing";
 import { Ensforge } from "@ensforge/sdk";
@@ -24,7 +25,13 @@ const submission = await sdk.hca.executeHcaCalls({
 const status = await sdk.hca.waitForHcaExecution({ submission });
 assert.equal(status.status, "succeeded");
 
-const created = await sdk.resolution.createResolver({ salt: 789902n, admin: hca });
+const created = await sdk.resolution.createResolver({
+  salt: 789902n,
+  grants: [
+    { account: hca, roleBitmap: enhancedAccessControlRoles.allRoles },
+    { account: devnet.accounts.owner, roleBitmap: enhancedAccessControlRoles.allRoles },
+  ],
+});
 assert.ok("resolver" in created);
 const resolver = created.resolver;
 assert.ok(devnet.deployments.v2.testTokens);

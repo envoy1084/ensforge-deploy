@@ -158,7 +158,7 @@ export const definitions = {
           avatar: toggleField({ initialValue: true, label: "Avatar" }),
           contentHash: toggleField({ initialValue: true, label: "Content hash" }),
           abi: toggleField({ initialValue: true, label: "ABI" }),
-          pubkey: toggleField({ initialValue: true, label: "Public key" }),
+          pubkey: toggleField({ initialValue: network === "mainnet", label: "Public key" }),
           nameRecord: toggleField({ initialValue: true, label: "Name record" }),
         },
       }),

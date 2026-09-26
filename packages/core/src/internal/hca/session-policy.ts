@@ -46,18 +46,16 @@ const decode = <A extends Abi>(abi: A, data: Hex) => {
 };
 
 const recordSetters = new Set([
-  "clearRecords",
   "setABI",
-  "setAddr",
+  "setAddress",
   "setContenthash",
   "setData",
   "setInterface",
-  "setPubkey",
   "setName",
   "setText",
 ]);
 
-const resolverCall = (data: Hex, owner: Hex, depth = 0): boolean => {
+const resolverCall = (data: Hex, depth = 0): boolean => {
   if (depth > 32)
     throw new HcaError({
       code: "INVALID_EXECUTION",
@@ -66,26 +64,10 @@ const resolverCall = (data: Hex, owner: Hex, depth = 0): boolean => {
 
   const call = decode(permissionedResolverV2Abi, data);
 
-  if (call.functionName === "multicall" || call.functionName === "multicallWithNodeCheck") {
-    const calls = call.functionName === "multicall" ? call.args[0] : call.args[1];
+  if (call.functionName === "multicall") {
+    const calls = call.args[0];
 
-    return calls.map((nested) => resolverCall(nested, owner, depth + 1)).some(Boolean);
-  }
-
-  if (call.functionName === "authorizeNameRoles") {
-    const expected = encodeFunctionData({
-      abi: permissionedResolverV2Abi,
-      functionName: "authorizeNameRoles",
-      args: ["0x00", enhancedAccessControlRoles.allRoles, owner, true],
-    });
-
-    if (!same(expected, data))
-      throw new HcaError({
-        code: "INVALID_EXECUTION",
-        message: "Sessions may only grant ALL root resolver roles to the immutable owner",
-      });
-
-    return true;
+    return calls.map((nested) => resolverCall(nested, depth + 1)).some(Boolean);
   }
 
   if (!recordSetters.has(call.functionName))
@@ -123,8 +105,6 @@ export const validateHcaSessionCalls = Effect.fn("validateHcaSessionCalls")(func
     try: () => {
       let deploys = false;
       let usesResolver = false;
-      let registers = false;
-      let grantsOwner = false;
 
       for (const call of calls) {
         if (call.value !== 0n)
@@ -145,7 +125,11 @@ export const validateHcaSessionCalls = Effect.fn("validateHcaSessionCalls")(func
             });
 
           if (decoded.functionName === "register") {
-            if (!same(decoded.args[1], account.owner) || !same(decoded.args[4], session.resolver))
+            if (
+              !same(decoded.args[1], account.owner) ||
+              !same(decoded.args[3], zeroAddress) ||
+              !same(decoded.args[4], session.resolver)
+            )
               throw new HcaError({
                 code: "INVALID_EXECUTION",
                 message: "Registration must name the immutable owner and bound resolver",
@@ -157,7 +141,6 @@ export const validateHcaSessionCalls = Effect.fn("validateHcaSessionCalls")(func
                 message: "Deploy the resolver before registration",
               });
 
-            registers = true;
             usesResolver = true;
           }
 
@@ -171,7 +154,7 @@ export const validateHcaSessionCalls = Effect.fn("validateHcaSessionCalls")(func
               message: "Deploy the resolver before writing records",
             });
 
-          grantsOwner = resolverCall(call.data, account.owner) || grantsOwner;
+          resolverCall(call.data);
           usesResolver = true;
           continue;
         }
@@ -234,21 +217,32 @@ export const validateHcaSessionCalls = Effect.fn("validateHcaSessionCalls")(func
 
           if (decoded.functionName === "deployProxy") {
             const [implementation, userSalt, initialization] = decoded.args;
-            const expected = encodeFunctionData({
-              abi: permissionedResolverV2Abi,
-              functionName: "initialize",
-              args: [account.address, enhancedAccessControlRoles.allRoles, []],
-            });
-
+            const decodedInitialization = decode(permissionedResolverV2Abi, initialization);
             if (
               !same(implementation, profile.deployment.implementations.permissionedResolver) ||
-              !same(initialization, expected)
+              decodedInitialization.functionName !== "initialize"
+            )
+              throw new HcaError({
+                code: "INVALID_EXECUTION",
+                message: "Resolver must use the recorded implementation and initialization",
+              });
+
+            const [grants, setters] = decodedInitialization.args;
+            if (
+              grants.length !== 2 ||
+              !grants[0] ||
+              !grants[1] ||
+              !same(grants[0].account, account.address) ||
+              !same(grants[1].account, account.owner) ||
+              grants.some((grant) => grant.roleBitmap !== enhancedAccessControlRoles.allRoles)
             )
               throw new HcaError({
                 code: "INVALID_EXECUTION",
                 message:
-                  "Resolver must use the recorded implementation and HCA ALL-role initializer",
+                  "Resolver initialization requires HCA and owner ALL-role grants in that order",
               });
+
+            for (const setter of setters) resolverCall(setter);
 
             const salt = keccak256(
               encodeAbiParameters(
@@ -287,12 +281,6 @@ export const validateHcaSessionCalls = Effect.fn("validateHcaSessionCalls")(func
           message: "Call target is outside the fixed ENS session policy",
         });
       }
-
-      if (registers && !grantsOwner)
-        throw new HcaError({
-          code: "INVALID_EXECUTION",
-          message: "Registration requires an ALL root-role grant to the immutable owner",
-        });
 
       return { usesResolver };
     },

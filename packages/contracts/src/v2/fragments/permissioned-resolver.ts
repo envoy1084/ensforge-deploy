@@ -3,11 +3,26 @@ import type { Abi } from "viem";
 export const permissionedResolverInitializableV2InterfaceInitializeAbi = [
   {
     inputs: [
-      { internalType: "address", name: "admin", type: "address" },
-      { internalType: "uint256", name: "roleBitmap", type: "uint256" },
+      {
+        components: [
+          {
+            internalType: "address",
+            name: "account",
+            type: "address",
+          },
+          {
+            internalType: "uint256",
+            name: "roleBitmap",
+            type: "uint256",
+          },
+        ],
+        internalType: "struct Grant[]",
+        name: "grants",
+        type: "tuple[]",
+      },
       {
         internalType: "bytes[]",
-        name: "setters",
+        name: "calls",
         type: "bytes[]",
       },
     ],

@@ -172,7 +172,7 @@ const renewalPreparer: EnsWriteIntentPreparer<RenewNameCallParameters, WriteErro
       encodeFunctionData({
         abi: quote.route === "v1-renewer" ? ethRenewerV1RenewAbi : ethRegistrarV2RenewAbi,
         functionName: "renew",
-        args: [label, parameters.duration, currency.address, referrer],
+        args: [{ label, duration: parameters.duration, referrer }, currency.address],
       }),
     ),
     value: 0n,

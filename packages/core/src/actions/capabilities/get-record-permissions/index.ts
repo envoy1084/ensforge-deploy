@@ -158,7 +158,9 @@ const getRecordPermissionsEffect = Effect.fn("ensforge.getRecordPermissions")(fu
           const supported =
             record.type === "alias"
               ? resolver.permissioned
-              : profileSupported(resolver.profiles, record);
+              : record.type === "clear" && permissioned
+                ? false
+                : profileSupported(resolver.profiles, record);
 
           const requiredRole = resolverRecordRole(record);
 
@@ -213,16 +215,7 @@ const getRecordPermissionsEffect = Effect.fn("ensforge.getRecordPermissions")(fu
           const node = namehash(name);
           const exact = record.type === "alias" ? 0n : resolverResource(node, part);
 
-          const resources =
-            record.type === "alias"
-              ? [0n]
-              : BigInt(part) === 0n
-                ? [exact]
-                : [
-                    exact,
-                    resolverResource(namehash(""), part),
-                    resolverResource(node, resolverRecordPart({ type: "clear" })),
-                  ];
+          const resources = exact === 0n ? [0n] : [exact, 0n];
 
           const checks = yield* Effect.all(
             resources.map((resource) =>

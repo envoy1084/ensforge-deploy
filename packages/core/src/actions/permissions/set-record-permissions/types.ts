@@ -47,8 +47,8 @@ export type SetRecordPermissionsResult =
       readonly resolver: EthereumAddress;
       readonly account: EthereumAddress;
       readonly approved: boolean;
-      readonly scope: "exact";
-      readonly widened: false;
+      readonly scope: "resolver";
+      readonly widened: true;
       readonly permissions: ReadonlyArray<AppliedRecordPermission>;
       readonly execution: SendCallsResult;
     };

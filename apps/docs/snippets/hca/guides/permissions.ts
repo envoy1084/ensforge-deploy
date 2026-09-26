@@ -24,6 +24,6 @@ if (permissions.records[0]?.authorization.status !== "authorized") {
     approved: true,
     mode: "sequential",
     atomicity: "none",
-    allowScopeWidening: false,
+    allowScopeWidening: true,
   });
 }

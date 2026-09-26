@@ -14,17 +14,13 @@ export const readHcaGovernanceTarget = Effect.fn("readHcaGovernanceTarget")(func
   target: HcaGovernanceTarget,
   blockNumber?: bigint,
 ) {
-  if (target.kind !== "factory" && target.kind !== "upgradeGate")
+  if (target.kind !== "factory")
     return yield* new HcaError({
       code: "INVALID_PARAMETERS",
-      message: "Select the factory or an explicit upgrade gate",
+      message: "Only the factory has an owner; the HCA upgrade set uses role-based governance",
     });
 
-  const address = yield* validateHcaAddress(
-    target.kind === "factory"
-      ? profile.contracts.standaloneFactory
-      : (target.address ?? profile.contracts.upgradeGate),
-  );
+  const address = yield* validateHcaAddress(profile.contracts.standaloneFactory);
   const owner = yield* hcaRpc(() =>
     config.publicClient.readContract({
       address,

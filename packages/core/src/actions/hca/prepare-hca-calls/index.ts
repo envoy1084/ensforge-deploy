@@ -148,7 +148,9 @@ export const prepareHcaCalls = defineAction<
         ...(parameters.requiredCapabilities === undefined
           ? {}
           : { requiredCapabilities: Object.freeze([...parameters.requiredCapabilities]) }),
-        authorization: Object.freeze({ ...parameters.authorization }),
+        authorization: session
+          ? Object.freeze({ kind: "session" as const, session })
+          : Object.freeze({ kind: "owner" as const }),
         ...(session === undefined ? {} : { session }),
         calls: Object.freeze(calls.map((call) => Object.freeze(call))),
         data,
@@ -167,7 +169,7 @@ export const prepareHcaCalls = defineAction<
                   [
                     hashHcaCalls(account, data, value),
                     session.permissionId,
-                    session.enableTransactionHash,
+                    keccak256(session.ownerSignature),
                     session.sessionNonce,
                   ],
                 ),

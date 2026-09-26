@@ -82,19 +82,61 @@ export interface HcaSessionRefund {
   readonly maxAmount: bigint;
 }
 
-export interface VerifiedHcaSession {
-  readonly permissionId: Hex;
-  readonly enableTransactionHash: Hex;
+const sessionUint96 = Schema.BigInt.check(
+  Schema.makeFilter<bigint>((value) => value >= 0n && value < 1n << 96n),
+);
+const sessionUint48 = Schema.Number.check(
+  Schema.makeFilter<number>(
+    (value) => Number.isSafeInteger(value) && value >= 0 && value < 2 ** 48,
+  ),
+);
+
+export const HcaSessionAuthorizationSchema = Schema.Struct({
+  hca: EthereumAddress,
+  chainId: Schema.Number.check(
+    Schema.makeFilter<number>((value) => Number.isSafeInteger(value) && value > 0),
+  ),
+  permissionId: HexSchema.check(Schema.makeFilter<string>((value) => value.length === 66)),
+  ownerSignature: HexSchema.check(Schema.makeFilter<string>((value) => value.length === 132)),
+  sessionKey: EthereumAddress.check(Schema.makeFilter<string>((value) => BigInt(value) !== 0n)),
+  resolver: EthereumAddress,
+  validUntil: sessionUint48,
+  sessionNonce: sessionUint96,
+  refund: Schema.Struct({
+    token: EthereumAddress.check(Schema.makeFilter<string>((value) => BigInt(value) !== 0n)),
+    maxExchangeRate: sessionUint96.check(Schema.makeFilter<bigint>((value) => value > 0n)),
+    maxGasOverhead: Schema.BigInt.check(
+      Schema.makeFilter<bigint>((value) => value >= 0n && value < 1n << 48n),
+    ),
+    maxAmount: sessionUint96.check(Schema.makeFilter<bigint>((value) => value > 0n)),
+  }),
+});
+
+export interface HcaSessionPolicy {
   readonly sessionKey: Address;
   readonly resolver: Address;
   readonly validUntil: number;
   readonly sessionNonce: bigint;
-  readonly refund?: HcaSessionRefund;
+  readonly refund?: HcaSessionRefund | undefined;
+}
+
+/** Reusable owner-signed authorization. It is bound to this account, chain and session nonce. */
+export interface HcaSessionAuthorization extends HcaSessionPolicy {
+  readonly refund: HcaSessionRefund;
+  readonly hca: Address;
+  readonly chainId: number;
+  readonly permissionId: Hex;
+  readonly ownerSignature: Hex;
+}
+
+export interface VerifiedHcaSession extends HcaSessionAuthorization {
+  readonly salt: Hex;
+  readonly sessionDigest: Hex;
 }
 
 export type HcaAuthorization =
   | { readonly kind: "owner" }
-  | { readonly kind: "session"; readonly permissionId: Hex; readonly enableTransactionHash: Hex };
+  | { readonly kind: "session"; readonly session: HcaSessionAuthorization };
 
 export interface PrepareHcaCallsParameters extends WalletOverrides {
   /** Required to prepare deployment and execution of an undeployed HCA. */

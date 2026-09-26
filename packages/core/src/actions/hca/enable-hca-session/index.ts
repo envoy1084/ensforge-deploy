@@ -1,23 +1,14 @@
-import { defineWriteAction, type EnsWriteAction } from "../../../action/write-intent.js";
+import { defineAction } from "../../../action/action.js";
 import { prepareHcaSession } from "../../../internal/hca/prepare-session.js";
 import type { WriteError } from "../../../write/types.js";
-import { executeHcaCalls } from "../execute-hca-calls/index.js";
-import type { HcaTransactionSubmission } from "../types.js";
+import type { HcaSessionAuthorization } from "../types.js";
 import type { EnableHcaSessionParameters } from "./types.js";
 
-export const enableHcaSession: EnsWriteAction<
+/** Sign a reusable session authorization without submitting a transaction. */
+export const enableHcaSession = defineAction<
   EnableHcaSessionParameters,
-  HcaTransactionSubmission,
+  HcaSessionAuthorization,
   WriteError
-> = defineWriteAction<EnableHcaSessionParameters, HcaTransactionSubmission, WriteError>(
-  "enableHcaSession",
-  (config, parameters) =>
-    executeHcaCalls.effect(config, {
-      ...parameters,
-      authorization: { kind: "owner" },
-      calls: [enableHcaSession.call(parameters)],
-    }),
-  prepareHcaSession,
-);
+>(prepareHcaSession);
 
 export type { EnableHcaSessionParameters } from "./types.js";

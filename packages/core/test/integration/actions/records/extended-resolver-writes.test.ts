@@ -5,7 +5,7 @@ import { concatHex, numberToHex, stringToHex } from "viem";
 
 import {
   AuthorizationError,
-  getAlias,
+  setText,
   getAddress,
   getData,
   getDnsRecord,
@@ -43,7 +43,7 @@ const dnsTxtRecord = (name: string, value: string) => {
 };
 
 describe("extended resolver writes integration", () => {
-  it.effect("atomically clears and sets heterogeneous V2 records in declared order", () =>
+  it.effect("atomically sets heterogeneous V2 records in declared order", () =>
     Effect.gen(function* () {
       const devnet = getIntegrationDevnet();
       const name = devnet.fixtures.permissions.v2.permissionedResolver.name;
@@ -52,7 +52,6 @@ describe("extended resolver writes integration", () => {
         name,
         records: [
           { type: "text", key: "com.ensforge.phase11", value: "before-clear" },
-          { type: "clear" },
           { type: "text", key: "com.ensforge.phase11", value: "first" },
           { type: "text", key: "com.ensforge.phase11", value: "last" },
           { type: "address", address: devnet.accounts.owner2 },
@@ -81,9 +80,7 @@ describe("extended resolver writes integration", () => {
       assert.strictEqual(records.text.value, "last");
       assert.strictEqual(records.address.address, devnet.accounts.owner2);
       assert.strictEqual(records.data.value, "0x1234");
-      assert.isTrue(records.version.supported);
-
-      if (records.version.supported) assert.strictEqual(records.version.version, 1n);
+      assert.isFalse(records.version.supported);
     }),
   );
 
@@ -145,21 +142,39 @@ describe("extended resolver writes integration", () => {
       const devnet = getIntegrationDevnet();
       const name = devnet.fixtures.permissions.v2.permissionedResolver.name;
 
-      yield* setAlias.effect(devnet.configs.v2, { name, target: "alias-target.eth" });
-
-      const set = yield* getAlias.effect(devnet.configs.v2, { name });
+      const resolver = devnet.fixtures.permissions.v2.permissionedResolver.resolver;
+      const target = "linked-record.eth";
+      const encodedName = encodeDnsName(target);
+      const { permissionedResolverV2Abi } = yield* Effect.promise(
+        () => import("@ensforge/contracts/v2"),
+      );
+      const wallet = devnet.configs.v2.walletClient;
+      if (!wallet) return yield* Effect.die(new Error("Missing integration wallet"));
+      const hash = yield* Effect.promise(() =>
+        wallet.writeContract({
+          account: devnet.accounts.owner,
+          chain: wallet.chain,
+          address: resolver,
+          abi: permissionedResolverV2Abi,
+          functionName: "setText",
+          args: [encodedName, "description", "linked value"],
+        }),
+      );
+      yield* Effect.promise(() =>
+        devnet.configs.v2.publicClient.waitForTransactionReceipt({ hash }),
+      );
+      yield* setAlias.effect(devnet.configs.v2, { name, target });
+      const linked = yield* getText.effect(devnet.configs.v2, { name, key: "description" });
+      assert.strictEqual(linked.value, "linked value");
 
       yield* setAlias.effect(devnet.configs.v2, { name, target: null });
-
-      const cleared = yield* getAlias.effect(devnet.configs.v2, { name });
-
-      assert.isTrue(set.supported);
-
-      if (set.supported) assert.strictEqual(set.target, "alias-target.eth");
-
-      assert.isTrue(cleared.supported);
-
-      if (cleared.supported) assert.isNull(cleared.target);
+      yield* setText.effect(devnet.configs.v2, {
+        name,
+        key: "description",
+        value: "independent value",
+      });
+      const unlinked = yield* getText.effect(devnet.configs.v2, { name, key: "description" });
+      assert.strictEqual(unlinked.value, "independent value");
     }),
   );
 

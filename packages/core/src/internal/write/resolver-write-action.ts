@@ -11,6 +11,7 @@ import {
 import type { RecordOperation } from "../../actions/capabilities/types.js";
 import type { EnsforgeConfig } from "../../config/config.js";
 import { WritePlanError } from "../../errors/write-plan-error.js";
+import { dnsEncodeName } from "../../names/dns.js";
 import type { NormalizedName } from "../../schemas/name.js";
 import type { CallExecutionResult, WriteError } from "../../write/types.js";
 import { executeSequential } from "./execute-sequential.js";
@@ -18,6 +19,8 @@ import { prepareResolverWrite } from "./prepare-resolver-write.js";
 
 export interface ResolverWriteEncodingContext {
   readonly name: NormalizedName;
+  readonly dnsName: Hex;
+  readonly permissioned: boolean;
   readonly node: `0x${string}`;
 }
 
@@ -45,6 +48,8 @@ export const makeResolverWriteAction = <Parameters extends { readonly name: stri
     const data = yield* definition.encode(parameters, {
       name: prepared.name,
       node: prepared.target.node,
+      dnsName: yield* dnsEncodeName.effect(prepared.name),
+      permissioned: prepared.permissioned,
     });
 
     return {

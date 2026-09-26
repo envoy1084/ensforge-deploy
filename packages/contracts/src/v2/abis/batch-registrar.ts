@@ -1,4 +1,4 @@
-/** Complete BatchRegistrar ABI from the ENSv2 Sepolia deployment. */
+/** ABI from the pinned Sepolia deployment artifact. */
 export const batchRegistrarV2Abi = [
   {
     inputs: [

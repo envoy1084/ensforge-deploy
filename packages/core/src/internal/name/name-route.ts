@@ -4,7 +4,7 @@ import { universalResolverFindResolverAbi } from "@ensforge/contracts/shared";
 import {
   ethRenewerV1IsRenewableAbi,
   permissionedRegistryV2InterfaceGetStateAbi,
-  universalResolverV2InterfaceFindParentRegistryAbi,
+  universalHelperV2FindParentRegistryAbi,
 } from "@ensforge/contracts/v2";
 import { isAddressEqual, zeroAddress } from "viem";
 
@@ -94,8 +94,8 @@ export const readNameRoute = Effect.fn("readNameRoute")(function* (
   const dnsName = yield* dnsEncodeName.effect(name);
 
   const parentRegistry = yield* ethereum.readContract({
-    address: deployment.contracts.universalResolver,
-    abi: universalResolverV2InterfaceFindParentRegistryAbi,
+    address: deployment.contracts.universalHelper,
+    abi: universalHelperV2FindParentRegistryAbi,
     functionName: "findParentRegistry",
     args: [dnsName],
   });

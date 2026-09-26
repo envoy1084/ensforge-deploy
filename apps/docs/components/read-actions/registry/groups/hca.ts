@@ -2,8 +2,8 @@ import { defineForm } from "../../../form/define-form";
 import { addressField, bigintField } from "../../../form/fields/factories";
 import { defineReadAction } from "../types";
 
-// Public Sepolia account used by the manual HCA verification suite.
-const exampleHca = "0x5F5cC74Fd5e538c8031412Cd63e86E310a7A2Fc4";
+// Set this after deploying a fixture with the current Sepolia factory.
+const exampleHca = import.meta.env.VITE_SEPOLIA_HCA_ADDRESS ?? "";
 const exampleOwner = "0x5b7d523F27C5b2232536fB900EBffB590d03fF5d";
 
 const hcaForm = () =>
@@ -12,8 +12,8 @@ const hcaForm = () =>
       hca: addressField({
         label: "HCA address",
         initialValue: exampleHca,
-        placeholder: exampleHca,
-        description: "Deployed Sepolia example. Reads show its current on-chain state.",
+        placeholder: "0x…",
+        description: "Use an HCA deployed with the current Sepolia factory.",
       }),
     },
   });

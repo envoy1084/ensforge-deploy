@@ -1,4 +1,4 @@
-/** Complete ReverseRegistrarAdapter ABI from the ENSv2 Sepolia deployment. */
+/** ABI from the pinned Sepolia deployment artifact. */
 export const reverseRegistrarAdapterV2Abi = [
   {
     inputs: [

@@ -1,4 +1,4 @@
-/** Complete UniversalResolverV2 ABI from the ENSv2 Sepolia deployment. */
+/** ABI from the pinned Sepolia deployment artifact. */
 export const universalResolverV2Abi = [
   {
     inputs: [
@@ -88,6 +88,27 @@ export const universalResolverV2Abi = [
   {
     inputs: [
       {
+        internalType: "bytes",
+        name: "normalizedName",
+        type: "bytes",
+      },
+      {
+        internalType: "bytes",
+        name: "result",
+        type: "bytes",
+      },
+      {
+        internalType: "address",
+        name: "resolver",
+        type: "address",
+      },
+    ],
+    name: "NormalizationChangedName",
+    type: "error",
+  },
+  {
+    inputs: [
+      {
         internalType: "address",
         name: "sender",
         type: "address",
@@ -130,6 +151,17 @@ export const universalResolverV2Abi = [
       },
     ],
     name: "OffsetOutOfBoundsError",
+    type: "error",
+  },
+  {
+    inputs: [
+      {
+        internalType: "string",
+        name: "primary",
+        type: "string",
+      },
+    ],
+    name: "PrimaryNameNotNormalized",
     type: "error",
   },
   {
@@ -189,6 +221,17 @@ export const universalResolverV2Abi = [
   {
     inputs: [
       {
+        internalType: "bytes",
+        name: "",
+        type: "bytes",
+      },
+    ],
+    name: "UnsafeBatchGatewayResponse",
+    type: "error",
+  },
+  {
+    inputs: [
+      {
         internalType: "bytes4",
         name: "selector",
         type: "bytes4",
@@ -196,6 +239,19 @@ export const universalResolverV2Abi = [
     ],
     name: "UnsupportedResolverProfile",
     type: "error",
+  },
+  {
+    inputs: [],
+    name: "BATCH_GATEWAY_PROVIDER",
+    outputs: [
+      {
+        internalType: "contract IGatewayProvider",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
   },
   {
     inputs: [],
@@ -402,120 +458,6 @@ export const universalResolverV2Abi = [
   {
     inputs: [
       {
-        internalType: "contract IRegistry",
-        name: "registry",
-        type: "address",
-      },
-    ],
-    name: "findCanonicalName",
-    outputs: [
-      {
-        internalType: "bytes",
-        name: "",
-        type: "bytes",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "bytes",
-        name: "name",
-        type: "bytes",
-      },
-    ],
-    name: "findCanonicalRegistry",
-    outputs: [
-      {
-        internalType: "contract IRegistry",
-        name: "",
-        type: "address",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "bytes",
-        name: "name",
-        type: "bytes",
-      },
-    ],
-    name: "findExactRegistry",
-    outputs: [
-      {
-        internalType: "contract IRegistry",
-        name: "",
-        type: "address",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "bytes",
-        name: "name",
-        type: "bytes",
-      },
-    ],
-    name: "findOwner",
-    outputs: [
-      {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "bytes",
-        name: "name",
-        type: "bytes",
-      },
-    ],
-    name: "findParentRegistry",
-    outputs: [
-      {
-        internalType: "contract IRegistry",
-        name: "",
-        type: "address",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "bytes",
-        name: "name",
-        type: "bytes",
-      },
-    ],
-    name: "findRegistries",
-    outputs: [
-      {
-        internalType: "contract IRegistry[]",
-        name: "",
-        type: "address[]",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
         internalType: "bytes",
         name: "name",
         type: "bytes",
@@ -562,6 +504,48 @@ export const universalResolverV2Abi = [
     type: "function",
   },
   {
+    inputs: [],
+    name: "isENSv2",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "pure",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes",
+        name: "name",
+        type: "bytes",
+      },
+      {
+        internalType: "contract IENSIP15",
+        name: "ensip15",
+        type: "address",
+      },
+    ],
+    name: "normalize",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+      {
+        internalType: "bytes",
+        name: "",
+        type: "bytes",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     inputs: [
       {
         internalType: "bytes",
@@ -599,7 +583,7 @@ export const universalResolverV2Abi = [
             type: "bool",
           },
         ],
-        internalType: "struct AbstractUniversalResolver.ResolverInfo",
+        internalType: "struct IUniversalResolverExtended.ResolverInfo",
         name: "info",
         type: "tuple",
       },
@@ -741,12 +725,85 @@ export const universalResolverV2Abi = [
     outputs: [
       {
         internalType: "bytes",
-        name: "result",
+        name: "",
         type: "bytes",
       },
       {
         internalType: "address",
-        name: "resolver",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes",
+        name: "name",
+        type: "bytes",
+      },
+      {
+        internalType: "bytes",
+        name: "data",
+        type: "bytes",
+      },
+      {
+        internalType: "string[]",
+        name: "gateways",
+        type: "string[]",
+      },
+      {
+        internalType: "contract IENSIP15",
+        name: "ensip15",
+        type: "address",
+      },
+    ],
+    name: "resolveWithGatewaysAndNormalization",
+    outputs: [
+      {
+        internalType: "bytes",
+        name: "",
+        type: "bytes",
+      },
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes",
+        name: "name",
+        type: "bytes",
+      },
+      {
+        internalType: "bytes",
+        name: "data",
+        type: "bytes",
+      },
+      {
+        internalType: "contract IENSIP15",
+        name: "ensip15",
+        type: "address",
+      },
+    ],
+    name: "resolveWithNormalization",
+    outputs: [
+      {
+        internalType: "bytes",
+        name: "",
+        type: "bytes",
+      },
+      {
+        internalType: "address",
+        name: "",
         type: "address",
       },
     ],
@@ -911,17 +968,100 @@ export const universalResolverV2Abi = [
     outputs: [
       {
         internalType: "string",
-        name: "primary",
+        name: "",
         type: "string",
       },
       {
         internalType: "address",
-        name: "resolver",
+        name: "",
         type: "address",
       },
       {
         internalType: "address",
-        name: "reverseResolver",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes",
+        name: "lookupAddress",
+        type: "bytes",
+      },
+      {
+        internalType: "uint256",
+        name: "coinType",
+        type: "uint256",
+      },
+      {
+        internalType: "string[]",
+        name: "gateways",
+        type: "string[]",
+      },
+      {
+        internalType: "contract IENSIP15",
+        name: "ensip15",
+        type: "address",
+      },
+    ],
+    name: "reverseWithGatewaysAndNormalization",
+    outputs: [
+      {
+        internalType: "string",
+        name: "",
+        type: "string",
+      },
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes",
+        name: "lookupAddress",
+        type: "bytes",
+      },
+      {
+        internalType: "uint256",
+        name: "coinType",
+        type: "uint256",
+      },
+      {
+        internalType: "contract IENSIP15",
+        name: "ensip15",
+        type: "address",
+      },
+    ],
+    name: "reverseWithNormalization",
+    outputs: [
+      {
+        internalType: "string",
+        name: "",
+        type: "string",
+      },
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "",
         type: "address",
       },
     ],

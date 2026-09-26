@@ -11,15 +11,7 @@ import {
   resolverRoles,
   verifiableFactoryV2Abi,
 } from "@ensforge/contracts/v2";
-import {
-  encodeFunctionData,
-  encodePacked,
-  bytesToHex,
-  keccak256,
-  labelhash,
-  namehash,
-  stringToHex,
-} from "viem";
+import { encodeFunctionData, bytesToHex, keccak256, labelhash, namehash, stringToHex } from "viem";
 import { packetToBytes } from "viem/ens";
 
 import type { DevnetEnvironment } from "../environment.js";
@@ -35,17 +27,9 @@ export const seedPermissionFixtures = Effect.fn("seedPermissionFixtures")(functi
   const v1TokenId = BigInt(labelhash("v1-unwrapped"));
   const v2TokenId = BigInt(labelhash("v2-active"));
   const permissionedName = "v2-write-ready.eth";
-  const permissionedNode = namehash(permissionedName);
   const permissionedTextKey = "avatar";
 
-  const permissionedResource = BigInt(
-    keccak256(
-      encodePacked(
-        ["bytes32", "bytes32"],
-        [permissionedNode, keccak256(stringToHex(permissionedTextKey))],
-      ),
-    ),
-  );
+  const permissionedResource = BigInt(keccak256(stringToHex(permissionedTextKey)));
 
   yield* seedTransaction(
     environment,
@@ -62,7 +46,10 @@ export const seedPermissionFixtures = Effect.fn("seedPermissionFixtures")(functi
   const initialization = encodeFunctionData({
     abi: permissionedResolverInitializableV2InterfaceInitializeAbi,
     functionName: "initialize",
-    args: [environment.accounts.owner, enhancedAccessControlRoles.allRoles, []],
+    args: [
+      [{ account: environment.accounts.owner, roleBitmap: enhancedAccessControlRoles.allRoles }],
+      [],
+    ],
   });
 
   const permissionedResolver = yield* seedRead(
@@ -116,12 +103,14 @@ export const seedPermissionFixtures = Effect.fn("seedPermissionFixtures")(functi
     {
       abi: permissionedResolverV2Abi,
       address: permissionedResolver,
-      functionName: "authorizeTextRoles",
+      functionName: "grantSetterRoles",
       args: [
-        bytesToHex(packetToBytes(permissionedName)),
-        permissionedTextKey,
+        encodeFunctionData({
+          abi: permissionedResolverV2Abi,
+          functionName: "setText",
+          args: [bytesToHex(packetToBytes(permissionedName)), permissionedTextKey, ""],
+        }),
         environment.accounts.operator,
-        true,
       ],
     },
     "Unable to grant the scoped permissioned resolver role",

@@ -26,7 +26,7 @@ const dnsTxtRecord = (name, value) => {
   ]);
 };
 
-export const fixtureVersion = 2;
+export const fixtureVersion = 3;
 
 export const makeSepoliaV2Fixtures = ({
   account,
@@ -80,7 +80,6 @@ export const makeSepoliaV2Fixtures = ({
         outputs: [{ name: "", type: "address" }],
       },
     ],
-    pubkey: profile.pubkey,
     interface: { ...profile.interface, implementer: account },
     data: profile.data,
     name,

@@ -1,4 +1,4 @@
-/** Complete StandaloneHCAFactory ABI from the experimental ENSv2 Sepolia HCA deployment. */
+/** ABI from the pinned Sepolia deployment artifact. */
 export const standaloneHcaFactoryV2Abi = [
   {
     inputs: [

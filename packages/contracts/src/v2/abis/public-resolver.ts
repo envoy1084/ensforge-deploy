@@ -1,4 +1,4 @@
-/** Complete PublicResolverV2 ABI from the ENSv2 Sepolia deployment. */
+/** ABI from the pinned Sepolia deployment artifact. */
 export const publicResolverV2Abi = [
   {
     inputs: [

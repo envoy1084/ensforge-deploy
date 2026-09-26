@@ -1,4 +1,4 @@
-/** Complete Graveyard ABI from the ENSv2 Sepolia deployment. */
+/** ABI from the pinned Sepolia deployment artifact. */
 export const graveyardV2Abi = [
   {
     inputs: [

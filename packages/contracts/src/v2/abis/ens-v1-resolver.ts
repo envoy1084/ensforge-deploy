@@ -1,4 +1,4 @@
-/** Complete ENSV1Resolver ABI from the ENSv2 Sepolia deployment. */
+/** ABI from the pinned Sepolia deployment artifact. */
 export const ensV1ResolverV2Abi = [
   {
     inputs: [
@@ -93,6 +93,17 @@ export const ensV1ResolverV2Abi = [
       },
     ],
     name: "UnreachableName",
+    type: "error",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes",
+        name: "",
+        type: "bytes",
+      },
+    ],
+    name: "UnsafeBatchGatewayResponse",
     type: "error",
   },
   {
