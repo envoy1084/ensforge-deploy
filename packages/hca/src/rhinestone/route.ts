@@ -136,12 +136,7 @@ export const reviewRoute = async (
     return reject("Unsponsored execution requires an explicit bounded refund quote");
 
   for (const call of plan.calls) {
-    if (
-      ![profile.infrastructure.paymentToken, profile.infrastructure.secondaryPaymentToken].some(
-        (token) => same(token, call.to),
-      )
-    )
-      continue;
+    if (call.data.slice(0, 10).toLowerCase() !== "0x095ea7b3") continue;
 
     const decoded = decodeFunctionData({ abi: erc20Abi, data: call.data });
 
