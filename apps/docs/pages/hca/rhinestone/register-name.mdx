@@ -126,3 +126,7 @@ workflow is pending, explicitly authorize a replacement through
 Only show registration success when progress is `registered`. To edit the new name's profile,
 continue with [Update a text record](/hca/rhinestone/update-description). That flow checks the
 resolver permission for the specific record before writing.
+
+This example uses mintable MockUSDC from `profile.deployment.testTokens.usdc`. Fund the HCA with
+that token. The Sepolia registrar also accepts Circle testnet USDC, but balances are separate:
+to use bridged Circle USDC, set `paymentToken` to the route’s destination token.

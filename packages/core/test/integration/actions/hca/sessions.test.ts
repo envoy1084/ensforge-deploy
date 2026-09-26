@@ -1,12 +1,20 @@
 import { ethRegistrarV2Abi, standaloneHcaV2SignatureAbi } from "@ensforge/contracts/v2";
 import { hcaOwnerAndSessionValidatorV2Abi } from "@ensforge/contracts/v2/experimental/hca";
-import { concatHex, encodeFunctionData, encodePacked, hashTypedData, zeroAddress } from "viem";
+import {
+  concatHex,
+  encodeFunctionData,
+  encodePacked,
+  erc20Abi,
+  hashTypedData,
+  zeroAddress,
+} from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { describe, expect, it } from "vitest";
 
 import {
   enableHcaSession,
   isHcaSessionEnabled,
+  prepareHcaCalls,
   revokeHcaSessions,
 } from "../../../../src/actions/hca/index.js";
 import { hcaSessionAuthorizationData } from "../../../../src/internal/hca/session-authorization.js";
@@ -14,6 +22,65 @@ import { createTestConfig } from "../../../../src/testing/index.js";
 import { getIntegrationDevnet } from "../../setup/devnet.js";
 
 describe("stateless HCA sessions", () => {
+  it("checks registrar token approvals against its current oracle", async () => {
+    const devnet = getIntegrationDevnet();
+    const walletClient = devnet.configs.v2.walletClient;
+    if (!walletClient) throw new Error("Missing integration wallet");
+    const config = createTestConfig({
+      deployments: devnet.configs.v2.deployments,
+      publicClient: devnet.configs.v2.publicClient,
+      walletClient,
+      hca: devnet.deployments.hca,
+    });
+    const hca = devnet.fixtures.hca.address;
+    const block = await config.publicClient.getBlock();
+    const session = await enableHcaSession(config, {
+      hca,
+      sessionKey: privateKeyToAccount(generatePrivateKey()).address,
+      resolver: devnet.fixtures.permissions.v2.permissionedResolver.resolver,
+      validUntil: Number(block.timestamp) + 3600,
+    });
+    const paymentToken = devnet.deployments.v2.testTokens?.usdc;
+    if (!paymentToken) throw new Error("Missing registration token fixture");
+    const approval = {
+      to: paymentToken,
+      value: 0n,
+      data: encodeFunctionData({
+        abi: erc20Abi,
+        functionName: "approve",
+        args: [devnet.deployments.v2.contracts.ethRegistrar, 1_000_000n],
+      }),
+    };
+    const parameters = {
+      hca,
+      authorization: { kind: "session" as const, session },
+      calls: [approval],
+    };
+
+    expect((await prepareHcaCalls(config, parameters)).calls).toHaveLength(1);
+    await expect(
+      prepareHcaCalls(config, {
+        ...parameters,
+        calls: [{ ...approval, to: devnet.accounts.owner }],
+      }),
+    ).rejects.toMatchObject({ code: "INVALID_EXECUTION" });
+    await expect(
+      prepareHcaCalls(config, {
+        ...parameters,
+        calls: [
+          {
+            ...approval,
+            data: encodeFunctionData({
+              abi: erc20Abi,
+              functionName: "approve",
+              args: [devnet.accounts.owner, 1_000_000n],
+            }),
+          },
+        ],
+      }),
+    ).rejects.toMatchObject({ code: "INVALID_EXECUTION" });
+  });
+
   it("validates a reusable owner proof on the deployed validator and rejects tampering and revocation", async () => {
     const devnet = getIntegrationDevnet();
     const walletClient = devnet.configs.v2.walletClient;

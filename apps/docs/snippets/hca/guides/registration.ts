@@ -12,7 +12,7 @@ if (!name || !resolver || !isAddress(resolver))
 export const registration = {
   name,
   resolver,
-  paymentToken: profile.infrastructure.paymentToken,
+  paymentToken: profile.deployment.testTokens.usdc,
   duration: 31_536_000n,
   limits: { registrationPrice: 10_000_000n, fees: [] },
 };

@@ -77,7 +77,10 @@ Inspect the returned status. `funded` includes destination confirmation; unknown
 need reconciliation. Provider status, source claims, destination receipts and current balance answer
 different questions, so retain the funding record as well as the provider reference.
 
-After funding, start or resume [registration](/hca/guides/registration). Funding does not deploy an
+Before [registration](/hca/guides/registration), check that the destination token is accepted by the
+registrar, and use that exact address as `paymentToken`. The Sepolia registrar accepts Circle
+testnet USDC and MockUSDC. Bridging Circle USDC does not increase the separate MockUSDC balance
+used by the registration example. Funding does not deploy an
 HCA, enable an ENS session or grant resolver permissions on your behalf.
 
 ## Resume and clean up

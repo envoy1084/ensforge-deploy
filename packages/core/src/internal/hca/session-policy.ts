@@ -4,6 +4,7 @@ import {
   permissionedResolverV2Abi,
   enhancedAccessControlRoles,
   ethRegistrarV2Abi,
+  standardRentPriceOracleV2IsPaymentTokenAbi,
   verifiableFactoryV2Abi,
   defaultReverseRegistrarAdapterV2Abi,
 } from "@ensforge/contracts/v2";
@@ -17,6 +18,7 @@ import {
   keccak256,
   zeroAddress,
   type Abi,
+  type Address,
   type Hex,
 } from "viem";
 
@@ -105,6 +107,7 @@ export const validateHcaSessionCalls = Effect.fn("validateHcaSessionCalls")(func
     try: () => {
       let deploys = false;
       let usesResolver = false;
+      const paymentTokens = new Set<Address>();
 
       for (const call of calls) {
         if (call.value !== 0n)
@@ -175,11 +178,7 @@ export const validateHcaSessionCalls = Effect.fn("validateHcaSessionCalls")(func
           continue;
         }
 
-        if (
-          [profile.infrastructure.paymentToken, profile.infrastructure.secondaryPaymentToken].some(
-            (token) => same(token, call.to),
-          )
-        ) {
+        if (call.data.slice(0, 10).toLowerCase() === "0x095ea7b3") {
           const decoded = decode(erc20Abi, call.data);
 
           if (decoded.functionName !== "approve")
@@ -202,6 +201,8 @@ export const validateHcaSessionCalls = Effect.fn("validateHcaSessionCalls")(func
               code: "INVALID_EXECUTION",
               message: "Approval spender or amount is outside the session limits",
             });
+
+          if (same(decoded.args[0], contracts.ethRegistrar)) paymentTokens.add(call.to);
 
           continue;
         }
@@ -282,13 +283,41 @@ export const validateHcaSessionCalls = Effect.fn("validateHcaSessionCalls")(func
         });
       }
 
-      return { usesResolver };
+      return { usesResolver, paymentTokens };
     },
     catch: (cause) =>
       cause instanceof HcaError
         ? cause
         : new HcaError({ code: "INVALID_EXECUTION", message: "Invalid session calldata", cause }),
   });
+
+  // The deployed validator asks the registrar's oracle; refund tokens are a separate policy.
+  if (state.paymentTokens.size > 0) {
+    const oracle = yield* hcaRpc(() =>
+      config.publicClient.readContract({
+        address: contracts.ethRegistrar,
+        abi: ethRegistrarV2Abi,
+        functionName: "rentPriceOracle",
+      }),
+    );
+
+    for (const token of state.paymentTokens) {
+      const accepted = yield* hcaRpc(() =>
+        config.publicClient.readContract({
+          address: oracle,
+          abi: standardRentPriceOracleV2IsPaymentTokenAbi,
+          functionName: "isPaymentToken",
+          args: [token],
+        }),
+      );
+
+      if (!accepted)
+        return yield* new HcaError({
+          code: "INVALID_EXECUTION",
+          message: "The registrar does not accept this session payment token",
+        });
+    }
+  }
 
   if (state.usesResolver && resolverExists) {
     const implementation = yield* hcaRpc(() =>
