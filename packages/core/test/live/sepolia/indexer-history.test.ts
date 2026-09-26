@@ -39,7 +39,7 @@ describe("Sepolia indexed registration history", () => {
     Effect.gen(function* () {
       const page = yield* getNameHistory.effect(sepoliaConfig, {
         name: sepoliaNames.v2.indexedRegistration,
-        pageSize: 5,
+        pageSize: 50,
       });
 
       assert.isAbove(page.items.length, 0);

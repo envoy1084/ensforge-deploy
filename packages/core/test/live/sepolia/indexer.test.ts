@@ -13,6 +13,7 @@ import {
   getSubnames,
   searchNames,
 } from "../../../src/actions/indexer/index.js";
+import { createConfig } from "../../../src/index.js";
 import { sepoliaConfig, sepoliaFixtureAccounts, sepoliaNames } from "../setup/sepolia.js";
 
 const indexedV2Name = sepoliaNames.v2.root;
@@ -35,9 +36,17 @@ describe("Sepolia indexers", () => {
         assert.isTrue(source.indexedBlock.number > 0n);
       }
 
-      const legacy = yield* getIndexedName.effect(sepoliaConfig, {
-        name: sepoliaNames.v1.reserved,
-      });
+      const legacy = yield* getIndexedName.effect(
+        createConfig({
+          network: "sepolia",
+          publicClient: sepoliaConfig.publicClient,
+          indexer: {
+            ...sepoliaConfig.indexer,
+            endpoints: { ...sepoliaConfig.indexer.endpoints, v2: null },
+          },
+        }),
+        { name: sepoliaNames.v1.reserved },
+      );
 
       assert.isNotNull(legacy);
       assert.strictEqual(legacy?.protocol, "v1");
