@@ -82,7 +82,7 @@ describe("Sepolia indexers", () => {
       assert.isTrue(search.items.some(({ namehash: hash }) => hash === namehash(indexedV2Name)));
 
       const firstChildren = yield* getSubnames.effect(sepoliaConfig, {
-        name: "eth",
+        name: sepoliaNames.v2.root,
         filter: { protocol: "v2" },
         pageSize: 2,
       });
@@ -94,7 +94,7 @@ describe("Sepolia indexers", () => {
       if (firstChildren.pageInfo.cursor === null) return;
 
       const secondChildren = yield* getSubnames.effect(sepoliaConfig, {
-        name: "eth",
+        name: sepoliaNames.v2.root,
         filter: { protocol: "v2" },
         pageSize: 2,
         cursor: firstChildren.pageInfo.cursor,
