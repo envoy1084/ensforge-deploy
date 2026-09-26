@@ -15,7 +15,8 @@ describe("Sepolia indexed records", () => {
     }),
   );
 
-  it.effect("reads V2 inventory and typed record history", () =>
+  // Re-enable when the V2 indexer joins record-ID updates to name-based event history.
+  it.effect.skip("reads V2 inventory and typed record history", () =>
     Effect.gen(function* () {
       const inventory = yield* getIndexedRecords.effect(sepoliaConfig, {
         name: sepoliaNames.v2.profile,
