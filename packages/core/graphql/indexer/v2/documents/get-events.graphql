@@ -35,6 +35,12 @@ query V2GetEvents(
           address
           coinType
         }
+        asEACRolesChanged {
+          account
+          resource
+          oldRoleBitmap
+          newRoleBitmap
+        }
         asExpiryUpdated {
           expiry
           node

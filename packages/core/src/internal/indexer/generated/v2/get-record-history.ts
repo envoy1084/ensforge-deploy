@@ -34,6 +34,8 @@ export type EventFilter = {
   readonly or?: ReadonlyArray<EventFilter> | null | undefined;
   /** Filter by protocol (v1 or v2) */
   readonly protocol?: string | null | undefined;
+  /** Exact match on the EAC resource carried in an `EACRolesChanged` payload. Compared exactly as emitted, version bits included; any hex spelling (zero-trimmed, padded, upper-case) is accepted. Combine with `contractAddress` since ROOT (0x0) exists on every EAC-enabled contract. */
+  readonly resource?: string | null | undefined;
   /** Filter by timestamp greater than */
   readonly timestamp_gt?: number | null | undefined;
   /** Filter by timestamp greater than or equal */

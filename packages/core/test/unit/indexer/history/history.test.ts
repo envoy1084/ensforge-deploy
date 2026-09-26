@@ -42,6 +42,7 @@ const v2Node = (overrides: Readonly<Record<string, unknown>>) => ({
   key: null,
   value: null,
   asAddressChanged: null,
+  asEACRolesChanged: null,
   asExpiryUpdated: null,
   asFusesSet: null,
   asLabelRegistered: null,
@@ -122,6 +123,47 @@ const v2Response = () =>
   });
 
 describe("indexed history", () => {
+  it.effect("includes record-model updates when filtering general event history", () =>
+    Effect.gen(function* () {
+      const fetch: typeof globalThis.fetch = (_input, init) => {
+        const where = request(init).variables.where as { readonly type_in: ReadonlyArray<string> };
+        const updates = [
+          v2Node({
+            id: "address-update",
+            type: "AddressUpdated",
+            data: JSON.stringify({ coinType: 60, address: owner }),
+          }),
+          v2Node({
+            id: "text-update",
+            type: "TextUpdated",
+            data: JSON.stringify({ key: "description", value: "" }),
+          }),
+        ].filter(({ type }) => where.type_in.includes(type));
+
+        return Promise.resolve(
+          response({
+            _meta: { block: { number: 250 } },
+            eventConnection: {
+              edges: updates.map((node) => ({ cursor: node.id, node })),
+              pageInfo: { hasNextPage: false, endCursor: updates.at(-1)?.id ?? null },
+            },
+          }),
+        );
+      };
+
+      const config = createConfig({
+        network: "sepolia",
+        publicClient: makeSepoliaPublicClient(),
+        indexer: { fetch, retry: { attempts: 0 }, endpoints: { v1: null } },
+      });
+      const page = yield* getEvents.effect(config, { filter: { kinds: ["record"] } });
+
+      assert.lengthOf(page.items, 2);
+      assert.deepInclude(page.items[0], { kind: "record", recordKind: "address", coinType: 60n });
+      assert.deepInclude(page.items[1], { kind: "record", recordKind: "text", key: "description" });
+    }),
+  );
+
   it.effect("merges domain, registration, resolver, and V2 events chronologically", () =>
     Effect.gen(function* () {
       const fetch: typeof globalThis.fetch = (_input, init) =>

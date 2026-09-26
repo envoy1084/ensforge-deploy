@@ -16,6 +16,12 @@ export const eventTypes = Object.freeze({
   fuses: ["FusesSet"],
   expiry: ["ExpiryUpdated", "ExpiryExtended"],
   record: [
+    "AddressUpdated",
+    "TextUpdated",
+    "ContenthashUpdated",
+    "ABIUpdated",
+    "InterfaceUpdated",
+    "NameUpdated",
     "AddressChanged",
     "AddrChanged",
     "MulticoinAddrChanged",

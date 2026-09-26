@@ -799,6 +799,31 @@ type EACRoleAssignmentEdge {
 }
 
 """
+Typed payload for `EACRolesChanged` events (EnhancedAccessControl on registries and resolvers).
+"""
+type EACRolesChangedData {
+  """
+  Account whose roles changed.
+  """
+  account: String!
+
+  """
+  Role bitmap after the change (32-byte hex); all zeros = every role revoked.
+  """
+  newRoleBitmap: String!
+
+  """
+  Role bitmap before the change (32-byte hex).
+  """
+  oldRoleBitmap: String!
+
+  """
+  EAC resource exactly as emitted (32-byte hex). Registries: `canonical_id | eacVersionId`; resolvers: keccak256(node, part) or ROOT (0x0).
+  """
+  resource: String!
+}
+
+"""
 An event emitted by ENS contracts
 """
 type Event {
@@ -806,6 +831,11 @@ type Event {
   Typed view of `data` when `type` is `AddressChanged`. Null otherwise.
   """
   asAddressChanged: AddressChangedData
+
+  """
+  Typed view of `data` when `type` is `EACRolesChanged`. Null otherwise.
+  """
+  asEACRolesChanged: EACRolesChangedData
 
   """
   Typed view of `data` when `type` is `ExpiryUpdated`. Null otherwise.
@@ -1031,6 +1061,11 @@ input EventFilter {
   protocol: String
 
   """
+  Exact match on the EAC resource carried in an `EACRolesChanged` payload. Compared exactly as emitted, version bits included; any hex spelling (zero-trimmed, padded, upper-case) is accepted. Combine with `contractAddress` since ROOT (0x0) exists on every EAC-enabled contract.
+  """
+  resource: String
+
+  """
   Filter by timestamp greater than
   """
   timestamp_gt: Int
@@ -1212,6 +1247,26 @@ type LabelRegisteredData {
 }
 
 """
+A name bound to a record on a record-model resolver (contracts-v2 IRecordResolver). Record sharing replaces aliasing: every name linked to the same record serves the same values.
+"""
+type LinkedName {
+  """
+  The bound name (empty for the resolver-wide default record bound to node 0x0)
+  """
+  name: String!
+
+  """
+  The bound node (namehash)
+  """
+  namehash: String!
+
+  """
+  The record id (decimal string; a full uint256 — SharedResolver keys records by the name's node itself)
+  """
+  recordId: String!
+}
+
+"""
 Typed payload for `NameRegistered` events (V1 BaseRegistrar + ETHController variants).
 """
 type NameRegisteredData {
@@ -1312,7 +1367,7 @@ type NameWrappedData {
 }
 
 """
-An EAC resource id and the name/record it guards on a resolver (from the Named*Resource discovery events)
+An EAC resource id and the name/record it guards on a resolver. Legacy resolvers announce it per name (Named*Resource); record-model resolvers announce it per setter ARGUMENT (ResourceArgument): `name` is then empty, `recordKey` carries the argument (text/data key, or 0x-hex for interface ids), `coinType` its integer value (coin type or ABI content type), and `recordKind` is derived from the setter roles granted on the resource — one entry per kind, or `argument` before any grant is indexed.
 """
 type NamedResourceEntry {
   """
@@ -1536,6 +1591,17 @@ type Query {
   ): [Domain!]!
 
   """
+  Top-level `EACRolesChanged` events (role grant/revoke history). Filter with `where: { resource, contractAddress, blockNumber_* }`; inspect via `asEACRolesChanged { ... }`. For CURRENT holders use `roles` / `roleConnection` instead.
+  """
+  eacRolesChangeds(
+    first: Int
+    orderBy: Event_orderBy
+    orderDirection: OrderDirection
+    skip: Int
+    where: EventFilter
+  ): [Event!]!
+
+  """
   Get events with cursor-based pagination (recommended)
   """
   eventConnection(
@@ -1735,7 +1801,7 @@ type Query {
   ): [Event!]!
 
   """
-  Get EAC role assignments with cursor-based pagination (recommended)
+  Get EAC role assignments with cursor-based pagination (recommended). Same filter and superseded-version semantics as `roles`.
   """
   roleConnection(
     account: String
@@ -1749,7 +1815,7 @@ type Query {
   ): EACRoleAssignmentConnection!
 
   """
-  Get EAC role assignments. Filters combine; `contract` scopes shared resource values (ROOT, 0x0, exists on every EAC-enabled contract) to one registry/resolver. `protocol` selects v1/v2 (default v2).
+  Get EAC role assignments. Filters combine; `contract` scopes shared resource values (ROOT, 0x0, exists on every EAC-enabled contract) to one registry/resolver. `protocol` selects v1/v2 (default v2). `resource` matches the value exactly as emitted (registry: `canonical_id | eacVersionId`; any hex spelling accepted). Without `resource`, rows superseded by a higher EAC version of the same label on the same contract (a later registration of that label) are omitted; name a resource explicitly to see a superseded generation. A label that was unregistered or expired without being re-registered keeps its last generation listed — read the label's own state for that.
   """
   roles(
     account: String
@@ -2070,7 +2136,7 @@ type RegistryInfo {
   referencedByCount: Int!
 
   """
-  Cursor-based EAC role assignments on this registry (recommended).
+  Cursor-based EAC role assignments on this registry (recommended). Same superseded-version semantics as `roles`.
   """
   roleConnection(
     account: String
@@ -2081,12 +2147,12 @@ type RegistryInfo {
   ): EACRoleAssignmentConnection!
 
   """
-  Total role-assignment count on this registry.
+  Total role-assignment count on this registry (superseded versions excluded).
   """
   roleCount: Int!
 
   """
-  EAC role assignments on this registry (legacy offset-based).
+  EAC role assignments on this registry (legacy offset-based). Rows superseded by a higher EAC version of the same label (a later registration of that label) are omitted; an unregistered or expired label that was not re-registered keeps its last generation listed.
   """
   roles(account: String, first: Int, skip: Int): [EACRoleAssignment!]!
 }
@@ -2148,6 +2214,16 @@ type Resolver {
   contentHash: String
 
   """
+  ENSIP-24 data(key) record as 0x-hex bytes (null if unset). From DataUpdated (record resolvers) and DataChanged (legacy).
+  """
+  data(key: String!): String
+
+  """
+  All data(key) keys set on this resolver/name — a scalar list of keys, like `texts`; read values with `data(key:)`.
+  """
+  dataKeys: [String!]
+
+  """
   Canonical Domain associated with this resolver (first by namehash). Null when this resolver isn't bound to any name. Subgraph parity.
   """
   domain: Domain
@@ -2163,9 +2239,24 @@ type Resolver {
   interfaces: [InterfaceRecord!]
 
   """
+  Every name bound to the same record as this name (record sharing replaces aliasing). Empty on legacy resolvers.
+  """
+  linkedNames: [LinkedName!]
+
+  """
   Public key record (secp256k1 x/y coordinates)
   """
   pubkey: Pubkey
+
+  """
+  Record-model resolvers (contracts-v2 IRecordResolver) key values by record, not node: the record this name resolves through — its own record, else the resolver's default record (node 0x0). Decimal string; null on legacy node-keyed resolvers or when the name is unlinked and there is no default.
+  """
+  recordId: String
+
+  """
+  True when the resolver announced itself as record-model (ResolverCreated).
+  """
+  recordModel: Boolean!
 
   """
   Reverse name record (from NameChanged events)

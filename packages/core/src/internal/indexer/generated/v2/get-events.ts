@@ -34,6 +34,8 @@ export type EventFilter = {
   readonly or?: ReadonlyArray<EventFilter> | null | undefined;
   /** Filter by protocol (v1 or v2) */
   readonly protocol?: string | null | undefined;
+  /** Exact match on the EAC resource carried in an `EACRolesChanged` payload. Compared exactly as emitted, version bits included; any hex spelling (zero-trimmed, padded, upper-case) is accepted. Combine with `contractAddress` since ROOT (0x0) exists on every EAC-enabled contract. */
+  readonly resource?: string | null | undefined;
   /** Filter by timestamp greater than */
   readonly timestamp_gt?: number | null | undefined;
   /** Filter by timestamp greater than or equal */
@@ -83,6 +85,12 @@ export type V2GetEventsQuery = {
         readonly asAddressChanged: {
           readonly address: string | null;
           readonly coinType: number | null;
+        } | null;
+        readonly asEACRolesChanged: {
+          readonly account: string;
+          readonly resource: string;
+          readonly oldRoleBitmap: string;
+          readonly newRoleBitmap: string;
         } | null;
         readonly asExpiryUpdated: {
           readonly expiry: number | null;
@@ -153,7 +161,7 @@ export type V2GetEventsQuery = {
 };
 
 export const V2GetEventsDocument =
-  "query V2GetEvents($first: Int!, $after: String, $where: EventFilter!, $orderDirection: OrderDirection!) {\n  _meta {\n    block {\n      number\n    }\n  }\n  eventConnection(\n    first: $first\n    after: $after\n    where: $where\n    orderBy: blockNumber\n    orderDirection: $orderDirection\n  ) {\n    edges {\n      cursor\n      node {\n        id\n        type\n        protocol\n        name\n        namehash\n        blockNumber\n        timestamp\n        transactionHash\n        contractAddress\n        data\n        key\n        value\n        asAddressChanged {\n          address\n          coinType\n        }\n        asExpiryUpdated {\n          expiry\n          node\n          tokenId\n        }\n        asFusesSet {\n          fuses\n          node\n        }\n        asLabelRegistered {\n          expiry\n          name\n          owner\n          registry\n          sender\n          tokenId\n        }\n        asNameRegistered {\n          baseCost\n          cost\n          expires\n          label\n          name\n          owner\n          premium\n          referrer\n        }\n        asNameRenewed {\n          expires\n          id\n        }\n        asNameUnwrapped {\n          node\n          owner\n        }\n        asNameWrapped {\n          expiry\n          fuses\n          node\n          owner\n        }\n        asRegistryTransfer {\n          node\n          owner\n        }\n        asResolverUpdated {\n          resolver\n          sender\n          tokenId\n        }\n        asReverseClaimed {\n          address\n          node\n        }\n        asTextChanged {\n          key\n          value\n        }\n        asTransfer {\n          from\n          id\n          operator\n          to\n          value\n        }\n      }\n    }\n    pageInfo {\n      hasNextPage\n      endCursor\n    }\n  }\n}" as TypedDocumentString<
+  "query V2GetEvents($first: Int!, $after: String, $where: EventFilter!, $orderDirection: OrderDirection!) {\n  _meta {\n    block {\n      number\n    }\n  }\n  eventConnection(\n    first: $first\n    after: $after\n    where: $where\n    orderBy: blockNumber\n    orderDirection: $orderDirection\n  ) {\n    edges {\n      cursor\n      node {\n        id\n        type\n        protocol\n        name\n        namehash\n        blockNumber\n        timestamp\n        transactionHash\n        contractAddress\n        data\n        key\n        value\n        asAddressChanged {\n          address\n          coinType\n        }\n        asEACRolesChanged {\n          account\n          resource\n          oldRoleBitmap\n          newRoleBitmap\n        }\n        asExpiryUpdated {\n          expiry\n          node\n          tokenId\n        }\n        asFusesSet {\n          fuses\n          node\n        }\n        asLabelRegistered {\n          expiry\n          name\n          owner\n          registry\n          sender\n          tokenId\n        }\n        asNameRegistered {\n          baseCost\n          cost\n          expires\n          label\n          name\n          owner\n          premium\n          referrer\n        }\n        asNameRenewed {\n          expires\n          id\n        }\n        asNameUnwrapped {\n          node\n          owner\n        }\n        asNameWrapped {\n          expiry\n          fuses\n          node\n          owner\n        }\n        asRegistryTransfer {\n          node\n          owner\n        }\n        asResolverUpdated {\n          resolver\n          sender\n          tokenId\n        }\n        asReverseClaimed {\n          address\n          node\n        }\n        asTextChanged {\n          key\n          value\n        }\n        asTransfer {\n          from\n          id\n          operator\n          to\n          value\n        }\n      }\n    }\n    pageInfo {\n      hasNextPage\n      endCursor\n    }\n  }\n}" as TypedDocumentString<
     V2GetEventsQuery,
     V2GetEventsQueryVariables
   >;

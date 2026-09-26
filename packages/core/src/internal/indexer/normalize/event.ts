@@ -278,6 +278,20 @@ export const normalizeV2Event = (
   });
 
   switch (event.type.toLowerCase()) {
+    case "eacroleschanged": {
+      const roleChange = event.asEACRolesChanged ?? payload;
+      const roles = bigintFrom(roleChange, "newRoleBitmap", "roles", "role");
+
+      return {
+        ...common,
+        kind: "role",
+        account: addressFrom(roleChange, "account", "user"),
+        resource: nullableHex(stringFrom(roleChange, "resource")),
+        roles,
+        active: roles !== null && roles !== 0n,
+      };
+    }
+
     case "nameregistered": {
       const details = event.asNameRegistered;
 

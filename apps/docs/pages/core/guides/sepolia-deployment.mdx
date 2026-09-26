@@ -105,6 +105,17 @@ Follow the [Pimlico guides](/hca/pimlico/getting-started) and
 [Rhinestone guides](/hca/rhinestone/getting-started), including registration, session revocation
 and recovery. Cross-chain funding is a separate operation from registration.
 
+## Indexer schema
+
+The Sepolia V2 source is `https://staging-graphql.ens.dev/graphql`. The checked-in schema is
+introspected from that endpoint; generating query types validates every V2 operation against it.
+To refresh only V2 without requesting the V1 subgraphs:
+
+```sh
+pnpm --filter @ensforge/core schema:indexer:refresh v2
+pnpm --filter @ensforge/core codegen:indexer
+```
+
 ## Staging indexer limitations
 
 The staging indexer currently exposes the new resolver record inventories, but its resolved-address

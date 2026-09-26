@@ -155,25 +155,31 @@ const writeSchema = Effect.fn("writeSchema")(function* (protocol, schema, protoc
 });
 
 const program = Effect.gen(function* () {
-  const v1Schemas = yield* Effect.all(sources.v1.map(introspect), {
-    concurrency: "unbounded",
-  });
+  const protocols = process.argv.slice(2);
 
-  const v1Fingerprints = v1Schemas.map(fingerprint);
-
-  if (new Set(v1Fingerprints).size !== 1) {
+  if (protocols.some((protocol) => protocol !== "v1" && protocol !== "v2")) {
     return yield* new SchemaRefreshError({
-      message: `ENSv1 schemas differ between Mainnet and Sepolia: ${v1Fingerprints.join(", ")}`,
+      message: "Expected optional protocol arguments: v1 v2",
       retryable: false,
     });
   }
 
-  const v2Schema = yield* introspect(sources.v2[0]);
+  for (const protocol of new Set(protocols.length === 0 ? ["v1", "v2"] : protocols)) {
+    const protocolSources = sources[protocol];
+    const schemas = yield* Effect.all(protocolSources.map(introspect), {
+      concurrency: "unbounded",
+    });
+    const fingerprints = schemas.map(fingerprint);
 
-  yield* Effect.all(
-    [writeSchema("v1", v1Schemas[0], sources.v1), writeSchema("v2", v2Schema, sources.v2)],
-    { concurrency: "unbounded" },
-  );
+    if (new Set(fingerprints).size !== 1) {
+      return yield* new SchemaRefreshError({
+        message: `ENS${protocol} schemas differ between networks: ${fingerprints.join(", ")}`,
+        retryable: false,
+      });
+    }
+
+    yield* writeSchema(protocol, schemas[0], protocolSources);
+  }
 });
 
 const nodeLayer = Layer.merge(NodeServices.layer, NodeHttpClient.layerUndici);

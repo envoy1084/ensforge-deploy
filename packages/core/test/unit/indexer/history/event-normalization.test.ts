@@ -26,6 +26,7 @@ const event = (type: string, data: Readonly<Record<string, unknown>>): V2Event =
   key: null,
   value: null,
   asAddressChanged: null,
+  asEACRolesChanged: null,
   asExpiryUpdated: null,
   asFusesSet: null,
   asLabelRegistered: null,
@@ -41,6 +42,35 @@ const event = (type: string, data: Readonly<Record<string, unknown>>): V2Event =
 });
 
 describe("indexed event normalization", () => {
+  it.effect("decodes the resulting EAC bitmap, including complete revocation", () =>
+    Effect.sync(() => {
+      for (const newRoleBitmap of ["0x07", "0x00"]) {
+        const payload = {
+          account: address,
+          resource: "0x01",
+          oldRoleBitmap: "0x07",
+          newRoleBitmap,
+        };
+
+        for (const typed of [true, false]) {
+          const wire = event("EACRolesChanged", typed ? {} : payload);
+          const normalized = normalizeV2Event(
+            { ...wire, asEACRolesChanged: typed ? payload : null },
+            { network: "sepolia", indexedBlock: 200n },
+          );
+
+          assert.deepInclude(normalized, {
+            kind: "role",
+            account: address,
+            resource: "0x01",
+            roles: BigInt(newRoleBitmap),
+            active: BigInt(newRoleBitmap) !== 0n,
+          });
+        }
+      }
+    }),
+  );
+
   it.effect("maps V2 administration and lifecycle events to stable semantic kinds", () =>
     Effect.sync(() => {
       const cases = [
