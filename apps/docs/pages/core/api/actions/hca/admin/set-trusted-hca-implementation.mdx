@@ -38,6 +38,9 @@ const result = await setTrustedHcaImplementation(config, {
 
 This targets HCA governance contracts. It does not transfer or renounce the immutable account owner.
 
+The permissioned set reverts if `approved` already matches its current value. Read the current
+approval before submitting a change. The caller must hold the set’s approval role.
+
 ## Parameters
 
 ```ts

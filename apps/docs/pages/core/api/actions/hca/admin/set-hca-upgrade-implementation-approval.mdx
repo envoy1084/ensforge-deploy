@@ -1,6 +1,6 @@
 ---
 title: setHcaUpgradeImplementationApproval
-description: Set a directional implementation approval on the upgrade gate.
+description: Set implementation membership in the HCA upgrade set.
 ---
 
 import EffectGuide from "../../../../../../shared/core/effect.mdx";
@@ -8,7 +8,7 @@ import ErrorGuide from "../../../../../../shared/core/error.mdx";
 
 # setHcaUpgradeImplementationApproval
 
-Set a directional implementation approval on the upgrade gate.
+Set implementation membership in the HCA upgrade set.
 
 ## Import
 
@@ -37,6 +37,9 @@ const result = await setHcaUpgradeImplementationApproval(config, {
 :::
 
 This targets HCA governance contracts. It does not transfer or renounce the immutable account owner.
+
+The permissioned set reverts if `approved` already matches its current value. Read the current
+approval before submitting a change. The caller must hold the set’s approval role.
 
 ## Parameters
 

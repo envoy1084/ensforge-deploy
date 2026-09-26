@@ -104,3 +104,13 @@ Provider execution requires separate verification with your Pimlico and Rhinesto
 Follow the [Pimlico guides](/hca/pimlico/getting-started) and
 [Rhinestone guides](/hca/rhinestone/getting-started), including registration, session revocation
 and recovery. Cross-chain funding is a separate operation from registration.
+
+## Staging indexer limitations
+
+The staging indexer currently exposes the new resolver record inventories, but its resolved-address
+filter and name-based record-history queries can omit record-ID updates. An empty indexer result
+therefore does not prove that a name has no address or record history. Use on-chain record reads
+for current values. ENSv2 record events must be joined to names through the resolver’s `Linked`
+events; see [ENS indexing documentation](https://docs.ens.domains/ensv2/indexing/).
+
+The live suite retains these assertions so an incomplete indexer response remains visible.
