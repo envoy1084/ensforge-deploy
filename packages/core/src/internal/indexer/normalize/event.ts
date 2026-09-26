@@ -377,14 +377,20 @@ export const normalizeV2Event = (
         kind: "reverse",
         address: nullableAddress(event.asReverseClaimed?.address ?? payload.address),
       };
+    case "addressupdated":
     case "addresschanged":
     case "addrchanged":
     case "multicoinaddrchanged":
+    case "textupdated":
     case "textchanged":
+    case "contenthashupdated":
     case "contenthashchanged":
+    case "abiupdated":
     case "abichanged":
     case "pubkeychanged":
+    case "interfaceupdated":
     case "interfacechanged":
+    case "nameupdated":
     case "namechanged":
     case "authorisationchanged":
     case "authorizationchanged":

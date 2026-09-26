@@ -29,6 +29,78 @@ const request = (init: RequestInit | undefined) =>
   };
 
 describe("indexed records", () => {
+  it.effect("decodes record-ID resolver updates from their JSON payloads", () =>
+    Effect.gen(function* () {
+      const updates = [
+        [
+          "AddressUpdated",
+          { coinType: 60, address: resolver },
+          { kind: "address", coinType: 60n, value: resolver },
+        ],
+        [
+          "TextUpdated",
+          { key: "description", value: "" },
+          { kind: "text", key: "description", value: "" },
+        ],
+        [
+          "ContenthashUpdated",
+          { contentHash: "0xe3010170" },
+          { kind: "contenthash", value: "0xe3010170" },
+        ],
+        ["ABIUpdated", { contentType: 1 }, { kind: "abi", contentType: 1n }],
+        [
+          "InterfaceUpdated",
+          { interfaceID: "0x01ffc9a7", implementer: resolver },
+          { kind: "interface", interfaceId: "0x01ffc9a7", implementer: resolver },
+        ],
+        ["NameUpdated", { name: "alice.eth" }, { kind: "reverse-name", name: "alice.eth" }],
+      ] as const;
+      const fetch: typeof globalThis.fetch = (_input, init) => {
+        const where = request(init).variables.where as { type_in: string[] };
+
+        for (const [type] of updates) assert.include(where.type_in, type);
+
+        return Promise.resolve(
+          response({
+            _meta: { block: { number: 250 } },
+            eventConnection: {
+              edges: updates.map(([type, payload], index) => ({
+                cursor: `cursor-${index}`,
+                node: {
+                  id: `event-${index}`,
+                  type,
+                  protocol: "v2",
+                  namehash: namehash("alice.eth"),
+                  blockNumber: 200 - index,
+                  timestamp: 2000 - index,
+                  transactionHash,
+                  contractAddress: resolver,
+                  data: JSON.stringify({ resolver, recordId: "1", ...payload }),
+                  key: null,
+                  value: null,
+                  asAddressChanged: null,
+                  asTextChanged: null,
+                },
+              })),
+              pageInfo: { hasNextPage: false, endCursor: "cursor-5" },
+            },
+          }),
+        );
+      };
+      const config = createConfig({
+        network: "sepolia",
+        publicClient: makeSepoliaPublicClient(),
+        indexer: { endpoints: { v1: null }, fetch, retry: { attempts: 0 } },
+      });
+      const result = yield* getRecordHistory.effect(config, { name: "alice.eth" });
+
+      assert.lengthOf(result.items, updates.length);
+      for (const [index, [, , expected]] of updates.entries()) {
+        assert.deepInclude(result.items[index], expected);
+      }
+    }),
+  );
+
   it.effect("combines protocol inventories and marks only current resolver bindings", () =>
     Effect.gen(function* () {
       const fetch: typeof globalThis.fetch = (_input, init) => {

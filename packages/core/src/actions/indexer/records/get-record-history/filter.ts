@@ -1,13 +1,13 @@
 import type { IndexedRecordEvent, RecordHistoryFilter } from "../../models/record.js";
 
 export const recordEventTypes = Object.freeze({
-  address: ["AddressChanged", "AddrChanged", "MulticoinAddrChanged"],
-  text: ["TextChanged"],
-  contenthash: ["ContenthashChanged"],
-  abi: ["ABIChanged", "AbiChanged"],
+  address: ["AddressUpdated", "AddressChanged", "AddrChanged", "MulticoinAddrChanged"],
+  text: ["TextUpdated", "TextChanged"],
+  contenthash: ["ContenthashUpdated", "ContenthashChanged"],
+  abi: ["ABIUpdated", "ABIChanged", "AbiChanged"],
   pubkey: ["PubkeyChanged"],
-  interface: ["InterfaceChanged"],
-  "reverse-name": ["NameChanged"],
+  interface: ["InterfaceUpdated", "InterfaceChanged"],
+  "reverse-name": ["NameUpdated", "NameChanged"],
   authorization: ["AuthorisationChanged", "AuthorizationChanged"],
   version: ["VersionChanged"],
   unknown: [],

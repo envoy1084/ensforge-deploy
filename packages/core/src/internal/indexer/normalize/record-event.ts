@@ -135,6 +135,7 @@ export const normalizeV2RecordEvent = (
   });
 
   switch (event.type.toLowerCase()) {
+    case "addressupdated":
     case "addresschanged":
     case "addrchanged":
     case "multicoinaddrchanged":
@@ -148,15 +149,29 @@ export const normalizeV2RecordEvent = (
             : BigInt(event.asAddressChanged.coinType),
         value: decodeHex(event.asAddressChanged?.address ?? stringField(payload, "address")),
       };
+    case "textupdated":
     case "textchanged":
       return {
         ...common,
         kind: "text",
         key: event.asTextChanged?.key ?? event.key ?? stringField(payload, "key"),
-        value: event.asTextChanged?.value ?? event.value ?? null,
+        value:
+          event.asTextChanged?.value ??
+          event.value ??
+          (Predicate.isString(payload.value) ? payload.value : null),
       };
+    case "contenthashupdated":
     case "contenthashchanged":
-      return { ...common, kind: "contenthash", value: decodeHex(stringField(payload, "hash")) };
+      return {
+        ...common,
+        kind: "contenthash",
+        value: decodeHex(
+          Predicate.isString(payload.contentHash)
+            ? payload.contentHash
+            : stringField(payload, "hash"),
+        ),
+      };
+    case "abiupdated":
     case "abichanged":
       return { ...common, kind: "abi", contentType: bigintField(payload, "contentType") };
     case "pubkeychanged":
@@ -166,6 +181,7 @@ export const normalizeV2RecordEvent = (
         x: decodeHex(stringField(payload, "x")),
         y: decodeHex(stringField(payload, "y")),
       };
+    case "interfaceupdated":
     case "interfacechanged":
       return {
         ...common,
@@ -173,6 +189,7 @@ export const normalizeV2RecordEvent = (
         interfaceId: decodeHex(stringField(payload, "interfaceID")),
         implementer: decodeAddress(stringField(payload, "implementer")),
       };
+    case "nameupdated":
     case "namechanged":
       return { ...common, kind: "reverse-name", name: stringField(payload, "name") };
     case "authorisationchanged":
