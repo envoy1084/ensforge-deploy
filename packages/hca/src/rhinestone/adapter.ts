@@ -14,7 +14,7 @@ import {
   type SignedTransactionData,
 } from "@rhinestone/sdk";
 import { getPermissionId } from "@rhinestone/sdk/smart-sessions";
-import { keccak256, stringToHex, zeroAddress } from "viem";
+import { concat, keccak256, stringToHex, zeroAddress } from "viem";
 
 import { createExecutionAdapter } from "../create-execution-adapter.js";
 import type { TypedExecutionAdapter } from "../types.js";
@@ -251,9 +251,12 @@ export const rhinestone = (input: RhinestoneOptions): RhinestoneExecutionAdapter
             // The API selects same-chain routes automatically; reviewRoute verifies the result.
             signers: {
               type: "experimental_session",
+              // HCA policies are enforced by its validator, so the session has no explicit actions.
+              verifyExecutions: true,
               session,
               enableData: {
-                userSignature: plan.session.ownerSignature,
+                // Rhinestone wraps owner signatures with the HCA owner-validator selector.
+                userSignature: concat([zeroAddress, plan.session.ownerSignature]),
                 hashesAndChainIds: [
                   { chainId: BigInt(config.chainId), sessionDigest: plan.session.sessionDigest },
                 ],

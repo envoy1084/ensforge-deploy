@@ -115,7 +115,7 @@ export const checkAccount = Effect.fn("hca.checkAccount")(function* (
           (cause) =>
             new HcaError({
               code: "INVALID_EXECUTION",
-              message: "Session must remain enabled with its original policy",
+              message: "Session authorization must remain valid with its original policy",
               cause,
             }),
         ),
