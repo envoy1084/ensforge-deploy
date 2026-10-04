@@ -10,6 +10,11 @@ import ErrorGuide from "../../../../../shared/core/error.mdx";
 
 Deploy or verify the existing deterministic account.
 
+An existing certified account returns `status: "already-deployed"`. No initialization is repeated.
+If another transaction deploys the account while yours is pending, your transaction can still succeed
+and return `already-deployed` with its hash and receipt. Revoking factory approval prevents new
+accounts from using that implementation; it does not invalidate an existing supported account.
+
 ## Import
 
 ```ts

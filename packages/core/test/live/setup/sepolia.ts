@@ -70,7 +70,7 @@ export const sepoliaFixtures = JSON.parse(
     profile: { texts: { key: string; value: string }[]; data: { key: string; value: string } };
   };
 };
-if (sepoliaFixtures.contractsCommit !== "71a3b7339dbc55ab47667abdfe8303bac4f4c24e") {
+if (sepoliaFixtures.contractsCommit !== "07e55a056f5b6a9c90119f501bdd05714e67dddd") {
   throw new Error(
     "Refresh Sepolia fixtures with pnpm setup:docs-sepolia before running live checks",
   );

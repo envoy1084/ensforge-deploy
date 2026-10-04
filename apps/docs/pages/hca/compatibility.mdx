@@ -14,13 +14,18 @@ application using a different deployed generation.
 | Setting              | Value                                      |
 | -------------------- | ------------------------------------------ |
 | Account generation   | `ens-standalone-hca-1.1.0`                 |
-| Contracts source     | `71a3b7339dbc55ab47667abdfe8303bac4f4c24e` |
-| Deployment artifacts | `71a3b7339dbc55ab47667abdfe8303bac4f4c24e` |
+| Contracts source     | `07e55a056f5b6a9c90119f501bdd05714e67dddd` |
+| Deployment artifacts | `07e55a056f5b6a9c90119f501bdd05714e67dddd` |
 | EntryPoint           | `0.7`                                      |
 
-The [recorded artifacts](https://github.com/ensdomains/contracts-v2/tree/71a3b7339dbc55ab47667abdfe8303bac4f4c24e/contracts/deployments/sepolia)
+The [recorded artifacts](https://github.com/ensdomains/contracts-v2/tree/07e55a056f5b6a9c90119f501bdd05714e67dddd/contracts/deployments/sepolia)
 provide the deployed addresses and ABIs. Branch-tip source may describe newer contracts. There is
 no supplied Mainnet HCA profile.
+
+The October 1 deployment changes the factory and implementation addresses. The same owner and
+salt therefore derive a different HCA. Deploy and fund the new account, grant its resolver access,
+and create new session proofs. Keep old registration and funding workflows associated with their
+original deployment; they cannot be resumed against the new profile.
 
 ## Provider support
 

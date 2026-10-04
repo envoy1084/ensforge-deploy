@@ -6,10 +6,26 @@ description: Configure applications and refresh fixtures for the current ENSv2 S
 # Sepolia Deployment
 
 The Sepolia profile uses the deployment artifacts at
-[`71a3b733`](https://github.com/ensdomains/contracts-v2/tree/71a3b7339dbc55ab47667abdfe8303bac4f4c24e/contracts/deployments/sepolia),
-linked from the [ENS deployment documentation](https://docs.ens.domains/learn/deployments/#sepolia-ensv2-beta).
+[`07e55a05`](https://github.com/ensdomains/contracts-v2/tree/07e55a056f5b6a9c90119f501bdd05714e67dddd/contracts/deployments/sepolia),
+linked from the [ENS deployment documentation](https://docs.ens.domains/learn/deployments/#sepolia-ensv2).
 Use the addresses and ABIs together. A custom configuration with newer addresses does not make
 older contract interfaces compatible.
+
+## October 1 deployment
+
+The October 1, 2026 deployment replaces the registries, registrar, resolvers, HCA factory,
+implementations, and mock payment tokens. The Universal Resolver proxy addresses remain the same,
+but resolve through the new deployment. Existing balances in an old mock token do not pay for
+registrations in the new registrar.
+
+Registry metadata now uses the ENS URI renderers. User and wrapper registry implementations expose
+`URI_RENDERER()` and initialize their renderer automatically. Inherited resolver lookups enforce
+ENSIP-10 support; a resolver on a parent name must support extended resolution to resolve a child.
+
+The HCA account and session-validator interfaces are unchanged from the September deployment.
+The new factory reuses certified accounts without reinitializing them, including when their initial
+implementation is no longer approved for new deployments. Ensforge still verifies the current
+implementation belongs to the supported account generation before allowing execution.
 
 ## Update an application
 
@@ -82,7 +98,7 @@ The second command sends transactions. It creates the name and resolver fixtures
 manifest to `.ensforge/sepolia-v2-fixtures.json`. Use the resulting fixture names in the playground;
 if you change the default root, update the playground inputs accordingly.
 Progress is stored separately from the previous deployment in
-`.ensforge/sepolia-v2-71a3b73-state.json`; preserve this file when resuming.
+`.ensforge/sepolia-v2-07e55a0-state.json`; preserve this file when resuming.
 
 For HCA playground reads, deploy an HCA with the current factory and set
 `VITE_SEPOLIA_HCA_ADDRESS` in `apps/docs/.env.local` to its address. Restart the docs server after

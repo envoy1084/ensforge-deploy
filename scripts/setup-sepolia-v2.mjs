@@ -29,7 +29,7 @@ import { fixtureVersion, jsonReplacer, makeSepoliaV2Fixtures } from "./sepolia-v
 
 const directory = dirname(fileURLToPath(import.meta.url));
 const repository = resolve(directory, "..");
-const statePath = resolve(repository, ".ensforge/sepolia-v2-71a3b73-state.json");
+const statePath = resolve(repository, ".ensforge/sepolia-v2-07e55a0-state.json");
 const manifestPath = resolve(repository, ".ensforge/sepolia-v2-fixtures.json");
 const day = 86_400n;
 const duration = 365n * day;
@@ -660,7 +660,7 @@ const manifest = {
   ...fixtures,
   chainId: sepolia.id,
   deployment: deployment.id,
-  contractsCommit: "71a3b7339dbc55ab47667abdfe8303bac4f4c24e",
+  contractsCommit: "07e55a056f5b6a9c90119f501bdd05714e67dddd",
   seededAtBlock,
   resolver: permissionedResolver,
   expected: {
