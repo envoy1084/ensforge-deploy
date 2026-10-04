@@ -87,6 +87,7 @@ export default defineConfig({
     { link: "/hca/getting-started", text: "HCA" },
     { link: "/core/getting-started", text: "Core" },
     { link: "/contracts/getting-started", text: "Contracts" },
+    { link: "/migrations/overview", text: "Migrations" },
     {
       items: [
         { external: true, link: "https://www.npmjs.com/org/ensforge", text: "npm" },

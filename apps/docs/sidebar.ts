@@ -716,6 +716,20 @@ const contractGroups = {
 } as const;
 
 export const sidebar = {
+  "/migrations/": [
+    { link: "/migrations/overview", text: "Overview" },
+    {
+      text: "Upgrade guides",
+      items: [
+        { link: "/migrations/0-6", text: "Upgrade to 0.6" },
+        { link: "/migrations/0-5", text: "Upgrade to 0.5" },
+        { link: "/migrations/0-4", text: "Upgrade to 0.4" },
+        { link: "/migrations/0-3", text: "Upgrade to 0.3" },
+        { link: "/migrations/0-2", text: "Upgrade to 0.2" },
+        { link: "/migrations/0-1-1", text: "Upgrade to 0.1.1" },
+      ],
+    },
+  ],
   "/hca/": [
     {
       text: "Introduction",
