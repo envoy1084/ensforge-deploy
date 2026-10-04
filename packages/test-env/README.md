@@ -16,8 +16,8 @@ const name = devnet.fixtures.v2.active.name;
 await devnet.reset();
 ```
 
-Local and CI runs use a devnet built from the pinned ENS contracts snapshot. Build it from the
-repository root before the first integration run:
+Local runs default to a devnet built from the pinned ENS contracts snapshot. Build it from the
+repository root before the first local integration run:
 
 ```sh
 pnpm build:devnet
@@ -30,10 +30,18 @@ The runtime and publishing workflow use `07e55a056f5b6a9c90119f501bdd05714e67ddd
 linked by the ENS deployment documentation. Deployment JSON artifacts remain the authority for
 Sepolia addresses and ABIs. Local contracts use their own discovered addresses.
 
-The default local image is `ensforge-contracts-devnet:07e55a0`. CI builds it from the same pinned
-source with `scripts/devnet.Dockerfile`. The publish workflow can publish `v2-07e55a0`; once published,
-set `ENSFORGE_TEST_IMAGE` to the resulting immutable image digest to reuse it. Private GHCR images
-require Docker authentication and package read access. Do not reuse the previous deployment's image.
+The default local image is `ensforge-contracts-devnet:07e55a0`. CI pulls
+`ghcr.io/<repository-owner>/ensforge-devnet:<contracts-commit>` and passes it through
+`ENSFORGE_TEST_IMAGE`. The tag is derived from `ensContractsV2Commit`, so CI uses the same snapshot
+as local builds without compiling contracts on every run.
+
+Run **Publish devnet image** successfully before running CI after changing the contracts pin or
+the devnet Dockerfile. CI fails if the image cannot be pulled; it does not fall back to a build.
+Private packages must grant the repository Actions read access; CI authenticates with `GITHUB_TOKEN`.
+
+The publish workflow also publishes `v2-07e55a0`. To reuse a published image locally, authenticate
+with Docker if needed and set `ENSFORGE_TEST_IMAGE` to the immutable image digest from the workflow
+summary. Do not reuse the previous deployment's image.
 
 ## Development
 
