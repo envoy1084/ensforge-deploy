@@ -102,7 +102,7 @@ export const sepoliaNames = {
     resolverProfile: "resolver.eth",
     wrapped: "wrapped.eth",
   },
-  migrated: "fiduro.eth",
+  migrated: "bolalia.eth",
 } as const;
 
 export const sepoliaFixtureAccounts = sepoliaFixtures.accounts;

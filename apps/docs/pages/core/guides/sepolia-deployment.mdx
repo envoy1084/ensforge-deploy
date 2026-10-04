@@ -79,7 +79,7 @@ pnpm verify:hca:sepolia
 
 `build:devnet` builds the pinned source locally. The two verification commands are read-only;
 set `ENSFORGE_SEPOLIA_RPC_URL` in the root `.env` to use your RPC. The first compares configured
-addresses and critical ABIs with the pinned artifacts and checks deployed code. The second checks
+addresses and exported deployed ABIs with the pinned artifacts and checks deployed code. The second checks
 HCA runtime code and contract wiring. Neither verifies provider execution or indexer synchronization.
 
 ## Refresh playground fixtures

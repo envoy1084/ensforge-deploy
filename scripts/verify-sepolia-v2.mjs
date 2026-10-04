@@ -9,7 +9,7 @@ import { sepoliaV2Deployment as deployment } from "../packages/contracts/dist/de
 import * as contracts from "../packages/contracts/dist/v2.js";
 import * as hca from "../packages/contracts/dist/v2/experimental/hca.js";
 
-// Read-only: compare recorded addresses and critical ABIs with the pinned deployment artifacts.
+// Read-only: compare recorded addresses and deployed ABIs with the pinned deployment artifacts.
 const client = createPublicClient({
   chain: sepolia,
   transport: http(
@@ -61,6 +61,24 @@ const abis = {
   ENSURIRenderer: contracts.ensUriRendererV2Abi,
   BoxedENSURIRenderer: contracts.boxedEnsUriRendererV2Abi,
   VerifiableFactory: contracts.verifiableFactoryV2Abi,
+  UpgradableUniversalResolverProxy: contracts.upgradableUniversalResolverProxyV2Abi,
+  ManagedUniversalResolverProxy: contracts.managedUniversalResolverProxyV2Abi,
+  RootRegistry: contracts.rootRegistryV2Abi,
+  LabelStore: contracts.labelStoreV2Abi,
+  ENSV1Resolver: contracts.ensV1ResolverV2Abi,
+  ENSV2Resolver: contracts.ensV2ResolverV2Abi,
+  StandardRentPriceOracle: contracts.standardRentPriceOracleV2Abi,
+  MigrationHelper: contracts.migrationHelperV2Abi,
+  UnlockedMigrationController: contracts.unlockedMigrationControllerV2Abi,
+  LockedMigrationController: contracts.lockedMigrationControllerV2Abi,
+  Graveyard: contracts.graveyardV2Abi,
+  PublicResolverSet: contracts.publicResolverSetV2Abi,
+  RegistryUpgradeSet: contracts.registryUpgradeSetV2Abi,
+  ReverseRegistrarAdapter: contracts.reverseRegistrarAdapterV2Abi,
+  DefaultReverseRegistrarAdapter: contracts.defaultReverseRegistrarAdapterV2Abi,
+  ContractNamer: contracts.contractNamerV2Abi,
+  BatchRegistrar: contracts.batchRegistrarV2Abi,
+  RootBatchRegistrar: contracts.rootBatchRegistrarV2Abi,
   ETHRegistrar: contracts.ethRegistrarV2Abi,
   ETHRenewerV1: contracts.ethRenewerV1Abi,
   PermissionedResolverImpl: contracts.permissionedResolverV2Abi,

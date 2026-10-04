@@ -106,13 +106,16 @@ describe("Sepolia provider and deployments", () => {
 
       assert.strictEqual(
         publicImplementation,
-        deployment.infrastructure.managedUniversalResolverProxy,
+        getAddress(deployment.infrastructure.managedUniversalResolverProxy),
       );
-      assert.strictEqual(managedImplementation, deployment.implementations.universalResolver);
+      assert.strictEqual(
+        managedImplementation,
+        getAddress(deployment.implementations.universalResolver),
+      );
       assert.isDefined(contractNamerStorage);
       assert.strictEqual(
         getAddress(`0x${contractNamerStorage.slice(-40)}`),
-        deployment.implementations.contractNamer,
+        getAddress(deployment.implementations.contractNamer),
       );
     }),
   );
