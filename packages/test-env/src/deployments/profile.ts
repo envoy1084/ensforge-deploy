@@ -33,6 +33,8 @@ const DevnetRequiredDeployments = Schema.Struct({
   DNSTXTResolver: DevnetDeploymentAddress,
   RootBatchRegistrar: DevnetDeploymentAddress,
   ENSRegistry: DevnetDeploymentAddress,
+  ENSURIRenderer: DevnetDeploymentAddress,
+  BoxedENSURIRenderer: DevnetDeploymentAddress,
   ENSV1Resolver: DevnetDeploymentAddress,
   ENSV2Resolver: DevnetDeploymentAddress,
   ETHRegistrar: DevnetDeploymentAddress,
@@ -173,6 +175,8 @@ export const mapDevnetDeployments = Effect.fn("mapDevnetDeployments")(function* 
       registryUpgradeSet: source.RegistryUpgradeSet,
     },
     infrastructure: {
+      ensUriRenderer: source.ENSURIRenderer,
+      boxedEnsUriRenderer: source.BoxedENSURIRenderer,
       batchRegistrar: source.BatchRegistrar,
       rootBatchRegistrar: source.RootBatchRegistrar,
     },

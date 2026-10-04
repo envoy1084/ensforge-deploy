@@ -74,3 +74,7 @@ chains and mismatched wiring. The result is a block snapshot, not a guarantee of
 
 The environment shares the wiring verifier with core and supplies `configs.v2.hca` automatically. This keeps
 local SDK actions and fixture setup on the same discovered account profile.
+
+The Docker build preserves the committed Solidity submodules. Do not run `forge install` during
+the image build: this snapshot’s `foundry.lock` pins an older VerifiableFactory without the
+address-prediction method used by the HCA factory.

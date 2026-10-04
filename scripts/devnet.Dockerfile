@@ -44,13 +44,10 @@ COPY . .
 # Build Contracts
 WORKDIR /app/contracts
 
-# Initialize git in contracts dir and install forge dependencies
-RUN git config --global init.defaultBranch main && \
-    cd /app && \
-    git init && \
-    git submodule update --init --recursive && \
-    cd contracts && \
-    forge i
+# Use the committed submodule revisions. `forge install` would restore an older
+# VerifiableFactory from upstream's stale foundry.lock and break HCA compilation.
+RUN cd /app && \
+    git submodule update --init --recursive
 
 # Build ens-contracts submodule to generate artifacts
 WORKDIR /app/contracts/lib/ens-contracts
