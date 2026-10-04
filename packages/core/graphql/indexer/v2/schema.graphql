@@ -3,9 +3,9 @@ An Ethereum account (address)
 """
 type Account {
   """
-  Domains owned by this account
+  Domains owned by this account, newest first. Returns at most `first` domains (default 10, max 1000); page with `skip`.
   """
-  domains: [Domain!]!
+  domains(first: Int = 10, skip: Int = 0): [Domain!]!
 
   """
   Block number of the earliest observation across protocols. Zero if the account row was populated by backfill (no first-observation block was recorded).
@@ -33,9 +33,9 @@ type Account {
   primaryNameVerification: PrimaryNameVerification
 
   """
-  Registrations made by this account
+  Registrations made by this account. Returns at most `first` registrations (default 10, max 1000); page with `skip`.
   """
-  registrations(first: Int, skip: Int): [Registration!]!
+  registrations(first: Int = 10, skip: Int = 0): [Registration!]!
 
   """
   True if this address has ever been observed acting under the V1 protocol (owner, registrant, role grantee, transfer recipient, or operator).
@@ -50,7 +50,7 @@ type Account {
   """
   V1 NameWrapper wrapped-domain records owned by this account.
   """
-  wrappedDomains(first: Int, skip: Int): [WrappedDomain!]!
+  wrappedDomains(first: Int = 100, skip: Int = 0): [WrappedDomain!]!
 }
 
 """
@@ -170,7 +170,7 @@ type Coverage {
   protocols: [ProtocolCoverage!]!
 
   """
-  True only when finality data shows the indexed head behind the chain's safe point.
+  True when the indexed head is behind the chain's safe point. Without finality data it is false unless the deployment sets `COVERAGE_STALE_AFTER_SECONDS`, in which case it is true when any indexed protocol has gone that long without committing a batch, or when nothing has synced yet.
   """
   stale: Boolean!
 }
@@ -190,14 +190,24 @@ type Domain {
   createdAt: Int!
 
   """
+  This same domain; `domain { … }` on a Domain resolves to itself.
+  """
+  domain: Domain!
+
+  """
   Events associated with this domain
   """
   events(
-    first: Int
+    first: Int = 100
     orderBy: Event_orderBy
     orderDirection: OrderDirection
     where: EventFilter
   ): [Event!]!
+
+  """
+  Most recent events for this domain as a connection: at most `first` (default 10, max 100) with `totalCount` and `pageInfo.hasNextPage`. There is no `after` here; page further with `events` or the root `eventConnection(where: { namehash })`.
+  """
+  eventsConnection(first: Int = 10): EventConnection!
 
   """
   Count of events associated with this domain
@@ -276,6 +286,11 @@ type Domain {
   name: String
 
   """
+  The namehash (ERC-137 node) of this domain; the same value as `id`.
+  """
+  namehash: String!
+
+  """
   ENSIP-15 normalized name (null if normalization fails)
   """
   normalizedName: String
@@ -324,14 +339,19 @@ type Domain {
   roleHolderCount: Int!
 
   """
+  First page of direct subdomains as a connection, ordered by name: at most `first` (default 10, max 100) with `totalCount` and `pageInfo.hasNextPage`. There is no `after` here; page further with `subdomains(first, skip)`.
+  """
+  subdomainConnection(first: Int = 10): DomainConnection!
+
+  """
   Subgraph-compatible alias for `subdomainsCount`. Returns the same value.
   """
   subdomainCount: Int!
 
   """
-  Subdomains of this domain
+  Direct subdomains of this domain, ordered by name. Returns at most `first` children (default 10, max 1000); page with `skip` and compare against `subdomainCount` before assuming the list is complete.
   """
-  subdomains: [Domain!]!
+  subdomains(first: Int = 10, skip: Int = 0): [Domain!]!
 
   """
   Count of direct subdomains (one level only). Filtered by `isReachable = 1` AND excluding fully-burned names (owner=0 AND resolver=0, mirroring subgraph's GC deletion criteria). DEPRECATED: prefer `subdomainCount` (subgraph-compatible name).
@@ -1505,8 +1525,10 @@ type Pubkey {
 type Query {
   """
   What this deployment indexes (ensv2 extension): chain id, per-protocol indexed
-    head + last-sync time, and a staleness flag. `stale` is false when finality data
-    is absent (default deployments); `_finality.isStale` is the conservative variant.
+    head + last-sync time, and a staleness flag. Without finality data `stale` can
+    fall back to how long each protocol has gone without committing a batch (opt-in,
+    `COVERAGE_STALE_AFTER_SECONDS`); `_finality.isStale` remains the conservative
+    variant (true whenever no safe data).
   """
   _coverage: Coverage!
 
@@ -1531,10 +1553,10 @@ type Query {
   List Account entities with pagination and filtering (subgraph parity).
   """
   accounts(
-    first: Int
+    first: Int = 100
     orderBy: Account_orderBy
     orderDirection: OrderDirection
-    skip: Int
+    skip: Int = 0
     where: AccountFilter
   ): [Account!]!
 
@@ -1542,10 +1564,10 @@ type Query {
   Subgraph parity: top-level `AddressChanged` events. Inspect via `asAddressChanged { ... }`.
   """
   addressChangeds(
-    first: Int
+    first: Int = 100
     orderBy: Event_orderBy
     orderDirection: OrderDirection
-    skip: Int
+    skip: Int = 0
     where: EventFilter
   ): [Event!]!
 
@@ -1583,10 +1605,10 @@ type Query {
   Get multiple domains with pagination and filtering (legacy offset-based)
   """
   domains(
-    first: Int
+    first: Int = 100
     orderBy: Domain_orderBy
     orderDirection: OrderDirection
-    skip: Int
+    skip: Int = 0
     where: DomainFilter
   ): [Domain!]!
 
@@ -1594,10 +1616,10 @@ type Query {
   Top-level `EACRolesChanged` events (role grant/revoke history). Filter with `where: { resource, contractAddress, blockNumber_* }`; inspect via `asEACRolesChanged { ... }`. For CURRENT holders use `roles` / `roleConnection` instead.
   """
   eacRolesChangeds(
-    first: Int
+    first: Int = 100
     orderBy: Event_orderBy
     orderDirection: OrderDirection
-    skip: Int
+    skip: Int = 0
     where: EventFilter
   ): [Event!]!
 
@@ -1618,10 +1640,10 @@ type Query {
   Get events with pagination (legacy offset-based)
   """
   events(
-    first: Int
+    first: Int = 100
     orderBy: Event_orderBy
     orderDirection: OrderDirection
-    skip: Int
+    skip: Int = 0
     where: EventFilter
   ): [Event!]!
 
@@ -1629,10 +1651,10 @@ type Query {
   Subgraph parity: top-level `ExpiryUpdated` events. Inspect via `asExpiryUpdated { ... }`.
   """
   expiryUpdateds(
-    first: Int
+    first: Int = 100
     orderBy: Event_orderBy
     orderDirection: OrderDirection
-    skip: Int
+    skip: Int = 0
     where: EventFilter
   ): [Event!]!
 
@@ -1640,10 +1662,10 @@ type Query {
   Subgraph parity: top-level `FusesSet` events. Inspect via `asFusesSet { ... }`.
   """
   fusesSets(
-    first: Int
+    first: Int = 100
     orderBy: Event_orderBy
     orderDirection: OrderDirection
-    skip: Int
+    skip: Int = 0
     where: EventFilter
   ): [Event!]!
 
@@ -1651,10 +1673,10 @@ type Query {
   Subgraph parity: top-level `LabelRegistered` events. Inspect via `asLabelRegistered { ... }`.
   """
   labelRegistereds(
-    first: Int
+    first: Int = 100
     orderBy: Event_orderBy
     orderDirection: OrderDirection
-    skip: Int
+    skip: Int = 0
     where: EventFilter
   ): [Event!]!
 
@@ -1667,10 +1689,10 @@ type Query {
   Subgraph parity: top-level `NameRegistered` events. Inspect via `asNameRegistered { ... }`.
   """
   nameRegistereds(
-    first: Int
+    first: Int = 100
     orderBy: Event_orderBy
     orderDirection: OrderDirection
-    skip: Int
+    skip: Int = 0
     where: EventFilter
   ): [Event!]!
 
@@ -1678,10 +1700,10 @@ type Query {
   Subgraph parity: top-level `NameRenewed` events. Inspect via `asNameRenewed { ... }`.
   """
   nameReneweds(
-    first: Int
+    first: Int = 100
     orderBy: Event_orderBy
     orderDirection: OrderDirection
-    skip: Int
+    skip: Int = 0
     where: EventFilter
   ): [Event!]!
 
@@ -1689,10 +1711,10 @@ type Query {
   Subgraph parity: top-level `NameUnwrapped` events. Inspect via `asNameUnwrapped { ... }`.
   """
   nameUnwrappeds(
-    first: Int
+    first: Int = 100
     orderBy: Event_orderBy
     orderDirection: OrderDirection
-    skip: Int
+    skip: Int = 0
     where: EventFilter
   ): [Event!]!
 
@@ -1700,10 +1722,10 @@ type Query {
   Subgraph parity: top-level `NameWrapped` events. Inspect via `asNameWrapped { ... }`.
   """
   nameWrappeds(
-    first: Int
+    first: Int = 100
     orderBy: Event_orderBy
     orderDirection: OrderDirection
-    skip: Int
+    skip: Int = 0
     where: EventFilter
   ): [Event!]!
 
@@ -1724,10 +1746,10 @@ type Query {
   Get domain registrations with pagination (legacy offset-based)
   """
   registrations(
-    first: Int
+    first: Int = 100
     orderBy: Registration_orderBy
     orderDirection: OrderDirection
-    skip: Int
+    skip: Int = 0
     where: RegistrationFilter
   ): [Registration!]!
 
@@ -1745,10 +1767,10 @@ type Query {
   Subgraph parity: top-level `RegistryTransfer` events. Inspect via `asRegistryTransfer { ... }`.
   """
   registryTransfers(
-    first: Int
+    first: Int = 100
     orderBy: Event_orderBy
     orderDirection: OrderDirection
-    skip: Int
+    skip: Int = 0
     where: EventFilter
   ): [Event!]!
 
@@ -1761,10 +1783,10 @@ type Query {
   Subgraph parity: top-level `ResolverUpdated` events. Inspect via `asResolverUpdated { ... }`.
   """
   resolverUpdateds(
-    first: Int
+    first: Int = 100
     orderBy: Event_orderBy
     orderDirection: OrderDirection
-    skip: Int
+    skip: Int = 0
     where: EventFilter
   ): [Event!]!
 
@@ -1774,10 +1796,10 @@ type Query {
     (using `v1`/`v2` as the isolation prefix since both protocols share the chain).
   """
   resolvers(
-    first: Int
+    first: Int = 100
     orderBy: Resolver_orderBy
     orderDirection: OrderDirection
-    skip: Int
+    skip: Int = 0
     where: ResolverFilter
   ): [Resolver!]!
 
@@ -1793,10 +1815,10 @@ type Query {
   Subgraph parity: top-level `ReverseClaimed` events. Inspect via `asReverseClaimed { ... }`.
   """
   reverseClaimeds(
-    first: Int
+    first: Int = 100
     orderBy: Event_orderBy
     orderDirection: OrderDirection
-    skip: Int
+    skip: Int = 0
     where: EventFilter
   ): [Event!]!
 
@@ -1828,10 +1850,10 @@ type Query {
   Subgraph parity: top-level `TextChanged` events. Inspect via `asTextChanged { ... }`.
   """
   textChangeds(
-    first: Int
+    first: Int = 100
     orderBy: Event_orderBy
     orderDirection: OrderDirection
-    skip: Int
+    skip: Int = 0
     where: EventFilter
   ): [Event!]!
 
@@ -1839,17 +1861,17 @@ type Query {
   Subgraph parity: top-level `Transfer` events. Equivalent to `events(where:{type:"Transfer"})`. Inspect typed fields via `asTransfer { ... }`.
   """
   transfers(
-    first: Int
+    first: Int = 100
     orderBy: Event_orderBy
     orderDirection: OrderDirection
-    skip: Int
+    skip: Int = 0
     where: EventFilter
   ): [Event!]!
 
   """
   Get V1 NameWrapper wrapped-domain records. Returns empty for V2 / unwrapped names. (Subgraph parity.)
   """
-  wrappedDomains(first: Int, skip: Int, where: WrappedDomainFilter): [WrappedDomain!]!
+  wrappedDomains(first: Int = 100, skip: Int = 0, where: WrappedDomainFilter): [WrappedDomain!]!
 }
 
 """
@@ -1860,6 +1882,16 @@ type Registration {
   Base rent cost in wei, decimal-encoded u256 (String for the same Int32 reason as `cost`). Null when the Controller event has not been observed.
   """
   baseCost: String
+
+  """
+  Block number of the registration event; the same value as `blockNumber`.
+  """
+  block: Int!
+
+  """
+  Block number of the registration event.
+  """
+  blockNumber: Int!
 
   """
   Total user-paid registration cost (base + premium) in wei, decimal-encoded. Returned as String because u256 wei values exceed GraphQL Int (Int32). Null when the Controller event has not been observed for this registration.
@@ -1915,6 +1947,11 @@ type Registration {
   Timestamp when domain was registered
   """
   registrationDate: Int!
+
+  """
+  Timestamp of the registration event; the same value as `registrationDate`.
+  """
+  timestamp: Int!
 }
 
 """
@@ -2186,7 +2223,7 @@ type Resolver {
   """
   Address record for a specific coin type (default: 60 for ETH)
   """
-  addr(coinType: Int): String
+  addr(coinType: Int = 60): String
 
   """
   Resolver contract address (same as id)
@@ -2214,12 +2251,12 @@ type Resolver {
   contentHash: String
 
   """
-  ENSIP-24 data(key) record as 0x-hex bytes (null if unset). From DataUpdated (record resolvers) and DataChanged (legacy).
+  ENSIP-24 data(key) record as 0x-hex bytes. From DataUpdated (record resolvers) and DataChanged (legacy). Null means one of two things: no such record, OR a record whose value never existed on chain in plaintext — a resolver may declare `value` as indexed, in which case the log carries only keccak256(value). Distinguish them with events(where: {type: "DataChanged"}): those changes are recorded there and their `data` carries a `valueHash` instead of a `value`.
   """
   data(key: String!): String
 
   """
-  All data(key) keys set on this resolver/name — a scalar list of keys, like `texts`; read values with `data(key:)`.
+  The data(key) keys whose value this indexer can serve — a scalar list of keys, like `texts`; read values with `data(key:)`. Deliberately NOT every key ever set: a record whose resolver declared `value` as indexed is omitted, because only keccak256(value) was ever on chain and there is no value to return. Find those via events(where: {type: "DataChanged"}) and the `valueHash` in their `data`.
   """
   dataKeys: [String!]
 
@@ -2343,9 +2380,24 @@ Detailed resolver information with statistics
 """
 type ResolverDetail {
   """
+  ABI content types. ResolverDetail has no name context, so this reads the zero node (0x0): on a record-model resolver that is the resolver-wide default record, on a legacy resolver it is usually empty.
+  """
+  abis: [Int!]
+
+  """
+  Address record for a coin type (default 60, ETH). ResolverDetail has no name context, so this reads the zero node (0x0): on a record-model resolver that is the resolver-wide default record, on a legacy resolver it is usually empty.
+  """
+  addr(coinType: Int = 60): String
+
+  """
   Resolver contract address
   """
   address: String!
+
+  """
+  All set addresses across coin types. ResolverDetail has no name context, so this reads the zero node (0x0): on a record-model resolver that is the resolver-wide default record, on a legacy resolver it is usually empty.
+  """
+  addresses: [CoinAddress!]
 
   """
   Number of aliases defined on this resolver
@@ -2358,14 +2410,49 @@ type ResolverDetail {
   aliases: [Alias!]!
 
   """
+  All set coin types as decimal strings. ResolverDetail has no name context, so this reads the zero node (0x0): on a record-model resolver that is the resolver-wide default record, on a legacy resolver it is usually empty.
+  """
+  coinTypes: [String!]
+
+  """
+  Content hash. ResolverDetail has no name context, so this reads the zero node (0x0): on a record-model resolver that is the resolver-wide default record, on a legacy resolver it is usually empty.
+  """
+  contentHash: String
+
+  """
+  ENSIP-24 data(key) record as 0x-hex bytes. ResolverDetail has no name context, so this reads the zero node (0x0): on a record-model resolver that is the resolver-wide default record, on a legacy resolver it is usually empty.
+  """
+  data(key: String!): String
+
+  """
+  ENSIP-24 data keys (keys only; read values with `data(key:)`). ResolverDetail has no name context, so this reads the zero node (0x0): on a record-model resolver that is the resolver-wide default record, on a legacy resolver it is usually empty.
+  """
+  dataKeys: [String!]
+
+  """
+  Canonical Domain associated with this resolver (first by namehash). Null when this resolver isn't bound to any name.
+  """
+  domain: Domain
+
+  """
   Events emitted by this resolver contract
   """
-  events(first: Int): [Event!]!
+  events(first: Int = 100): [Event!]!
 
   """
   Resolver contract address
   """
   id: String!
+
+  """
+  Interface implementations. ResolverDetail has no name context, so this reads the zero node (0x0): on a record-model resolver that is the resolver-wide default record, on a legacy resolver it is usually empty.
+  """
+  interfaces: [InterfaceRecord!]
+
+  """
+  Names bound to the same record as the zero node. ResolverDetail has no name context, so this reads the zero node (0x0): on a record-model resolver that is the resolver-wide default record, on a legacy resolver it is usually empty.
+  """
+  linkedNames: [LinkedName!]
 
   """
   Resource-name associations announced by this resolver (EAC resource naming; emitted on the first role grant per resource)
@@ -2380,7 +2467,27 @@ type ResolverDetail {
   """
   Domains using this resolver (limited)
   """
-  nodes(first: Int): [Domain!]!
+  nodes(first: Int = 100): [Domain!]!
+
+  """
+  Public key record. ResolverDetail has no name context, so this reads the zero node (0x0): on a record-model resolver that is the resolver-wide default record, on a legacy resolver it is usually empty.
+  """
+  pubkey: Pubkey
+
+  """
+  Record the zero node resolves through, as a decimal string. ResolverDetail has no name context, so this reads the zero node (0x0): on a record-model resolver that is the resolver-wide default record, on a legacy resolver it is usually empty.
+  """
+  recordId: String
+
+  """
+  True when the resolver announced itself as record-model (ResolverCreated).
+  """
+  recordModel: Boolean!
+
+  """
+  Reverse name record. ResolverDetail has no name context, so this reads the zero node (0x0): on a record-model resolver that is the resolver-wide default record, on a legacy resolver it is usually empty.
+  """
+  reverseName: String
 
   """
   Number of distinct role holders on this resolver
@@ -2391,6 +2498,21 @@ type ResolverDetail {
   EAC role assignments on this resolver
   """
   roles: [EACRoleAssignment!]!
+
+  """
+  A text record value by key. ResolverDetail has no name context, so this reads the zero node (0x0): on a record-model resolver that is the resolver-wide default record, on a legacy resolver it is usually empty.
+  """
+  text(key: String!): String
+
+  """
+  Text-record keys (keys only; read values with `text(key:)`). ResolverDetail has no name context, so this reads the zero node (0x0): on a record-model resolver that is the resolver-wide default record, on a legacy resolver it is usually empty.
+  """
+  texts: [String!]
+
+  """
+  Version counter. ResolverDetail has no name context, so this reads the zero node (0x0): on a record-model resolver that is the resolver-wide default record, on a legacy resolver it is usually empty.
+  """
+  version: Int
 }
 
 """
