@@ -90,15 +90,6 @@ export const verifyHcaDeployment: (
         deployment.contracts.verifiableFactory,
       );
 
-      if (
-        !(await client.readContract({
-          ...factory,
-          functionName: "approvedImplementations",
-          args: [hca.standaloneImplementation],
-        }))
-      )
-        throw new Error("Initial HCA implementation is not approved");
-
       const implementationCode = await client.getCode({
         address: hca.standaloneImplementation,
         blockNumber,

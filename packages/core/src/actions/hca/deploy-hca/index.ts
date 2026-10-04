@@ -2,6 +2,7 @@ import { Effect, Result } from "effect";
 
 import { standaloneHcaFactoryV2DeploymentAbi } from "@ensforge/contracts/v2";
 import {
+  parseEventLogs,
   encodeFunctionData,
   isAddressEqual,
   type Address,
@@ -24,6 +25,7 @@ import { verifyHcaDeployment } from "../../../internal/hca/verify-deployment.js"
 import { resolveWalletContext } from "../../../internal/services/wallet-client.js";
 import { WriteClient } from "../../../internal/write/write-client.js";
 import type { ConfirmationPolicy, WalletOverrides, WriteError } from "../../../write/types.js";
+import { getHcaImplementationApproval } from "../get-hca-implementation-approval/index.js";
 import { getHca } from "../get-hca/index.js";
 import { predictHcaAddress } from "../predict-hca-address/index.js";
 import { verifyHca } from "../verify-hca/index.js";
@@ -73,6 +75,20 @@ const prepareDeployment: EnsWriteIntentPreparer<DeployHcaParameters, WriteError>
     });
 
   yield* verifyHcaDeployment(config.publicClient, profile);
+
+  // Approval gates new deployments; an existing certified account remains reusable.
+  const state = yield* getHca.effect(config, {
+    hca: yield* predictHcaAddress.effect(config, parameters),
+  });
+
+  if (
+    state.status === "undeployed" &&
+    !(yield* getHcaImplementationApproval.effect(config, { implementation }))
+  )
+    return yield* new HcaError({
+      code: "UNSUPPORTED_DEPLOYMENT",
+      message: "The initial HCA implementation is not approved for new deployments",
+    });
 
   return {
     to: profile.contracts.standaloneFactory,
@@ -182,7 +198,24 @@ export const deployHca = defineWriteAction<DeployHcaParameters, DeployHcaResult,
 
     yield* verifyExisting();
 
-    return { status: "deployed", address, hash, receipt: confirmed.success };
+    const profile = yield* resolveHcaProfile(config);
+    // Reusing an account succeeds without HCADeployed, including a concurrent deployment.
+    const created = parseEventLogs({
+      abi: standaloneHcaFactoryV2DeploymentAbi,
+      eventName: "HCADeployed",
+      logs: confirmed.success.logs,
+    }).some(
+      (event) =>
+        isAddressEqual(event.address, profile.contracts.standaloneFactory) &&
+        isAddressEqual(event.args.hca, address),
+    );
+
+    return {
+      status: created ? "deployed" : "already-deployed",
+      address,
+      hash,
+      receipt: confirmed.success,
+    };
   }),
   prepareDeployment,
 );
