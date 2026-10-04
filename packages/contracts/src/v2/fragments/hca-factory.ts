@@ -3,6 +3,37 @@ import type { Abi } from "viem";
 /** Exact deployment fragments from the pinned Sepolia artifact snapshot. */
 export const standaloneHcaFactoryV2DeploymentAbi = [
   {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "hca",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "owner",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "implementation",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "userSalt",
+        type: "uint256",
+      },
+    ],
+    name: "HCADeployed",
+    type: "event",
+  },
+  {
     inputs: [],
     name: "HCAImplementationCannotBeZero",
     type: "error",

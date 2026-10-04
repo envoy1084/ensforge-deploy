@@ -13,7 +13,7 @@ concurrency:
 
 env:
   # Source matches the compiler inputs saved with the Sepolia deployment artifacts.
-  CONTRACTS_COMMIT: 71a3b7339dbc55ab47667abdfe8303bac4f4c24e
+  CONTRACTS_COMMIT: 07e55a056f5b6a9c90119f501bdd05714e67dddd
 
 jobs:
   publish:

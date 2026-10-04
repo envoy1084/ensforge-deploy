@@ -5,11 +5,11 @@ import type { EnsV2Deployment, EnsV2ExperimentalHcaContractAddresses } from "./t
 
 /** Account generation matched to the saved Sepolia compiler inputs, not branch-tip source. */
 export const hcaAccountGeneration = {
-  id: "ens-standalone-hca-1.1.0-71a3b73",
+  id: "ens-standalone-hca-1.1.0-07e55a0",
   accountId: "ens-standalone-hca.1.1.0",
   rhinestoneAccountVersion: "ens-standalone-1.1.0",
   artifactCommit: sepoliaV2Deployment.provenance.commit,
-  sourceCommit: "71a3b7339dbc55ab47667abdfe8303bac4f4c24e",
+  sourceCommit: "07e55a056f5b6a9c90119f501bdd05714e67dddd",
   canonicalSalt: 0n,
   entryPoint: "0x0000000071727De22E5E9d8BAf0edAc6f37da032",
   entryPointVersion: "0.7",

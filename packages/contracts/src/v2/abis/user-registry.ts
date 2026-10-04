@@ -8,6 +8,11 @@ export const userRegistryV2Abi = [
         type: "address",
       },
       {
+        internalType: "contract IRegistryURIRenderer",
+        name: "uriRenderer",
+        type: "address",
+      },
+      {
         internalType: "address",
         name: "namer",
         type: "address",
@@ -871,6 +876,19 @@ export const userRegistryV2Abi = [
         internalType: "string",
         name: "",
         type: "string",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "URI_RENDERER",
+    outputs: [
+      {
+        internalType: "contract IRegistryURIRenderer",
+        name: "",
+        type: "address",
       },
     ],
     stateMutability: "view",

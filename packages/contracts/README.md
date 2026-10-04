@@ -50,8 +50,8 @@ Package entrypoints include `deployments`, `resolver-profiles`, `shared`, `v1`, 
 ## Sepolia V2 snapshot
 
 Sepolia V2 addresses and ABIs follow the
-[deployment artifacts](https://github.com/ensdomains/contracts-v2/tree/71a3b7339dbc55ab47667abdfe8303bac4f4c24e/contracts/deployments/sepolia)
-at commit `71a3b7339dbc55ab47667abdfe8303bac4f4c24e`. Use the artifacts rather than branch-tip
+[deployment artifacts](https://github.com/ensdomains/contracts-v2/tree/07e55a056f5b6a9c90119f501bdd05714e67dddd/contracts/deployments/sepolia)
+at commit `07e55a056f5b6a9c90119f501bdd05714e67dddd`. Use the artifacts rather than branch-tip
 source. Run `pnpm verify:sepolia-v2` from the repository root to compare addresses and critical
 ABIs with this snapshot and check deployed code.
 

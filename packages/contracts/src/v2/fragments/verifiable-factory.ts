@@ -79,3 +79,30 @@ export const verifiableFactoryV2ProxyLogicAbi = [
     type: "function",
   },
 ] as const satisfies Abi;
+
+export const verifiableFactoryV2PredictProxyAddressAbi = [
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "deployer",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "salt",
+        type: "uint256",
+      },
+    ],
+    name: "predictProxyAddress",
+    outputs: [
+      {
+        internalType: "address",
+        name: "proxy",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+] as const satisfies Abi;

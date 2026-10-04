@@ -19,6 +19,8 @@ const client = createPublicClient({
 assert.equal(await client.getChainId(), sepolia.id, "Expected a Sepolia RPC");
 const blockNumber = await client.getBlockNumber();
 const entries = [
+  ["ENSURIRenderer", deployment.infrastructure.ensUriRenderer],
+  ["BoxedENSURIRenderer", deployment.infrastructure.boxedEnsUriRenderer],
   ["UpgradableUniversalResolverProxy", deployment.contracts.universalResolver],
   ["UniversalHelper", deployment.contracts.universalHelper],
   ["RootRegistry", deployment.contracts.rootRegistry],
@@ -56,6 +58,9 @@ const entries = [
   ["StandaloneHCAImplementation", deployment.experimental.hca.standaloneImplementation],
 ];
 const abis = {
+  ENSURIRenderer: contracts.ensUriRendererV2Abi,
+  BoxedENSURIRenderer: contracts.boxedEnsUriRendererV2Abi,
+  VerifiableFactory: contracts.verifiableFactoryV2Abi,
   ETHRegistrar: contracts.ethRegistrarV2Abi,
   ETHRenewerV1: contracts.ethRenewerV1Abi,
   PermissionedResolverImpl: contracts.permissionedResolverV2Abi,

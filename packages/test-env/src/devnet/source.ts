@@ -9,7 +9,7 @@ import { requireProcessSuccess, runProcess } from "../internal/process.js";
 
 export const ensContractsV2Repository = "https://github.com/ensdomains/contracts-v2.git" as const;
 
-export const ensContractsV2Commit = "71a3b7339dbc55ab47667abdfe8303bac4f4c24e" as const;
+export const ensContractsV2Commit = "07e55a056f5b6a9c90119f501bdd05714e67dddd" as const;
 
 export const ensDevnetChainId = 31337 as const;
 

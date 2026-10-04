@@ -27,3 +27,5 @@ export * from "./upgradable-universal-resolver-proxy.js";
 export * from "./managed-universal-resolver-proxy.js";
 export * from "./universal-helper.js";
 export * from "./root-batch-registrar.js";
+export * from "./ens-uri-renderer.js";
+export * from "./boxed-ens-uri-renderer.js";

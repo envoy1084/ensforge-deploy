@@ -33,6 +33,11 @@ export const wrapperRegistryV2Abi = [
         type: "address",
       },
       {
+        internalType: "contract IRegistryURIRenderer",
+        name: "uriRenderer",
+        type: "address",
+      },
+      {
         internalType: "contract IAddressSet",
         name: "publicResolverSet",
         type: "address",
@@ -1029,6 +1034,19 @@ export const wrapperRegistryV2Abi = [
     outputs: [
       {
         internalType: "contract IAddressSet",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "URI_RENDERER",
+    outputs: [
+      {
+        internalType: "contract IRegistryURIRenderer",
         name: "",
         type: "address",
       },

@@ -71,6 +71,8 @@ export interface EnsV2MigrationContractAddresses {
 }
 
 export interface EnsV2InfrastructureContractAddresses {
+  readonly ensUriRenderer?: Address;
+  readonly boxedEnsUriRenderer?: Address;
   readonly managedUniversalResolverProxy?: Address;
   readonly batchRegistrar: Address;
   readonly rootBatchRegistrar: Address;

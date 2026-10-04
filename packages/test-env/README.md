@@ -26,12 +26,12 @@ pnpm test:integration
 
 ## Sepolia-compatible source pin
 
-The runtime and publishing workflow use `71a3b7339dbc55ab47667abdfe8303bac4f4c24e`, the snapshot
+The runtime and publishing workflow use `07e55a056f5b6a9c90119f501bdd05714e67dddd`, the snapshot
 linked by the ENS deployment documentation. Deployment JSON artifacts remain the authority for
 Sepolia addresses and ABIs. Local contracts use their own discovered addresses.
 
-The default local image is `ensforge-contracts-devnet:71a3b73`. CI builds it from the same pinned
-source with `scripts/devnet.Dockerfile`. The publish workflow can publish `v2-71a3b73`; once published,
+The default local image is `ensforge-contracts-devnet:07e55a0`. CI builds it from the same pinned
+source with `scripts/devnet.Dockerfile`. The publish workflow can publish `v2-07e55a0`; once published,
 set `ENSFORGE_TEST_IMAGE` to the resulting immutable image digest to reuse it. Private GHCR images
 require Docker authentication and package read access. Do not reuse the previous deployment's image.
 
