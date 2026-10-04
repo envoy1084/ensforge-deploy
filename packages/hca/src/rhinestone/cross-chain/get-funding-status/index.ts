@@ -11,7 +11,7 @@ export const createGetFundingStatus = (
 ): RhinestoneCrossChain["getFundingStatus"] =>
   defineAction((config, input) =>
     Effect.tryPromise({
-      try: async () => {
+      try: async (): Promise<RhinestoneFundingStatus> => {
         const record = await loadFunding(context, config, input);
         const destinationBalance = await config.publicClient.readContract({
           address: record.destinationToken,

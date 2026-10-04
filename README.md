@@ -25,7 +25,7 @@ Type-safe tools for reading, writing, and building applications on ENS.
 Install the high-level SDK:
 
 ```sh
-pnpm add @ensforge/sdk effect@rc viem
+pnpm add @ensforge/sdk effect@^4 viem
 ```
 
 Create a client and call any grouped action:

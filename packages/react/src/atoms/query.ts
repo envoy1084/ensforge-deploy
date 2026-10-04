@@ -1,5 +1,5 @@
 import { Data, Effect } from "effect";
-import { Atom, type AsyncResult } from "effect/unstable/reactivity";
+import { Atom, type AsyncResult } from "effect/reactivity";
 
 import type { Ensforge } from "@ensforge/sdk";
 

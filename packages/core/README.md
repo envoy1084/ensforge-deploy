@@ -15,7 +15,7 @@ Type-safe actions and utilities for building ENS applications.
 ## Installation
 
 ```sh
-pnpm add @ensforge/core effect@rc viem
+pnpm add @ensforge/core effect@^4 viem
 ```
 
 ## Overview

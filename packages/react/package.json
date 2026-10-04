@@ -81,7 +81,7 @@
     "scheduler": "catalog:"
   },
   "peerDependencies": {
-    "effect": "^4.0.0-rc.112",
+    "effect": "^4.0.0",
     "react": ">=19.0.0 <20.0.0",
     "scheduler": ">=0.25.0 <0.28.0",
     "viem": "^2.56.0",

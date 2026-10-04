@@ -1,5 +1,5 @@
 import { Duration, Effect, Schema } from "effect";
-import { FetchHttpClient, HttpBody, HttpClient, HttpClientRequest } from "effect/unstable/http";
+import { FetchHttpClient, HttpBody, HttpClient, HttpClientRequest } from "effect/http";
 
 import type { EnsforgeConfig } from "../../config/config.js";
 import { getIndexerRuntimeConfig } from "../../config/indexer-options.js";

@@ -1,5 +1,5 @@
 import type { Cause, Effect } from "effect";
-import type { AsyncResult } from "effect/unstable/reactivity";
+import type { AsyncResult } from "effect/reactivity";
 
 import type { EnsMutationExecutionOptions } from "./options.js";
 

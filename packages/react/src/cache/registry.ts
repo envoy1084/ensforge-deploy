@@ -1,5 +1,5 @@
 import { scheduleTask } from "@effect/atom-react";
-import { AtomRegistry } from "effect/unstable/reactivity";
+import { AtomRegistry } from "effect/reactivity";
 
 export interface CreateRegistryOptions {
   readonly defaultIdleTTL?: number;

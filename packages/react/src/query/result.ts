@@ -1,5 +1,5 @@
 import { Cause, Option, type Effect } from "effect";
-import { AsyncResult } from "effect/unstable/reactivity";
+import { AsyncResult } from "effect/reactivity";
 
 export interface EnsAtomResult<Success, Failure> {
   readonly cause: Cause.Cause<Failure> | null;

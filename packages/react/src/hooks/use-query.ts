@@ -4,7 +4,7 @@ import { useContext } from "react";
 
 import { RegistryContext, useAtomValue } from "@effect/atom-react";
 import { Effect, Option } from "effect";
-import { AsyncResult, Atom, AtomRegistry } from "effect/unstable/reactivity";
+import { AsyncResult, Atom, AtomRegistry } from "effect/reactivity";
 
 import type { EnsAtomFactory } from "../atoms/query.js";
 import { useEnsforgeContext } from "../provider/context.js";

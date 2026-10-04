@@ -14,7 +14,7 @@ Reactive React hooks for building ENS applications.
 ## Installation
 
 ```sh
-pnpm add @ensforge/react react effect@rc viem wagmi
+pnpm add @ensforge/react react effect@^4 viem wagmi
 ```
 
 ## Overview

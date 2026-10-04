@@ -1,5 +1,5 @@
 import { Effect } from "effect";
-import { Reactivity, type Atom } from "effect/unstable/reactivity";
+import { Reactivity, type Atom } from "effect/reactivity";
 
 import type { Ensforge } from "@ensforge/sdk";
 

@@ -1,4 +1,4 @@
-import { HttpClientError } from "effect/unstable/http";
+import { HttpClientError } from "effect/http";
 
 import { IndexerRequestError } from "../../errors/indexer-request-error.js";
 import type { IndexerSource } from "./source.js";

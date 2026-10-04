@@ -4,7 +4,7 @@ import { useContext, useMemo, useState } from "react";
 
 import { RegistryContext, useAtomValue } from "@effect/atom-react";
 import { Cause, Effect, Exit, Option, type Schedule } from "effect";
-import { AsyncResult, Atom, AtomRegistry } from "effect/unstable/reactivity";
+import { AsyncResult, Atom, AtomRegistry } from "effect/reactivity";
 
 import type { EnsMutationAtomFactory } from "../atoms/mutation.js";
 import type { EnsMutationExecutionOptions, EnsMutationOptions } from "../mutation/options.js";

@@ -1,5 +1,5 @@
 import { Data, Stream, type Cause } from "effect";
-import { Atom } from "effect/unstable/reactivity";
+import { Atom } from "effect/reactivity";
 
 import type { Ensforge } from "@ensforge/sdk";
 
