@@ -1,4 +1,4 @@
-import { defineConfig, McpSource } from "vocs/config";
+import { defineConfig } from "vocs/config";
 
 import { interactiveOutput } from "./markdown/interactive-output.js";
 import { sidebar } from "./sidebar.js";
@@ -45,8 +45,7 @@ export default defineConfig({
     outputRemarkPlugins: [interactiveOutput],
   },
   mcp: {
-    enabled: true,
-    sources: [McpSource.github({ name: "ensforge", repo: "thenamespace/ensforge" })],
+    enabled: false,
   },
   ogImageUrl: (_path, { baseUrl }) =>
     `${baseUrl ?? ""}/api/og?title=%title&description=%description`,
